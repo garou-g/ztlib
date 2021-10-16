@@ -28,9 +28,9 @@ public:
 
     bool isZero() const;
 
-    uint32_t toSec(void) const;
-    uint32_t toUTC(void) const;
-    uint32_t toMsec(void) const;
+    int32_t toSec(void) const;
+    int32_t toUTC(void) const;
+    int32_t toMsec(void) const;
 
     int32_t getHour(void) const;
     int32_t getSec(void) const;

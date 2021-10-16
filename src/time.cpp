@@ -143,9 +143,9 @@ bool Time::isZero() const
 /**
  * @brief Returns seconds representation of Time object
  *
- * @return uint32_t seconds from device start
+ * @return int32_t seconds value
  */
-uint32_t Time::toSec(void) const
+int32_t Time::toSec(void) const
 {
     return hour * 3600U + sec;
 }
@@ -154,9 +154,9 @@ uint32_t Time::toSec(void) const
  * @brief Returns seconds representation of Time object
  *      with UTC correction
  *
- * @return uint32_t seconds from device start with UTC correction
+ * @return int32_t seconds value with UTC correction
  */
-uint32_t Time::toUTC(void) const
+int32_t Time::toUTC(void) const
 {
     return hour * 3600U + sec + deltaUTC;
 }
@@ -164,9 +164,9 @@ uint32_t Time::toUTC(void) const
 /**
  * @brief Returns milliseconds representation of Time object
  *
- * @return uint32_t milliseconds from device start
+ * @return int32_t milliseconds value
  */
-uint32_t Time::toMsec(void) const
+int32_t Time::toMsec(void) const
 {
     return hour * 3600000U + sec * 1000U + msec;
 }
