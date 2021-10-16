@@ -84,16 +84,21 @@ const Time& Module::nextCallTime() const
  *      to actually work in the successor classes. Returns the Time object
  *      to wait for the next call to this object's dispatcher
  *
- * @return const Time& new call delay time
+ * @return const Time new call delay time
  */
-const Time& Module::dispatcher()
+const Time Module::dispatcher()
 {
     // Dispatcher called only if was zero delay or time has come
-    if (_delayTime.isZero() || Time::now() >= _nextCallTime) {
+    Time now = Time::now();
+    if (_delayTime.isZero() || now >= _nextCallTime) {
         _delayTime = _dispatcher();    // Call actual dispatcher function
         _nextCallTime = Time::now() + _delayTime;
+        return _delayTime;  // Full delay time just after dispatcher call
+    } else {
+        // Calculate estimated delay time when called early
+        Time estimatedTime = now - _nextCallTime;
+        return estimatedTime.toMsec() >= 0 ? estimatedTime : Time();
     }
-    return _delayTime;
 }
 
 /**

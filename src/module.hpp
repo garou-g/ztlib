@@ -36,7 +36,7 @@ public:
 
     const Time& delayTime() const;
     const Time& nextCallTime() const;
-    const Time& dispatcher();
+    const Time dispatcher();
     void requestDispatcher();
 
 protected:
