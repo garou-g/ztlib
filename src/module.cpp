@@ -20,6 +20,7 @@
 Module::Module()
     : _delayTime(Time())
     , _nextCallTime(Time())
+    , _suspended(false)
 #if defined(FREERTOS_USED)
     , xHandle(NULL)
 #endif
@@ -38,6 +39,7 @@ Module::Module()
 Module::Module(const char* name, uint32_t stack, UBaseType_t prior)
     : _delayTime(Time())
     , _nextCallTime(Time())
+    , _suspended(false)
 {
     xTaskCreate(task, name, stack, this, prior, &xHandle);
 }
@@ -88,6 +90,10 @@ const Time& Module::nextCallTime() const
  */
 const Time Module::dispatcher()
 {
+    // If suspended - no processing, just return last full delay time
+    if (_suspended)
+        return _delayTime;
+
     // Dispatcher called only if was zero delay or time has come
     Time now = Time::now();
     if (_delayTime.isZero() || now >= _nextCallTime) {
@@ -99,6 +105,20 @@ const Time Module::dispatcher()
         Time estimatedTime = now - _nextCallTime;
         return estimatedTime.toMsec() >= 0 ? estimatedTime : Time();
     }
+}
+
+/**
+ * @brief Suspend dispatcher work until it will be resumed
+ */
+void Module::suspend()
+{
+#if defined(FREERTOS_USED)
+    // Suspend by FreeRTOS function
+    vTaskSuspend(NULL);
+#else
+    // Set suspend flag for no RTOS work
+    _suspended = true;
+#endif
 }
 
 /**
@@ -117,6 +137,9 @@ void Module::resume()
         else
             xTaskNotifyGive(xHandle);
     }
+#else
+    // Reset suspend flag for no RTOS work
+    _suspended = false;
 #endif
 }
 

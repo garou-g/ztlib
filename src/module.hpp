@@ -37,6 +37,7 @@ public:
     const Time& delayTime() const;
     const Time& nextCallTime() const;
     const Time dispatcher();
+    void suspend();
     void resume();
 
 protected:
@@ -52,6 +53,7 @@ protected:
 private:
     Time _delayTime;
     Time _nextCallTime;
+    bool _suspended;
 
 #if defined(FREERTOS_USED)
     TaskHandle_t xHandle;
