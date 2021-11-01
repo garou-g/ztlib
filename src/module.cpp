@@ -105,7 +105,7 @@ const Time Module::dispatcher()
  * @brief Causes the next dispatcher call to execute as soon as possible
  *      regardless of nextCallTime and delayTime
  */
-void Module::requestDispatcher()
+void Module::resume()
 {
     // Zeroing delayTime causes calling of the virtual _dispatcher function
     _delayTime = Time();
