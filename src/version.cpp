@@ -33,38 +33,37 @@ void Version::getHardwareVersion(Hardware& hw)
     HwVolt hwVolt = getHwValue();
     hw = { 0, 0, 0 };
     if (hwVolt.major < 200) {
-        hw.major1 = 1;
-        hw.major2 = 0;
+        hw.major1 = 0;
     } else if (hwVolt.major >= 200 && hwVolt.major < 400) {
-        // Next versions
+        hw.major1 = 1;
     } else if (hwVolt.major >= 400 && hwVolt.major < 600) {
-        // Next versions
+        hw.major1 = 2;
     } else if (hwVolt.major >= 600 && hwVolt.major < 800) {
-        // Next versions
+        hw.major1 = 3;
     } else if (hwVolt.major >= 800 && hwVolt.major < 1000) {
-        // Next versions
+        hw.major1 = 4;
     } else if (hwVolt.major >= 1000 && hwVolt.major < 1200) {
-        // Next versions
+        hw.major1 = 5;
     } else if (hwVolt.major >= 1200 && hwVolt.major < 1400) {
-        // Next versions
+        hw.major1 = 6;
     } else if (hwVolt.major >= 1400 && hwVolt.major < 1650) {
-        // Next versions
+        hw.major1 = 7;
     } else if (hwVolt.major >= 1650 && hwVolt.major < 1850) {
-        // Next versions
+        hw.major1 = 8;
     } else if (hwVolt.major >= 1850 && hwVolt.major < 2050) {
-        // Next versions
+        hw.major1 = 9;
     } else if (hwVolt.major >= 2050 && hwVolt.major < 2250) {
-        // Next versions
+        hw.major1 = 10;
     } else if (hwVolt.major >= 2250 && hwVolt.major < 2450) {
-        // Next versions
+        hw.major1 = 11;
     } else if (hwVolt.major >= 2450 && hwVolt.major < 2650) {
-        // Next versions
+        hw.major1 = 12;
     } else if (hwVolt.major >= 2650 && hwVolt.major < 2850) {
-        // Next versions
+        hw.major1 = 13;
     } else if (hwVolt.major >= 2850 && hwVolt.major < 3050) {
-        // Next versions
+        hw.major1 = 14;
     } else if (hwVolt.major >= 3050) {
-        // Next versions
+        hw.major1 = 15;
     }
 
     // Parse minor board version
