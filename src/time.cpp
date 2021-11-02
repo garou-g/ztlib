@@ -47,7 +47,7 @@ Time Time::now(void)
  * @param delay delay time from start
  * @return true if current time exceeds delay otherwise false
  */
-bool Time::isPast(Time& start, Time& delay)
+bool Time::isPast(const Time& start, const Time& delay)
 {
     return Time::now() > (start + delay);
 }
@@ -58,7 +58,7 @@ bool Time::isPast(Time& start, Time& delay)
  * @param end end time interval
  * @return true if current time exceeds end time otherwise false
  */
-bool Time::isPast(Time& end)
+bool Time::isPast(const Time& end)
 {
     return Time::now() > end;
 }

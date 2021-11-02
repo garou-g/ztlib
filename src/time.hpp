@@ -18,8 +18,8 @@
 class Time {
 public:
     static Time now(void);
-    static bool isPast(Time& start, Time& delay);
-    static bool isPast(Time& end);
+    static bool isPast(const Time& start, const Time& delay);
+    static bool isPast(const Time& end);
     static uint32_t getSystemTime();
     static bool setSystemTime(uint32_t utc, uint32_t maxDelta);
 
