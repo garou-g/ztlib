@@ -41,6 +41,7 @@ Module::Module(const char* name, uint32_t stack, UBaseType_t prior)
     : _delayTime(Time())
     , _nextCallTime(Time())
     , _suspended(false)
+    , _availability(true)
 {
     xTaskCreate(task, name, stack, this, prior, &xHandle);
 }
