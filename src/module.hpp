@@ -33,6 +33,7 @@ public:
     Module(const char* name, uint32_t stack, UBaseType_t prior);
     void taskInit(const char* name, uint32_t stack, UBaseType_t prior);
 #endif
+    bool isAvailable() const;
 
     const Time& delayTime() const;
     const Time& nextCallTime() const;
@@ -41,6 +42,8 @@ public:
     void resume();
 
 protected:
+    void setAvailability(bool value);
+
     /**
      * @brief Virtual dispatcher for overriding in successor classes. Returns
      *      the Time object to wait for the next call to this object's
@@ -54,6 +57,7 @@ private:
     Time _delayTime;
     Time _nextCallTime;
     bool _suspended;
+    bool _availability;
 
 #if defined(FREERTOS_USED)
     TaskHandle_t xHandle;

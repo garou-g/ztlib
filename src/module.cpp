@@ -21,6 +21,7 @@ Module::Module()
     : _delayTime(Time())
     , _nextCallTime(Time())
     , _suspended(false)
+    , _availability(true)
 #if defined(FREERTOS_USED)
     , xHandle(NULL)
 #endif
@@ -58,6 +59,20 @@ void Module::taskInit(const char* name, uint32_t stack, UBaseType_t prior)
         xTaskCreate(task, name, stack, this, prior, &xHandle);
 }
 #endif
+
+/**
+ * @brief Returns availability of the module to use. Is it configured correctly,
+ *      has all drivers installed, etc. For example, in device-specific
+ *      cases where some modules are not available on the current hardware,
+ *      but the software still references those modules. Can be used inside or
+ *      outside the module
+ *
+ * @return true if module can be used, otherwise false
+ */
+bool Module::isAvailable() const
+{
+    return _availability;
+}
 
 /**
  * @brief Returns the Time object to wait for the next call to this
@@ -144,6 +159,16 @@ void Module::resume()
 }
 
 /* Private functions ---------------------------------------------------------*/
+
+/**
+ * @brief Set the availability property of the module
+ *
+ * @param value new state
+ */
+void Module::setAvailability(bool value)
+{
+    _availability = value;
+}
 
 #if defined(FREERTOS_USED)
 /**
