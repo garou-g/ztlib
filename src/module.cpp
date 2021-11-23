@@ -129,8 +129,11 @@ const Time Module::dispatcher()
 void Module::suspend()
 {
 #if defined(FREERTOS_USED)
-    // Suspend by FreeRTOS function
-    vTaskSuspend(NULL);
+    // Suspend by FreeRTOS function or set suspend flag for no RTOS work
+    if (xHandle)
+        vTaskSuspend(NULL);
+    else
+        _suspended = true;
 #else
     // Set suspend flag for no RTOS work
     _suspended = true;
@@ -146,12 +149,15 @@ void Module::resume()
     // Zeroing delayTime causes calling of the virtual _dispatcher function
     _delayTime = Time();
 #if defined(FREERTOS_USED)
-    // With FreeRTOS also notify or resume task if it in suspended state
+    // With FreeRTOS also notify or resume task if it in suspended state,
+    // or reset suspend flag for no RTOS work
     if (xHandle) {
         if (eTaskGetState(xHandle) == eSuspended)
             vTaskResume(xHandle);
         else
             xTaskNotifyGive(xHandle);
+    } else {
+        _suspended = false;
     }
 #else
     // Reset suspend flag for no RTOS work
