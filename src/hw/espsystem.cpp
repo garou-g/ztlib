@@ -5,11 +5,12 @@
  ******************************************************************************/
 
 /* Includes ------------------------------------------------------------------*/
-#include "espsystem.hpp"
-
 #include "esp_system.h"
 #include "nvs_flash.h"
 #include "hw/espversion.hpp"
+
+#include "espsystem.hpp"
+#include "espversion.hpp"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private defines -----------------------------------------------------------*/
@@ -26,11 +27,9 @@ RTC_NOINIT_ATTR System::BootStatus EspSystem::_bootStatus;
 
 /**
  * @brief Construct a new EspSystem object
- *
- * @param ver version instance
  */
-EspSystem::EspSystem(Version* ver)
-    : System(ver)
+EspSystem::EspSystem()
+    : System(new EspVersion())
 {
     // One time NVS flash init
     esp_err_t nvsErr = nvs_flash_init();

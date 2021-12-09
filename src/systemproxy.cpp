@@ -8,7 +8,6 @@
 #include "systemproxy.hpp"
 
 #include "espsystem.hpp"
-#include "espversion.hpp"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private defines -----------------------------------------------------------*/
@@ -25,7 +24,7 @@
 System* SystemProxy::initSystemByPlatform()
 {
 #if defined(ESP_PLATFORM)
-    return new EspSystem(new EspVersion());
+    return new EspSystem();
 #else
 #error("Not defined platform for version definition")
 #endif

@@ -24,7 +24,7 @@
  */
 class EspSystem final : public System {
 public:
-    EspSystem(Version* ver);
+    EspSystem();
 
 protected:
     const BootStatus& bootStatus() const override;
