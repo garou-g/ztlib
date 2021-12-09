@@ -9,21 +9,12 @@
 #define __SYSTEM_H
 
 /* Includes ------------------------------------------------------------------*/
-#include "version.hpp"
 #include <stdint.h>
+
+#include "version.hpp"
 
 /* Exported constants --------------------------------------------------------*/
 /* Exported types ------------------------------------------------------------*/
-
-/**
- * @brief Boot status structure handles reset reason and counter and etc.
- */
-typedef struct {
-    uint16_t resetReason;
-    uint16_t resetCounter;
-    uint16_t firstStart; // Need to be 0x55AA
-} BootStatus;
-
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
 
@@ -42,11 +33,24 @@ public:
     uint16_t resetReason() const;
     uint16_t resetCounter() const;
 
+protected:
+    struct BootStatus {
+        uint16_t resetReason;
+        uint16_t resetCounter;
+        uint16_t firstStart; // Need to be 0x55AA
+    };
+
+    /**
+     * @brief Returns current boot status structure. Must be getter for
+     *      noinit sleep retained memory.
+     */
+    virtual const BootStatus& bootStatus() const = 0;
+
+    System(Version* ver);
+    virtual ~System() {} // Empty virtual destructor for inheritance fix
+
 private:
     static System* system;
-    static BootStatus bootStatus;
-
-    System();
 
     Version* version;
     Version::Hardware hardware;

@@ -2,21 +2,13 @@
  * @file    system.cpp
  * @author  garou (xgaroux@gmail.com)
  * @brief   Global system class functions.
- * @date    2021-05-10
  ******************************************************************************/
 
 /* Includes ------------------------------------------------------------------*/
-#include "system.hpp"
-#include "version.hpp"
-#include <stdlib.h>
+#include <assert.h>
 
-#if defined(ESP_PLATFORM)
-#include "esp_system.h"
-#include "nvs_flash.h"
-#include "hw/espversion.hpp"
-#else
-#error("Not defined platform for version definition")
-#endif
+#include "system.hpp"
+#include "systemproxy.hpp"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private defines -----------------------------------------------------------*/
@@ -29,11 +21,6 @@
  */
 System* System::system = nullptr;
 
-/**
- * @brief Global boot status structure for holding reset states
- */
-__NOINIT_ATTR BootStatus System::bootStatus;
-
 /* Exported functions --------------------------------------------------------*/
 
 /**
@@ -43,7 +30,7 @@ void System::init()
 {
     if (system != nullptr)
         delete system;
-    system = new System();
+    system = SystemProxy::initSystemByPlatform();
 }
 
 /**
@@ -53,6 +40,7 @@ void System::init()
  */
 System& System::getInstance()
 {
+    assert(system != nullptr);
     return *system;
 }
 
@@ -83,7 +71,7 @@ const Version::Firmware& System::firmwareVersion() const
  */
 bool System::isFirstStart() const
 {
-    return bootStatus.resetCounter == 1;
+    return bootStatus().resetCounter == 1;
 }
 
 /**
@@ -93,7 +81,7 @@ bool System::isFirstStart() const
  */
 uint16_t System::resetReason() const
 {
-    return bootStatus.resetReason;
+    return bootStatus().resetReason;
 }
 
 /**
@@ -103,42 +91,22 @@ uint16_t System::resetReason() const
  */
 uint16_t System::resetCounter() const
 {
-    return bootStatus.resetCounter;
+    return bootStatus().resetCounter;
 }
 
 /* Private functions ---------------------------------------------------------*/
 
 /**
  * @brief Construct a new System object
+ *
+ * @param ver version instance
  */
-System::System()
+System::System(Version* ver)
+    : version(ver)
 {
-    // One time NVS flash init
-    esp_err_t nvsErr = nvs_flash_init();
-    if (nvsErr == ESP_ERR_NVS_NO_FREE_PAGES ||
-        nvsErr == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        // NVS partition was truncated and needs to be erased
-        // Retry nvs_flash_init
-        nvs_flash_erase();
-        nvs_flash_init();
-    }
-
-    // Fill hardware and firmware versions
-#if defined(ESP_PLATFORM)
-    version = new EspVersion();
-#endif
+    assert(version != nullptr);
     version->getHardwareVersion(hardware);
     version->getFirmwareVersion(firmware);
-    delete version;
-
-    // Reset states update
-    bootStatus.resetReason = (uint16_t)esp_reset_reason();
-    if (bootStatus.firstStart != 0x55AA) {
-        bootStatus.firstStart = 0x55AA;
-        bootStatus.resetCounter = 1;
-    } else {
-        bootStatus.resetCounter++;
-    }
 }
 
 /***************************** END OF FILE ************************************/
