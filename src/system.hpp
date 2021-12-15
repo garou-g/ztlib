@@ -34,20 +34,16 @@ public:
     uint16_t resetCounter() const;
 
 protected:
+    System(Version* ver);
+    virtual ~System() {} // Empty virtual destructor for inheritance fix
+
     struct BootStatus {
         uint16_t resetReason;
         uint16_t resetCounter;
         uint16_t firstStart; // Need to be 0x55AA
     };
 
-    /**
-     * @brief Returns current boot status structure. Must be getter for
-     *      noinit sleep retained memory.
-     */
-    virtual const BootStatus& bootStatus() const = 0;
-
-    System(Version* ver);
-    virtual ~System() {} // Empty virtual destructor for inheritance fix
+    static BootStatus bootStatus;
 
 private:
     static System* system;

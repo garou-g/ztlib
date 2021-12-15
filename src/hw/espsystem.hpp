@@ -25,12 +25,6 @@
 class EspSystem final : public System {
 public:
     EspSystem();
-
-protected:
-    const BootStatus& bootStatus() const override;
-
-private:
-    static BootStatus _bootStatus;
 };
 
 #endif /* __ESP_SYSTEM_H */

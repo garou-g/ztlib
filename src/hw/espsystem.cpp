@@ -17,12 +17,6 @@
 /* Private macros ------------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-
-/**
- * @brief Global boot status structure for holding reset states
- */
-RTC_NOINIT_ATTR System::BootStatus EspSystem::_bootStatus;
-
 /* Exported functions --------------------------------------------------------*/
 
 /**
@@ -42,25 +36,15 @@ EspSystem::EspSystem()
     }
 
     // Reset states update
-    _bootStatus.resetReason = (uint16_t)esp_reset_reason();
-    if (_bootStatus.firstStart != 0x55AA) {
-        _bootStatus.firstStart = 0x55AA;
-        _bootStatus.resetCounter = 1;
+    bootStatus.resetReason = (uint16_t)esp_reset_reason();
+    if (bootStatus.firstStart != 0x55AA) {
+        bootStatus.firstStart = 0x55AA;
+        bootStatus.resetCounter = 1;
     } else {
-        _bootStatus.resetCounter++;
+        bootStatus.resetCounter++;
     }
 }
 
 /* Private functions ---------------------------------------------------------*/
-
-/**
- * @brief Returns current boot status structure
- *
- * @return const BootStatus& current boot status
- */
-const System::BootStatus& EspSystem::bootStatus() const
-{
-    return _bootStatus;
-}
 
 /***************************** END OF FILE ************************************/

@@ -9,12 +9,18 @@
 
 #include "system.hpp"
 #include "systemproxy.hpp"
+#include "attr.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private defines -----------------------------------------------------------*/
 /* Private macros ------------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+
+/**
+ * @brief Global boot status structure for holding reset states
+ */
+RETAIN_NOINIT_ATTR System::BootStatus System::bootStatus;
 
 /**
  * @brief Global object pointer for singleton operations
@@ -71,7 +77,7 @@ const Version::Firmware& System::firmwareVersion() const
  */
 bool System::isFirstStart() const
 {
-    return bootStatus().resetCounter == 1;
+    return bootStatus.resetCounter == 1;
 }
 
 /**
@@ -81,7 +87,7 @@ bool System::isFirstStart() const
  */
 uint16_t System::resetReason() const
 {
-    return bootStatus().resetReason;
+    return bootStatus.resetReason;
 }
 
 /**
@@ -91,7 +97,7 @@ uint16_t System::resetReason() const
  */
 uint16_t System::resetCounter() const
 {
-    return bootStatus().resetCounter;
+    return bootStatus.resetCounter;
 }
 
 /* Private functions ---------------------------------------------------------*/
