@@ -5,14 +5,10 @@
  ******************************************************************************/
 
 /* Includes ------------------------------------------------------------------*/
-#include "time.hpp"
 #include <sys/time.h>
 
-#if defined(ESP_PLATFORM)
-#include "esp_attr.h"
-#else
-#define __NOINIT_ATTR
-#endif
+#include "time.hpp"
+#include "attr.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private defines -----------------------------------------------------------*/
@@ -28,7 +24,7 @@ const int32_t Time::kMilisecondsInHour = 3600000;
  * @brief UTC correction value is global for all Time instance.
  *      It needs to be placed in noinit section to prevent zeroing on restart.
  */
-__NOINIT_ATTR uint32_t Time::deltaUTC;
+RETAIN_NOINIT_ATTR uint32_t Time::deltaUTC;
 
 /* Exported functions --------------------------------------------------------*/
 

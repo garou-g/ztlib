@@ -66,10 +66,11 @@ public:
 private:
     void normalize(void);
 
+    static uint32_t deltaUTC;
+
     int32_t hour;
     int32_t sec;
     int32_t msec;
-    static uint32_t deltaUTC;
 };
 
 #endif /* __TIME_H */
