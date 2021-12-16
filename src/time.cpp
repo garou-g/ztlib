@@ -20,6 +20,10 @@
 /* Private function prototypes -----------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 
+const int32_t Time::kSecondsInHour = 3600;
+const int32_t Time::kMilisecondsInSecond = 1000;
+const int32_t Time::kMilisecondsInHour = 3600000;
+
 /**
  * @brief UTC correction value is global for all Time instance.
  *      It needs to be placed in noinit section to prevent zeroing on restart.
@@ -147,7 +151,7 @@ bool Time::isZero() const
  */
 int32_t Time::toSec(void) const
 {
-    return hour * 3600U + sec;
+    return hour * kSecondsInHour + sec;
 }
 
 /**
@@ -158,7 +162,7 @@ int32_t Time::toSec(void) const
  */
 int32_t Time::toUTC(void) const
 {
-    return hour * 3600U + sec + deltaUTC;
+    return hour * kSecondsInHour + sec + deltaUTC;
 }
 
 /**
@@ -168,7 +172,7 @@ int32_t Time::toUTC(void) const
  */
 int32_t Time::toMsec(void) const
 {
-    return hour * 3600000U + sec * 1000U + msec;
+    return hour * kMilisecondsInHour + sec * kMilisecondsInSecond + msec;
 }
 
 /**
@@ -430,19 +434,19 @@ bool Time::operator>=(const Time& c) const
  */
 void Time::normalize(void)
 {
-    int32_t tmp = msec / 1000;
+    int32_t tmp = msec / kMilisecondsInSecond;
     sec += tmp;
-    msec -= tmp * 1000;
+    msec -= tmp * kMilisecondsInSecond;
     if (msec < 0) {
-        msec += 1000;
+        msec += kMilisecondsInSecond;
         sec--;
     }
 
-    tmp = sec / 3600;
+    tmp = sec / kSecondsInHour;
     hour += tmp;
-    sec -= tmp * 3600;
+    sec -= tmp * kSecondsInHour;
     if (sec < 0) {
-        sec += 3600;
+        sec += kSecondsInHour;
         hour--;
     }
 }

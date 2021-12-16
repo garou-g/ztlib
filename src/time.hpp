@@ -23,6 +23,10 @@ public:
     static uint32_t getSystemTime();
     static bool setSystemTime(uint32_t utc, uint32_t maxDelta);
 
+    static const int32_t kSecondsInHour;
+    static const int32_t kMilisecondsInSecond;
+    static const int32_t kMilisecondsInHour;
+
     Time(void);
     Time(int32_t h, int32_t s, int32_t ms);
 
