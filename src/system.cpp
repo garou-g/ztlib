@@ -81,16 +81,6 @@ bool System::isFirstStart() const
 }
 
 /**
- * @brief Returns code of previous reset reason
- *
- * @return uint16_t reset reason code
- */
-uint16_t System::resetReason() const
-{
-    return bootStatus.resetReason;
-}
-
-/**
  * @brief Returns count of resets since device power on
  *
  * @return uint16_t reset count
@@ -98,6 +88,66 @@ uint16_t System::resetReason() const
 uint16_t System::resetCounter() const
 {
     return bootStatus.resetCounter;
+}
+
+/**
+ * @brief Returns reason of last reset
+ *
+ * @return uint16_t last reset reason
+ */
+System::ResetReason System::resetReason() const
+{
+    return mResetReason;
+}
+
+/**
+ * @brief Returns reason of last wakeup
+ *
+ * @return System::WakeupReason last wakeup reason
+ */
+System::WakeupReason System::wakeupReason() const
+{
+    return mWakeupReason;
+}
+
+/**
+ * @brief Sets time for wakeup from sleep
+ *
+ * @param timeMs wakeup time in ms
+ */
+void System::setWakeupTime(uint32_t timeMs)
+{
+    mWakeupTime = timeMs;
+}
+
+/**
+ * @brief Returns current wakeup from sleep time
+ *
+ * @return uint32_t current wakeup time in ms
+ */
+uint32_t System::wakeupTime() const
+{
+    return mWakeupTime;
+}
+
+/**
+ * @brief Sets and enables wakeup by external pin
+ *
+ * @param pin wakeup pin
+ */
+void System::setWakeupPin(int32_t pin)
+{
+    mWakeupPin = pin;
+}
+
+/**
+ * @brief Returns current wakeup from sleep pin
+ *
+ * @return int32_t current wakeup pin
+ */
+int32_t System::wakeupPin() const
+{
+    return mWakeupPin;
 }
 
 /* Private functions ---------------------------------------------------------*/
@@ -109,10 +159,34 @@ uint16_t System::resetCounter() const
  */
 System::System(Version* ver)
     : version(ver)
+    , mResetReason(kResetUnknown)
+    , mWakeupReason(kWakeupUnknown)
+    , mWakeupTime(0)
+    , mWakeupPin(-1)
 {
     assert(version != nullptr);
     version->getHardwareVersion(hardware);
     version->getFirmwareVersion(firmware);
+}
+
+/**
+ * @brief Sets last reset reason
+ *
+ * @param reset last reset reason
+ */
+void System::setResetReason(System::ResetReason reset)
+{
+    mResetReason = reset;
+}
+
+/**
+ * @brief Sets last wakeup reason
+ *
+ * @param wakeup last wakeup reason
+ */
+void System::setWakeupReason(System::WakeupReason wakeup)
+{
+    mWakeupReason = wakeup;
 }
 
 /***************************** END OF FILE ************************************/

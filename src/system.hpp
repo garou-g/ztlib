@@ -29,18 +29,44 @@ public:
 
     const Version::Hardware& hardwareVersion() const;
     const Version::Firmware& firmwareVersion() const;
+
+    enum ResetReason {
+        kResetUnknown,
+        kResetPowerOn,
+        kResetSoftware,
+        kResetPanic,
+        kResetWatchdog,
+        kResetSleep,
+        kResetBrownout,
+    };
+
+    enum WakeupReason {
+        kWakeupUnknown,
+        kWakeupPin,
+        kWakeupTimer,
+    };
+
     bool isFirstStart() const;
-    uint16_t resetReason() const;
     uint16_t resetCounter() const;
+    ResetReason resetReason() const;
+    WakeupReason wakeupReason() const;
+
+    virtual void goToSleep() const = 0;
+    void setWakeupTime(uint32_t timeMs);
+    uint32_t wakeupTime() const;
+    void setWakeupPin(int32_t pin);
+    int32_t wakeupPin() const;
 
 protected:
     System(Version* ver);
     virtual ~System() {} // Empty virtual destructor for inheritance fix
 
+    void setResetReason(ResetReason reset);
+    void setWakeupReason(WakeupReason wakeup);
+
     struct BootStatus {
-        uint16_t resetReason;
-        uint16_t resetCounter;
         uint16_t firstStart; // Need to be 0x55AA
+        uint16_t resetCounter;
     };
 
     static BootStatus bootStatus;
@@ -51,6 +77,11 @@ private:
     Version* version;
     Version::Hardware hardware;
     Version::Firmware firmware;
+
+    ResetReason mResetReason;
+    WakeupReason mWakeupReason;
+    uint32_t mWakeupTime;
+    int32_t mWakeupPin;
 };
 
 #endif /* __SYSTEM_H */

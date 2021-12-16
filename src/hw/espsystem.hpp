@@ -25,6 +25,8 @@
 class EspSystem final : public System {
 public:
     EspSystem();
+
+    void goToSleep() const override;
 };
 
 #endif /* __ESP_SYSTEM_H */
