@@ -120,7 +120,6 @@ void EspSystem::goToSleep() const
     // Disable default pullup of IO5 and isolate pins from leakage
     gpio_pullup_dis(GPIO_NUM_5);
     rtc_gpio_isolate(GPIO_NUM_4);
-    rtc_gpio_isolate(GPIO_NUM_16);
 
     // Go to deep sleep. 150 uA without anything, 300 uA with sensors enabled
     esp_deep_sleep_start();
