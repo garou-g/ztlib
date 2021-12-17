@@ -106,9 +106,9 @@ const Time& Module::nextCallTime() const
  */
 const Time Module::dispatcher()
 {
-    // If suspended - no processing, just return last full delay time
+    // If suspended - no processing, just return big delay time
     if (_suspended)
-        return _delayTime;
+        return Time(24, 0, 0);
 
     // Dispatcher called only if was zero delay or time has come
     Time now = Time::now();
