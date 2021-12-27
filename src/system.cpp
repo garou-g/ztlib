@@ -97,7 +97,7 @@ uint16_t System::resetCounter() const
  */
 System::ResetReason System::resetReason() const
 {
-    return mResetReason;
+    return _resetReason;
 }
 
 /**
@@ -107,7 +107,7 @@ System::ResetReason System::resetReason() const
  */
 System::WakeupReason System::wakeupReason() const
 {
-    return mWakeupReason;
+    return _wakeupReason;
 }
 
 /**
@@ -117,7 +117,7 @@ System::WakeupReason System::wakeupReason() const
  */
 void System::setWakeupTime(uint32_t timeMs)
 {
-    mWakeupTime = timeMs;
+    _wakeupTime = timeMs;
 }
 
 /**
@@ -127,7 +127,7 @@ void System::setWakeupTime(uint32_t timeMs)
  */
 uint32_t System::wakeupTime() const
 {
-    return mWakeupTime;
+    return _wakeupTime;
 }
 
 /**
@@ -137,7 +137,7 @@ uint32_t System::wakeupTime() const
  */
 void System::setWakeupPin(int32_t pin)
 {
-    mWakeupPin = pin;
+    _wakeupPin = pin;
 }
 
 /**
@@ -147,7 +147,7 @@ void System::setWakeupPin(int32_t pin)
  */
 int32_t System::wakeupPin() const
 {
-    return mWakeupPin;
+    return _wakeupPin;
 }
 
 /* Private functions ---------------------------------------------------------*/
@@ -159,10 +159,10 @@ int32_t System::wakeupPin() const
  */
 System::System(Version* ver)
     : version(ver)
-    , mResetReason(kResetUnknown)
-    , mWakeupReason(kWakeupUnknown)
-    , mWakeupTime(0)
-    , mWakeupPin(-1)
+    , _resetReason(kResetUnknown)
+    , _wakeupReason(kWakeupUnknown)
+    , _wakeupTime(0)
+    , _wakeupPin(-1)
 {
     assert(version != nullptr);
     version->getHardwareVersion(hardware);
@@ -176,7 +176,7 @@ System::System(Version* ver)
  */
 void System::setResetReason(System::ResetReason reset)
 {
-    mResetReason = reset;
+    _resetReason = reset;
 }
 
 /**
@@ -186,7 +186,7 @@ void System::setResetReason(System::ResetReason reset)
  */
 void System::setWakeupReason(System::WakeupReason wakeup)
 {
-    mWakeupReason = wakeup;
+    _wakeupReason = wakeup;
 }
 
 /***************************** END OF FILE ************************************/

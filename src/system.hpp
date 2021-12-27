@@ -78,10 +78,10 @@ private:
     Version::Hardware hardware;
     Version::Firmware firmware;
 
-    ResetReason mResetReason;
-    WakeupReason mWakeupReason;
-    uint32_t mWakeupTime;
-    int32_t mWakeupPin;
+    ResetReason _resetReason;
+    WakeupReason _wakeupReason;
+    uint32_t _wakeupTime;
+    int32_t _wakeupPin;
 };
 
 #endif /* __SYSTEM_H */
