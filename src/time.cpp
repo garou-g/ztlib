@@ -105,13 +105,23 @@ bool Time::setSystemTime(uint32_t utc, uint32_t maxDelta)
 }
 
 /**
- * @brief Construct a new empty Time object
+ * @brief Construct a new Time object without initialization
  */
 Time::Time(void)
 {
-    msec = 0;
+}
+
+/**
+ * @brief Construct a new Time object with milliseconds value
+ *
+ * @param ms milliseconds
+ */
+Time::Time(int32_t ms)
+{
+    msec = ms;
     sec = 0;
     hour = 0;
+    normalize();
 }
 
 /**
@@ -137,7 +147,7 @@ Time::Time(int32_t h, int32_t s, int32_t ms)
  */
 bool Time::isZero() const
 {
-    return *this == Time();
+    return *this == 0;
 }
 
 /**

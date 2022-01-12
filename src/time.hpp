@@ -28,6 +28,7 @@ public:
     static const int32_t kMilisecondsInHour;
 
     Time(void);
+    Time(int32_t ms);
     Time(int32_t h, int32_t s, int32_t ms);
 
     bool isZero() const;

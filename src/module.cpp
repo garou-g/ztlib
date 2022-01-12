@@ -18,8 +18,8 @@
  * @brief Construct a new Module object
  */
 Module::Module()
-    : _delayTime(Time())
-    , _nextCallTime(Time())
+    : _delayTime(0)
+    , _nextCallTime(0)
     , _suspended(false)
     , _availability(true)
 #if defined(FREERTOS_USED)
@@ -38,8 +38,8 @@ Module::Module()
  * @param prior task priority
  */
 Module::Module(const char* name, uint32_t stack, UBaseType_t prior)
-    : _delayTime(Time())
-    , _nextCallTime(Time())
+    : _delayTime(0)
+    , _nextCallTime(0)
     , _suspended(false)
     , _availability(true)
 {
@@ -119,7 +119,7 @@ const Time Module::dispatcher()
     } else {
         // Calculate estimated delay time when called early
         Time estimatedTime = now - _nextCallTime;
-        return estimatedTime.toMsec() >= 0 ? estimatedTime : Time();
+        return estimatedTime.toMsec() >= 0 ? estimatedTime : 0;
     }
 }
 
@@ -147,7 +147,7 @@ void Module::suspend()
 void Module::resume()
 {
     // Zeroing delayTime causes calling of the virtual _dispatcher function
-    _delayTime = Time();
+    _delayTime = 0;
 #if defined(FREERTOS_USED)
     // With FreeRTOS also notify or resume task if it in suspended state,
     // or reset suspend flag for no RTOS work
