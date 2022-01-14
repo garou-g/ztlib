@@ -114,6 +114,8 @@ void EspSystem::goToSleep() const
         esp_sleep_enable_ext1_wakeup(mask, ESP_EXT1_WAKEUP_ALL_LOW);
     }
 
+    esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_ON);
+
     // Enable gpio hold for leaving it state unchanged
     gpio_deep_sleep_hold_en();
 
