@@ -121,7 +121,9 @@ void Version::getFirmwareVersion(Firmware& fw)
     for (int i = 0; i < 4; i++) {
         int value = 0;
         for (; j < FW_SIZE; j++) {
-            if (fwString.data[j] == '.' || fwString.data[j] == '-') {
+            if (fwString.data[j] == '.'
+                || fwString.data[j] == '-'
+                || fwString.data[j] == '\0') {
                 for (int k = 0; k < (j - prevJ); k++)
                     buf[k] = fwString.data[prevJ + k];
                 buf[j - prevJ] = '\0';
