@@ -9,6 +9,8 @@
 #define __ESP_I2C_DRIVER_H
 
 /* Includes ------------------------------------------------------------------*/
+#include "driver/i2c.h"
+
 #include "i2c.hpp"
 
 /* Exported constants --------------------------------------------------------*/
@@ -31,7 +33,7 @@ public:
 private:
     static const uint32_t timeoutMs;
 
-    int32_t i2c;
+    i2c_port_t i2c;
     int32_t addr;
 };
 
