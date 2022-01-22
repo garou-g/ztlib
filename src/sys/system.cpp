@@ -17,14 +17,10 @@
 /* Private function prototypes -----------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 
-/**
- * @brief Global boot status structure for holding reset states
- */
-RETAIN_NOINIT_ATTR System::BootStatus System::bootStatus;
+/// Global system data structure that holds between any sleep states
+RETAIN_NOINIT_ATTR System::SystemData System::systemData;
 
-/**
- * @brief Global object pointer for singleton operations
- */
+/// Global object pointer for singleton operations
 System* System::system = nullptr;
 
 /* Exported functions --------------------------------------------------------*/
@@ -57,7 +53,7 @@ System& System::getInstance()
  */
 const Version::Hardware& System::hardwareVersion() const
 {
-    return hardware;
+    return systemData.hardware;
 }
 
 /**
@@ -67,7 +63,7 @@ const Version::Hardware& System::hardwareVersion() const
  */
 const Version::Firmware& System::firmwareVersion() const
 {
-    return firmware;
+    return systemData.firmware;
 }
 
 /**
@@ -77,7 +73,7 @@ const Version::Firmware& System::firmwareVersion() const
  */
 bool System::isFirstStart() const
 {
-    return bootStatus.resetCounter == 1;
+    return systemData.resetCounter == 1;
 }
 
 /**
@@ -87,7 +83,7 @@ bool System::isFirstStart() const
  */
 uint16_t System::resetCounter() const
 {
-    return bootStatus.resetCounter;
+    return systemData.resetCounter;
 }
 
 /**
@@ -165,8 +161,18 @@ System::System(Version* ver)
     , _wakeupPin(-1)
 {
     assert(version != nullptr);
-    version->getHardwareVersion(hardware);
-    version->getFirmwareVersion(firmware);
+
+    // Reset states update
+    if (systemData.firstStart != 0x55AA) {
+        systemData.firstStart = 0x55AA;
+        systemData.resetCounter = 1;
+
+        // Version readed only one time when first boot
+        version->getHardwareVersion(systemData.hardware);
+        version->getFirmwareVersion(systemData.firmware);
+    } else {
+        systemData.resetCounter++;
+    }
 }
 
 /**

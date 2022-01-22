@@ -23,11 +23,12 @@
  */
 class Version {
 public:
-    // Hardware version structure with two major digits and one minor
+    // Hardware version structure with two major digits and two minor
     typedef struct {
         uint8_t major1;
         uint8_t major2;
         uint8_t minor1;
+        uint8_t minor2;
     } Hardware;
 
     // Firmware version structure with two major digits and two minor

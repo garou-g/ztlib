@@ -31,7 +31,7 @@ Version::Version()
 void Version::getHardwareVersion(Hardware& hw)
 {
     HwVolt hwVolt = getHwValue();
-    hw = { 0, 0, 0 };
+    hw = { 0, 0, 0, 0};
     if (hwVolt.major < 200) {
         hw.major1 = 0;
     } else if (hwVolt.major >= 200 && hwVolt.major < 400) {

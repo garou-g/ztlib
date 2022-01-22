@@ -38,14 +38,6 @@ EspSystem::EspSystem()
         nvs_flash_init();
     }
 
-    // Reset states update
-    if (bootStatus.firstStart != 0x55AA) {
-        bootStatus.firstStart = 0x55AA;
-        bootStatus.resetCounter = 1;
-    } else {
-        bootStatus.resetCounter++;
-    }
-
     // Get reset reason
     System::ResetReason reset;
     switch (esp_reset_reason()) {

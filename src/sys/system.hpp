@@ -64,19 +64,19 @@ protected:
     void setResetReason(ResetReason reset);
     void setWakeupReason(WakeupReason wakeup);
 
-    struct BootStatus {
+    struct SystemData {
         uint16_t firstStart; // Need to be 0x55AA
         uint16_t resetCounter;
+        Version::Hardware hardware;
+        Version::Firmware firmware;
     };
 
-    static BootStatus bootStatus;
+    static SystemData systemData;
 
 private:
     static System* system;
 
     Version* version;
-    Version::Hardware hardware;
-    Version::Firmware firmware;
 
     ResetReason _resetReason;
     WakeupReason _wakeupReason;
