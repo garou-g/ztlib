@@ -2,3 +2,6 @@ esp32/build/
 esp32/sdkconfig
 esp32/sdkconfig.old
 esp32/debug.log
+esp32/test/build/
+esp32/test/sdkconfig
+esp32/test/sdkconfig.old

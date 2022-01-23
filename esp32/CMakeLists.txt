@@ -3,6 +3,6 @@
 cmake_minimum_required(VERSION 3.5)
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-project("test-fw-common-lib")
+project("fw-common-lib")
 
 idf_build_set_property(COMPILE_DEFINITIONS -DFREERTOS_USED APPEND)
