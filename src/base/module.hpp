@@ -33,12 +33,15 @@ public:
     Module(const char* name, uint32_t stack, UBaseType_t prior);
     void taskInit(const char* name, uint32_t stack, UBaseType_t prior);
 #endif
+    virtual ~Module() {}
+
     bool isAvailable() const;
 
-    const Time& delayTime() const;
+    const Time delayTime() const;
     const Time& nextCallTime() const;
-    const Time dispatcher();
+    void dispatcher();
     void suspend();
+    bool isSuspended() const;
     void resume();
 
 protected:
@@ -54,7 +57,6 @@ protected:
     virtual Time _dispatcher() = 0;
 
 private:
-    Time _delayTime;
     Time _nextCallTime;
     bool _suspended;
     bool _availability;

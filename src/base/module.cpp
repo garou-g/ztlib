@@ -18,8 +18,7 @@
  * @brief Construct a new Module object
  */
 Module::Module()
-    : _delayTime(0)
-    , _nextCallTime(0)
+    : _nextCallTime(0)
     , _suspended(false)
     , _availability(true)
 #if defined(FREERTOS_USED)
@@ -38,8 +37,7 @@ Module::Module()
  * @param prior task priority
  */
 Module::Module(const char* name, uint32_t stack, UBaseType_t prior)
-    : _delayTime(0)
-    , _nextCallTime(0)
+    : _nextCallTime(0)
     , _suspended(false)
     , _availability(true)
 {
@@ -79,11 +77,19 @@ bool Module::isAvailable() const
  * @brief Returns the Time object to wait for the next call to this
  *      object's dispatcher
  *
- * @return const Time& new call delay time
+ * @return const Time new call delay time
  */
-const Time& Module::delayTime() const
+const Time Module::delayTime() const
 {
-    return _delayTime;
+    if (_nextCallTime.isZero())
+        return 0;
+    else {
+        Time delta = _nextCallTime - Time::now();
+        if (delta < Time(0, 0, 0))
+            return 0;
+        else
+            return delta;
+    }
 }
 
 /**
@@ -101,25 +107,17 @@ const Time& Module::nextCallTime() const
  * @brief Module dispatcher function. Calls the virtual dispatch function
  *      to actually work in the successor classes. Returns the Time object
  *      to wait for the next call to this object's dispatcher
- *
- * @return const Time new call delay time
  */
-const Time Module::dispatcher()
+void Module::dispatcher()
 {
-    // If suspended - no processing, just return big delay time
+    // If suspended - no processing, just return
     if (_suspended)
-        return Time(24, 0, 0);
+        return;
 
     // Dispatcher called only if was zero delay or time has come
     Time now = Time::now();
-    if (_delayTime.isZero() || now >= _nextCallTime) {
-        _delayTime = _dispatcher();    // Call actual dispatcher function
-        _nextCallTime = Time::now() + _delayTime;
-        return _delayTime;  // Full delay time just after dispatcher call
-    } else {
-        // Calculate estimated delay time when called early
-        Time estimatedTime = now - _nextCallTime;
-        return estimatedTime.toMsec() >= 0 ? estimatedTime : 0;
+    if (_nextCallTime.isZero() || now >= _nextCallTime) {
+        _nextCallTime = now + _dispatcher();
     }
 }
 
@@ -141,13 +139,32 @@ void Module::suspend()
 }
 
 /**
+ * @brief Checks suspended state of module
+ *
+ * @return true if suspended, otherwise false
+ */
+bool Module::isSuspended() const
+{
+    bool result = false;
+#if defined(FREERTOS_USED)
+    if (xHandle)
+        result = eTaskGetState(xHandle) == eSuspended;
+    else
+        result = _suspended;
+#else
+    result = _suspended;
+#endif
+    return result;
+}
+
+/**
  * @brief Causes the next dispatcher call to execute as soon as possible
  *      regardless of nextCallTime and delayTime
  */
 void Module::resume()
 {
-    // Zeroing delayTime causes calling of the virtual _dispatcher function
-    _delayTime = 0;
+    // Zeroing delay time causes calling of the virtual _dispatcher function
+    _nextCallTime = 0;
 #if defined(FREERTOS_USED)
     // With FreeRTOS also notify or resume task if it in suspended state,
     // or reset suspend flag for no RTOS work
@@ -188,9 +205,12 @@ void Module::task(void *instance)
         vTaskDelete(NULL);
 
     while (1) {
-        Time delay = static_cast<Module*>(instance)->dispatcher();
+        Module* mod = static_cast<Module*>(instance);
+        mod->dispatcher();
+        int32_t delayMs = mod->delayTime().toMsec();
         // Wait for delay time or break waiting on notification
-        ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(delay.toMsec()));
+        if (delayMs != 0)
+            ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(delayMs));
     }
 }
 #endif
