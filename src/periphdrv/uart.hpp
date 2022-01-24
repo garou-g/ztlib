@@ -32,6 +32,7 @@ public:
 
     enum IoctlCmd {
         kSetBaudrate,   // Sets UART baudrate
+        kFlushInput,
     };
 
     Uart();
