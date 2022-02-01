@@ -28,6 +28,9 @@
 EspSystem::EspSystem()
     : System(new EspVersion())
 {
+    // Disable default pullup of IO5
+    gpio_pullup_dis(GPIO_NUM_5);
+
     // One time NVS flash init
     esp_err_t nvsErr = nvs_flash_init();
     if (nvsErr == ESP_ERR_NVS_NO_FREE_PAGES ||
@@ -111,8 +114,7 @@ void EspSystem::goToSleep() const
     // Enable gpio hold for leaving it state unchanged
     gpio_deep_sleep_hold_en();
 
-    // Disable default pullup of IO5 and isolate pins from leakage
-    gpio_pullup_dis(GPIO_NUM_5);
+    // Isolate pins from leakage
     rtc_gpio_isolate(GPIO_NUM_4);
 
     // Go to deep sleep. 150 uA without anything, 300 uA with sensors enabled
