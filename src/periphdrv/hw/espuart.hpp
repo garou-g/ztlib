@@ -32,6 +32,8 @@ public:
 
 private:
     int32_t uart;
+    int32_t tx;
+    int32_t rx;
 };
 
 #endif /* __ESP_UART_DRIVER_H */

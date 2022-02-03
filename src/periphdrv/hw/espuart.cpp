@@ -7,7 +7,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include <cassert>
 
-#include "driver/uart.h"
+#include "driver/gpio.h"
 
 #include "espuart.hpp"
 
@@ -24,6 +24,8 @@
 EspUart::EspUart()
     : Uart()
     , uart(-1)
+    , tx(-1)
+    , rx(-1)
 {
 }
 
@@ -39,6 +41,8 @@ bool EspUart::open(const void* const drvConfig)
     if (config->uart < 0 || config->uart >= SOC_UART_NUM)
         return false;
     uart = config->uart;
+    tx = config->tx;
+    rx = config->rx;
 
     const uart_config_t uartConfig = {
         .baud_rate = config->baudrate,
@@ -50,7 +54,7 @@ bool EspUart::open(const void* const drvConfig)
         .source_clk = UART_SCLK_REF_TICK,
     };
     uart_param_config(uart, &uartConfig);
-    uart_set_pin(uart, config->tx, config->rx, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
+    uart_set_pin(uart, tx, rx, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
     uart_driver_install(uart, config->rxBufSize, config->txBufSize, 0, NULL, 0);
     setOpened(true);
 
@@ -60,9 +64,15 @@ bool EspUart::open(const void* const drvConfig)
 void EspUart::close()
 {
     if (isOpen()) {
+        uart_wait_tx_done(uart, pdMS_TO_TICKS(100));
         uart_driver_delete(uart);
+        gpio_reset_pin(static_cast<gpio_num_t>(tx));
+        gpio_reset_pin(static_cast<gpio_num_t>(rx));
+        gpio_pullup_dis(static_cast<gpio_num_t>(tx));
+        gpio_pullup_dis(static_cast<gpio_num_t>(rx));
         setOpened(false);
         uart = -1;
+        tx = rx = -1;
     }
 }
 

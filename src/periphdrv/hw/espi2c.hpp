@@ -35,6 +35,8 @@ private:
 
     i2c_port_t i2c;
     int32_t addr;
+    int32_t scl;
+    int32_t sda;
 };
 
 #endif /* __ESP_I2C_DRIVER_H */

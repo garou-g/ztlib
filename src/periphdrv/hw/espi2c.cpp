@@ -29,6 +29,8 @@ EspI2c::EspI2c()
     : I2c()
     , i2c(-1)
     , addr(-1)
+    , scl(-1)
+    , sda(-1)
 {
 }
 
@@ -44,11 +46,13 @@ bool EspI2c::open(const void* const drvConfig)
     if (config->i2c < 0 || config->i2c >= SOC_I2C_NUM)
         return false;
     i2c = config->i2c;
+    scl = config->scl;
+    sda = config->sda;
 
     const i2c_config_t i2cConfig = {
         .mode = I2C_MODE_MASTER,
-        .sda_io_num = config->sda,
-        .scl_io_num = config->scl,
+        .sda_io_num = sda,
+        .scl_io_num = scl,
         .sda_pullup_en = config->sdaPullup ? GPIO_PULLUP_ENABLE : GPIO_PULLUP_DISABLE,
         .scl_pullup_en = config->sclPullup ? GPIO_PULLUP_ENABLE : GPIO_PULLUP_DISABLE,
         .master = { config->speed },
@@ -66,9 +70,14 @@ void EspI2c::close()
 {
     if (isOpen()) {
         i2c_driver_delete(i2c);
+        gpio_reset_pin(static_cast<gpio_num_t>(scl));
+        gpio_reset_pin(static_cast<gpio_num_t>(sda));
+        gpio_pullup_dis(static_cast<gpio_num_t>(scl));
+        gpio_pullup_dis(static_cast<gpio_num_t>(sda));
         setOpened(false);
         i2c = -1;
         addr = -1;
+        scl = sda = -1;
     }
 }
 
