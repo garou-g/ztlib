@@ -28,7 +28,7 @@ System* System::system = nullptr;
 /**
  * @brief Init singleton instance. MUST BE called before any actions with module
  */
-void System::init()
+void System::initInstance()
 {
     if (system != nullptr)
         delete system;

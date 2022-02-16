@@ -24,7 +24,7 @@
  */
 class System {
 public:
-    static void init();
+    static void initInstance();
     static System& getInstance();
 
     const Version::Hardware& hardwareVersion() const;
