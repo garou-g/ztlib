@@ -69,6 +69,7 @@ private:
 
     static uint32_t deltaUTC;
 
+    // FIXME: Optimize memory - remove one of variables (seconds)
     int32_t hour;
     int32_t sec;
     int32_t msec;

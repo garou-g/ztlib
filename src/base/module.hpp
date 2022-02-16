@@ -58,7 +58,7 @@ protected:
 
 private:
     Time _nextCallTime;
-    bool _suspended;
+    bool _suspended;        // FIXME: Optimize - remove bool and make flags in byte
     bool _availability;
 
 #if defined(FREERTOS_USED)
