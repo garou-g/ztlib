@@ -34,6 +34,7 @@ public:
     void taskInit(const char* name, uint32_t stack, UBaseType_t prior);
 #endif
     virtual ~Module() {}
+    virtual void init();
 
     bool isAvailable() const;
 

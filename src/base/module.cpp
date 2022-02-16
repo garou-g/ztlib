@@ -18,11 +18,8 @@
  * @brief Construct a new Module object
  */
 Module::Module()
-    : _nextCallTime(0)
-    , _suspended(false)
-    , _availability(true)
 #if defined(FREERTOS_USED)
-    , xHandle(NULL)
+    : xHandle(NULL)
 #endif
 {
 }
@@ -30,18 +27,28 @@ Module::Module()
 #if defined(FREERTOS_USED)
 /**
  * @brief FreeRTOS ONLY. Construct a new Module object with
- *      internal task initialization
+ *      internal task initialization. Also calls init inside because
+ *      task starts right after init
  *
  * @param name human readable task name
  * @param stack task stack size
  * @param prior task priority
  */
 Module::Module(const char* name, uint32_t stack, UBaseType_t prior)
-    : _nextCallTime(0)
-    , _suspended(false)
-    , _availability(true)
+    : xHandle(NULL)
 {
-    xTaskCreate(task, name, stack, this, prior, &xHandle);
+    init();
+    taskInit(name, stack, prior);
+}
+
+/**
+ * @brief Performs initial setup of module
+ */
+void Module::init()
+{
+    _nextCallTime = 0;
+    _suspended = false;
+    _availability = true;
 }
 
 /**
