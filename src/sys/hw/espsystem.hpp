@@ -26,6 +26,8 @@ class EspSystem final : public System {
 public:
     EspSystem();
 
+    void restart() override;
+
     void goToSleep() const override;
 };
 

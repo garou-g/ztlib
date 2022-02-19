@@ -46,6 +46,8 @@ public:
         kWakeupTimer,
     };
 
+    virtual void restart() = 0;
+
     bool isFirstStart() const;
     uint16_t resetCounter() const;
     ResetReason resetReason() const;

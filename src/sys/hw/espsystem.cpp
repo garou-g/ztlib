@@ -93,6 +93,14 @@ EspSystem::EspSystem()
 }
 
 /**
+ * @brief Restarts CPU
+ */
+void EspSystem::restart()
+{
+    esp_restart();
+}
+
+/**
  * @brief Switchs CPU to sleep mode with selected wakeup modes
  */
 void EspSystem::goToSleep() const
