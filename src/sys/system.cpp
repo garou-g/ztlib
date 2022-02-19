@@ -167,12 +167,16 @@ System::System(Version* ver)
         systemData.firstStart = 0x55AA;
         systemData.resetCounter = 1;
 
-        // Version readed only one time when first boot
+        // Hardware version readed only one time when first boot.
+        // It never changes because it hardware feature
         version->getHardwareVersion(systemData.hardware);
-        version->getFirmwareVersion(systemData.firmware);
     } else {
         systemData.resetCounter++;
     }
+
+    // Software version always updates.
+    // It changes when software update for example
+    version->getFirmwareVersion(systemData.firmware);
 }
 
 /**
