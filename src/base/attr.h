@@ -9,7 +9,7 @@
 #define __ATTR_H
 
 #ifdef __cplusplus
- extern "C" {
+extern "C" {
 #endif
 
 #if defined(ESP_PLATFORM)
