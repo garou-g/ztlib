@@ -14,26 +14,28 @@ struct TestTimeData {
 
 TEST_CASE("constructor", "[time]")
 {
-    Time t2(0);
-    TEST_ASSERT(t2 == 0);
-    Time t3 = 0;
-    TEST_ASSERT(t3 == 0);
-    Time t4(1, 2, 3);
-    TEST_ASSERT(t4 == Time(1, 2, 3));
-    Time t5 = { 1, 2, 3 };
-    TEST_ASSERT(t5 == Time(1, 2, 3));
-    Time t6 = Time(3, 2, 1);
-    TEST_ASSERT(t6 == Time(3, 2, 1));
+    Time t(0);
+    TEST_ASSERT(t == 0);
+
+    t = 0;
+    TEST_ASSERT(t == 0);
+
+    t = { 1, 2, 3 };
+    TEST_ASSERT(t == Time(1, 2, 3));
+
+    t = Time(3, 2, 1);
+    TEST_ASSERT(t == Time(3, 2, 1));
 }
 
 TEST_CASE("getDeltaUTC", "[time]")
 {
+    const int utc = 1234;
     Time t1 = 0, t2 = 0;
+
     t1.setDeltaUTC(0);
     TEST_ASSERT(t1.getDeltaUTC() == 0);
     TEST_ASSERT(t2.getDeltaUTC() == 0);
 
-    const int utc = 1234;
     t1.setDeltaUTC(utc);
     TEST_ASSERT(t1.getDeltaUTC() == utc);
     TEST_ASSERT(t2.getDeltaUTC() == utc);
@@ -41,10 +43,11 @@ TEST_CASE("getDeltaUTC", "[time]")
 
 TEST_CASE("isZero", "[time]")
 {
-    Time t1 = 0;
-    TEST_ASSERT(t1.isZero());
-    Time t2(1, 2, 3);
-    TEST_ASSERT(!t2.isZero());
+    Time t = 0;
+    TEST_ASSERT(t.isZero());
+
+    t = { 1, 2, 3 };
+    TEST_ASSERT(!t.isZero());
 }
 
 TEST_CASE("toSec", "[time]")
@@ -135,11 +138,11 @@ TEST_CASE("getHour", "[time]")
         { {  1,  0,  0 },           1 },
         { { -1,  0,  0 },          -1 },
         { {  0,  3601,  0 },        1 },
-        { {  0, -3601,  0 },       -1 },
+        { {  0, -3601,  0 },       -2 },
         { {  1,  10803,  0 },       4 },
-        { {  1, -10803,  0 },      -2 },
+        { {  1, -10803,  0 },      -3 },
         { {  0,  0,  10803100 },    3 },
-        { {  0,  0, -10803100 },   -3 },
+        { {  0,  0, -10803100 },   -4 },
     };
 
     const int size = sizeof(testTime) / sizeof(TestTimeData);
@@ -157,11 +160,11 @@ TEST_CASE("getSec", "[time]")
         { {  1,  0,  0 },           0 },
         { { -1,  0,  0 },           0 },
         { {  1,  3601,  0 },        1 },
-        { {  0, -3601,  0 },       -1 },
+        { {  0, -3601,  0 },     3599 },
         { {  1,  10803,  0 },       3 },
-        { {  1, -10803,  0 },      -3 },
+        { {  1, -10803,  0 },    3597 },
         { {  0,  0,  10803100 },    3 },
-        { {  0,  0, -10803100 },   -3 },
+        { {  0,  0, -10803100 }, 3596 },
     };
 
     const int size = sizeof(testTime) / sizeof(TestTimeData);
@@ -183,7 +186,7 @@ TEST_CASE("getMsec", "[time]")
         { {  1,  10803,  5 },       5 },
         { {  1, -10803,  6 },       6 },
         { {  0,  0,  10803100 },  100 },
-        { {  0,  0, -10803100 }, -100 },
+        { {  0,  0, -10803100 },  900 },
     };
 
     const int size = sizeof(testTime) / sizeof(TestTimeData);
@@ -264,6 +267,9 @@ TEST_CASE("operator-", "[time]")
 {
     Time t1(1, 2, 3), t2(3, 2, 1);
     TEST_ASSERT(t1 - t2 == Time(-2, 0, 2));
+
+    Time t3(10, 60, 200), t4(5, 5, 400);
+    TEST_ASSERT(t3 - t4 == Time(5, 54, 800));
 }
 
 TEST_CASE("operator==", "[time]")
