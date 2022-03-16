@@ -1,26 +1,34 @@
 #include "unity.h"
 
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
 #include "module.hpp"
 
 class ModuleExt final : public Module {
 public:
-    ModuleExt(uint8_t availableFlag = 0) {
-        if (availableFlag == 1)
-            setAvailability(false);
+    ModuleExt() { }
+
+    void publicSetAvailability(bool value)
+    {
+        setAvailability(value);
     }
 
 protected:
-    Time _dispatcher() override {
+    Time _dispatcher() override
+    {
         return Time(0, 1, 0);
     }
 };
 
-TEST_CASE("Constructor check", "[module]")
+TEST_CASE("constructor", "[module]")
 {
     Module* mod = nullptr;
-
     TEST_ASSERT(mod == nullptr);
+
     mod = new ModuleExt();
+    mod->init();
+
     TEST_ASSERT(mod != nullptr);
     TEST_ASSERT(mod->nextCallTime() == 0);
     TEST_ASSERT(!mod->isSuspended());
@@ -29,21 +37,26 @@ TEST_CASE("Constructor check", "[module]")
     delete mod;
 }
 
-TEST_CASE("Availability check", "[module]")
+TEST_CASE("isAvailable", "[module]")
 {
-    Module* mod = new ModuleExt();
+    ModuleExt* mod = new ModuleExt();
 
+    mod->publicSetAvailability(true);
     TEST_ASSERT(mod->isAvailable());
+
     delete mod;
-    mod = new ModuleExt(1);
+    mod = new ModuleExt();
+
+    mod->publicSetAvailability(false);
     TEST_ASSERT(!mod->isAvailable());
 
     delete mod;
 }
 
-TEST_CASE("Dispatcher times check", "[module]")
+TEST_CASE("dispatcher", "[module]")
 {
     Module* mod = new ModuleExt();
+    mod->init();
 
     TEST_ASSERT(mod->nextCallTime() == 0);
     TEST_ASSERT(mod->delayTime() == 0);
