@@ -14,8 +14,6 @@ struct TestTimeData {
 
 TEST_CASE("constructor", "[time]")
 {
-    Time t1;
-    TEST_ASSERT(t1 != 0);
     Time t2(0);
     TEST_ASSERT(t2 == 0);
     Time t3 = 0;
