@@ -443,10 +443,18 @@ void Time::normalize(void)
     int32_t tmp = msec / kMilisecondsInSecond;
     sec += tmp;
     msec -= tmp * kMilisecondsInSecond;
+    if (msec < 0) {
+        msec += kMilisecondsInSecond;
+        sec--;
+    }
 
     tmp = sec / kSecondsInHour;
     hour += tmp;
     sec -= tmp * kSecondsInHour;
+    if (sec < 0) {
+        sec += kSecondsInHour;
+        hour--;
+    }
 }
 
 /***************************** END OF FILE ************************************/
