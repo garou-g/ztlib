@@ -161,6 +161,16 @@ int32_t Time::toSec(void) const
 }
 
 /**
+ * @brief Returns milliseconds representation of Time object
+ *
+ * @return int32_t milliseconds value
+ */
+int32_t Time::toMsec(void) const
+{
+    return hour * kMilisecondsInHour + sec * kMilisecondsInSecond + msec;
+}
+
+/**
  * @brief Returns seconds representation of Time object
  *      with UTC correction
  *
@@ -169,16 +179,6 @@ int32_t Time::toSec(void) const
 int32_t Time::toUTC(void) const
 {
     return hour * kSecondsInHour + sec + deltaUTC;
-}
-
-/**
- * @brief Returns milliseconds representation of Time object
- *
- * @return int32_t milliseconds value
- */
-int32_t Time::toMsec(void) const
-{
-    return hour * kMilisecondsInHour + sec * kMilisecondsInSecond + msec;
 }
 
 /**

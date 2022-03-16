@@ -34,8 +34,8 @@ public:
     bool isZero() const;
 
     int32_t toSec(void) const;
-    int32_t toUTC(void) const;
     int32_t toMsec(void) const;
+    int32_t toUTC(void) const;
 
     int32_t getHour(void) const;
     int32_t getSec(void) const;
