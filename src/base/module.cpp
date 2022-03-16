@@ -12,6 +12,11 @@
 /* Private macros ------------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+
+const int Module::kSuspended = 0x1;
+const int Module::kAvailability = 0x2;
+const int Module::kInited = 0x55AA0000;
+
 /* Exported functions --------------------------------------------------------*/
 
 /**
@@ -46,9 +51,8 @@ Module::Module(const char* name, uint32_t stack, UBaseType_t prior)
  */
 void Module::init()
 {
+    _flags = kInited | kAvailability;
     _nextCallTime = 0;
-    _suspended = false;
-    _availability = true;
 }
 
 /**
@@ -77,7 +81,7 @@ void Module::taskInit(const char* name, uint32_t stack, UBaseType_t prior)
  */
 bool Module::isAvailable() const
 {
-    return _availability;
+    return _flags & kAvailability;
 }
 
 /**
@@ -118,7 +122,7 @@ const Time& Module::nextCallTime() const
 void Module::dispatcher()
 {
     // If suspended - no processing, just return
-    if (_suspended)
+    if (isSuspended())
         return;
 
     // Dispatcher called only if was zero delay or time has come
@@ -138,10 +142,10 @@ void Module::suspend()
     if (xHandle)
         vTaskSuspend(NULL);
     else
-        _suspended = true;
+        _flags |= kSuspended;
 #else
     // Set suspend flag for no RTOS work
-    _suspended = true;
+    _flags |= kSuspended;
 #endif
 }
 
@@ -157,9 +161,9 @@ bool Module::isSuspended() const
     if (xHandle)
         result = eTaskGetState(xHandle) == eSuspended;
     else
-        result = _suspended;
+        result = _flags & kSuspended;
 #else
-    result = _suspended;
+    result = _flags & kSuspended;
 #endif
     return result;
 }
@@ -181,11 +185,11 @@ void Module::resume()
         else
             xTaskNotifyGive(xHandle);
     } else {
-        _suspended = false;
+        _flags &= ~kSuspended;
     }
 #else
     // Reset suspend flag for no RTOS work
-    _suspended = false;
+    _flags &= ~kSuspended;
 #endif
 }
 
@@ -198,7 +202,10 @@ void Module::resume()
  */
 void Module::setAvailability(bool value)
 {
-    _availability = value;
+    if (value)
+        _flags |= kAvailability;
+    else
+        _flags &= ~kAvailability;
 }
 
 #if defined(FREERTOS_USED)

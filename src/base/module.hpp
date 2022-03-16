@@ -58,9 +58,12 @@ protected:
     virtual Time _dispatcher() = 0;
 
 private:
+    static const int kSuspended;
+    static const int kAvailability;
+    static const int kInited;
+
+    uint32_t _flags;
     Time _nextCallTime;
-    bool _suspended;        // FIXME: Optimize - remove bool and make flags in byte
-    bool _availability;
 
 #if defined(FREERTOS_USED)
     TaskHandle_t xHandle;
