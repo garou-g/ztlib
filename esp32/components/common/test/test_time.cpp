@@ -261,6 +261,9 @@ TEST_CASE("operator+", "[time]")
 {
     Time t1(1, 2, 3), t2(3, 2, 1);
     TEST_ASSERT(t1 + t2 == Time(4, 4, 4));
+
+    Time t3(-10, -60, -200), t4(5, 5, 400);
+    TEST_ASSERT(t3 + t4 == Time(-6, 3545, 200));
 }
 
 TEST_CASE("operator-", "[time]")
