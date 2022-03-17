@@ -34,8 +34,9 @@ public:
     void taskInit(const char* name, uint32_t stack, UBaseType_t prior);
 #endif
     virtual ~Module() {}
-    virtual void init();
+    virtual void reset();
 
+    bool isInited() const;
     bool isAvailable() const;
 
     const Time delayTime() const;

@@ -27,9 +27,9 @@ TEST_CASE("constructor", "[module]")
     TEST_ASSERT(mod == nullptr);
 
     mod = new ModuleExt();
-    mod->init();
 
     TEST_ASSERT(mod != nullptr);
+    TEST_ASSERT(mod->isInited());
     TEST_ASSERT(mod->nextCallTime() == 0);
     TEST_ASSERT(!mod->isSuspended());
     TEST_ASSERT(mod->isAvailable());
@@ -56,7 +56,6 @@ TEST_CASE("isAvailable", "[module]")
 TEST_CASE("dispatcher", "[module]")
 {
     Module* mod = new ModuleExt();
-    mod->init();
 
     TEST_ASSERT(mod->nextCallTime() == 0);
     TEST_ASSERT(mod->delayTime() == 0);

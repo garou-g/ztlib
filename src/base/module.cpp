@@ -27,6 +27,10 @@ Module::Module()
     : xHandle(NULL)
 #endif
 {
+    if (!isInited()) {
+        _flags = kInited | kAvailability;
+        _nextCallTime = 0;
+    }
 }
 
 #if defined(FREERTOS_USED)
@@ -42,17 +46,11 @@ Module::Module()
 Module::Module(const char* name, uint32_t stack, UBaseType_t prior)
     : xHandle(NULL)
 {
-    init();
+    if (!isInited()) {
+        _flags = kInited | kAvailability;
+        _nextCallTime = 0;
+    }
     taskInit(name, stack, prior);
-}
-
-/**
- * @brief Performs initial setup of module
- */
-void Module::init()
-{
-    _flags = kInited | kAvailability;
-    _nextCallTime = 0;
 }
 
 /**
@@ -71,6 +69,26 @@ void Module::taskInit(const char* name, uint32_t stack, UBaseType_t prior)
 #endif
 
 /**
+ * @brief Performs reset module to default state
+ */
+void Module::reset()
+{
+    _flags = kInited | kAvailability;
+    _nextCallTime = 0;
+}
+
+/**
+ * @brief Returns init state of module. Can be used for prevent reinit when
+ *      used in retain memory and device restarts
+ *
+ * @return true if module was already inited otherwise false
+ */
+bool Module::isInited() const
+{
+    return (_flags & kInited) == kInited;
+}
+
+/**
  * @brief Returns availability of the module to use. Is it configured correctly,
  *      has all drivers installed, etc. For example, in device-specific
  *      cases where some modules are not available on the current hardware,
@@ -81,7 +99,7 @@ void Module::taskInit(const char* name, uint32_t stack, UBaseType_t prior)
  */
 bool Module::isAvailable() const
 {
-    return _flags & kAvailability;
+    return (_flags & kAvailability) == kAvailability;
 }
 
 /**
@@ -161,9 +179,9 @@ bool Module::isSuspended() const
     if (xHandle)
         result = eTaskGetState(xHandle) == eSuspended;
     else
-        result = _flags & kSuspended;
+        result = (_flags & kSuspended) == kSuspended;
 #else
-    result = _flags & kSuspended;
+    result = (_flags & kSuspended) == kSuspended;
 #endif
     return result;
 }
