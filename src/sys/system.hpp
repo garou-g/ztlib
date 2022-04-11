@@ -29,6 +29,7 @@ public:
 
     const Version::Hardware& hardwareVersion() const;
     const Version::Firmware& firmwareVersion() const;
+    const char* firmwareVersionString() const;
 
     enum ResetReason {
         kResetUnknown,
@@ -79,6 +80,7 @@ private:
     static System* system;
 
     Version* version;
+    char versionStr[Version::FW_SIZE];
 
     ResetReason _resetReason;
     WakeupReason _wakeupReason;

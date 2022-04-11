@@ -67,6 +67,16 @@ const Version::Firmware& System::firmwareVersion() const
 }
 
 /**
+ * @brief Returns reference to firmware version string
+ *
+ * @return const char* fw version string
+ */
+const char* System::firmwareVersionString() const
+{
+    return versionStr;
+}
+
+/**
  * @brief Returns state of first boot of device
  *
  * @return true if device first time boots from power on, otherwise false
@@ -155,6 +165,7 @@ int32_t System::wakeupPin() const
  */
 System::System(Version* ver)
     : version(ver)
+    , versionStr { 0 }
     , _resetReason(kResetUnknown)
     , _wakeupReason(kWakeupUnknown)
     , _wakeupTime(0)
@@ -176,7 +187,7 @@ System::System(Version* ver)
 
     // Software version always updates.
     // It changes when software update for example
-    version->getFirmwareVersion(systemData.firmware);
+    version->getFirmwareVersion(systemData.firmware, versionStr);
 }
 
 /**

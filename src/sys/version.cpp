@@ -6,8 +6,10 @@
  ******************************************************************************/
 
 /* Includes ------------------------------------------------------------------*/
-#include "version.hpp"
 #include <stdlib.h>
+#include <string.h>
+
+#include "version.hpp"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private defines -----------------------------------------------------------*/
@@ -109,8 +111,9 @@ void Version::getHardwareVersion(Hardware& hw)
  *      Example: 2.0.11.0-3-gebb41ea-dirty
  *
  * @param fw reference for structure with FW versions
+ * @param fwStr reference for string with FW versions, can be null
  */
-void Version::getFirmwareVersion(Firmware& fw)
+void Version::getFirmwareVersion(Firmware& fw, char* fwStr)
 {
     FwString fwString = getFwValue();
     char buf[FW_SIZE] = {0};
@@ -140,6 +143,12 @@ void Version::getFirmwareVersion(Firmware& fw)
             fw.minor1 = value;
         else
             fw.minor2 = value;
+    }
+
+    // Copy actual part of version in result buffer if present
+    if (fwStr != nullptr) {
+        memcpy(fwStr, fwString.data, j - 1);
+        fwStr[j] = '\0';
     }
 }
 

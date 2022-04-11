@@ -23,6 +23,8 @@
  */
 class Version {
 public:
+    static const int FW_SIZE = 32;
+
     // Hardware version structure with two major digits and two minor
     typedef struct {
         uint8_t major1;
@@ -43,7 +45,7 @@ public:
     virtual ~Version() {} // Empty virtual destructor for inheritance fix
 
     void getHardwareVersion(Hardware& hw);
-    void getFirmwareVersion(Firmware& fw);
+    void getFirmwareVersion(Firmware& fw, char* fwStr = nullptr);
 
 protected:
     struct HwVolt {
@@ -51,7 +53,6 @@ protected:
         int minor;
     };
 
-    static const int FW_SIZE = 32;
     struct FwString {
         char data[FW_SIZE];
     };
