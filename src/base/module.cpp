@@ -13,6 +13,9 @@
 /* Private function prototypes -----------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 
+/// Default priority for module tasks
+const UBaseType_t Module::kDefaultPrior = tskIDLE_PRIORITY + 10;
+
 const int Module::kSuspended = 0x1;
 const int Module::kAvailability = 0x2;
 const int Module::kInited = 0x55AA0000;

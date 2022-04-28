@@ -32,6 +32,8 @@ public:
 #if defined(FREERTOS_USED)
     Module(const char* name, uint32_t stack, UBaseType_t prior);
     void taskInit(const char* name, uint32_t stack, UBaseType_t prior);
+
+    static const UBaseType_t kDefaultPrior;
 #endif
     virtual ~Module() {}
     virtual void reset();
