@@ -105,7 +105,7 @@ bool EspUart::ioctl(uint32_t cmd, void* const pValue)
     {
     case kSetBaudrate:
         if (pValue != nullptr) {
-            int32_t newBaud = *static_cast<int32_t*>(pValue) << 1;
+            int32_t newBaud = *static_cast<int32_t*>(pValue);
             if (newBaud > 0) {
                 uart_set_baudrate(uart, newBaud);
                 return true;
