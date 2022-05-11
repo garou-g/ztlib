@@ -118,6 +118,14 @@ bool EspUart::ioctl(uint32_t cmd, void* const pValue)
         return true;
         break;
 
+    case kFlushOutput:
+        if (pValue != nullptr) {
+            int32_t timeout = *static_cast<int32_t*>(pValue);
+            uart_wait_tx_done(uart, pdMS_TO_TICKS(timeout));
+            return true;
+        }
+        break;
+
     default:
         break;
     }
