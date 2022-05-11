@@ -115,6 +115,7 @@ bool EspUart::ioctl(uint32_t cmd, void* const pValue)
 
     case kFlushInput:
         uart_flush_input(uart);
+        return true;
         break;
 
     default:
