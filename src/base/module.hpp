@@ -65,11 +65,11 @@ private:
     static const int kAvailability;
     static const int kInited;
 
-    uint32_t _flags;
-    Time _nextCallTime;
+    uint32_t flags_;
+    Time nextCallTime_;
 
 #if defined(FREERTOS_USED)
-    TaskHandle_t xHandle;
+    TaskHandle_t xHandle_;
     static void task(void* instance);
 #endif
 };

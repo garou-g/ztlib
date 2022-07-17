@@ -18,7 +18,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /// Device instance pointer that inited every launch and wakeup by hw version
-Device* Device::device = nullptr;
+Device* Device::device_ = nullptr;
 
 /* Exported functions --------------------------------------------------------*/
 
@@ -28,14 +28,14 @@ Device* Device::device = nullptr;
 void Device::initInstance()
 {
     // Init device by hardware version with DeviceProxy
-    if (device != nullptr)
-        delete device;
-    device = DeviceProxy::initDeviceByVersion();
-    assert(device != nullptr);
+    if (device_ != nullptr)
+        delete device_;
+    device_ = DeviceProxy::initDeviceByVersion();
+    assert(device_ != nullptr);
 
 #if defined(FREERTOS_USED)
     // Launch main task in FreeRTOS mode
-    device->taskInit("deviceTask", 16384, kDefaultPrior);
+    device_->taskInit("deviceTask", 16384, kDefaultPrior);
 #endif
 }
 
@@ -46,8 +46,8 @@ void Device::initInstance()
  */
 Device& Device::getInstance()
 {
-    assert(device != nullptr);
-    return *device;
+    assert(device_ != nullptr);
+    return *device_;
 }
 
 /**
@@ -57,7 +57,7 @@ Device& Device::getInstance()
  */
 uint32_t Device::versionCode() const
 {
-    return _versionCode;
+    return versionCode_;
 }
 
 /* Private functions ---------------------------------------------------------*/
@@ -66,8 +66,8 @@ uint32_t Device::versionCode() const
  * @brief Default device constructor with basic initialization
  */
 Device::Device()
-    : _state(kInit)
-    , _versionCode(0)
+    : state_(kInit)
+    , versionCode_(0)
 {
 }
 
@@ -78,7 +78,7 @@ Device::Device()
  */
 void Device::setVersionCode(uint32_t code)
 {
-    _versionCode = code;
+    versionCode_ = code;
 }
 
 /**
@@ -90,7 +90,7 @@ Time Device::_dispatcher()
 {
     Time delay = Time(0, 0, 10); // TODO: make delay setuped from costructor
 
-    switch (_state) {
+    switch (state_) {
     // Init state
     case kInit: {
         // Get system information about start reason
@@ -110,7 +110,7 @@ Time Device::_dispatcher()
             break;
         }
 
-        _state = kInited;
+        state_ = kInited;
         break;
     }
 
@@ -121,7 +121,7 @@ Time Device::_dispatcher()
 
     // Return to init if state unknown
     default:
-        _state = kInit;
+        state_ = kInit;
         break;
     }
 

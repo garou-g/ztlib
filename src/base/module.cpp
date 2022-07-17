@@ -27,12 +27,12 @@ const int Module::kInited = 0x55AA0000;
  */
 Module::Module()
 #if defined(FREERTOS_USED)
-    : xHandle(NULL)
+    : xHandle_(NULL)
 #endif
 {
     if (!isInited()) {
-        _flags = kInited | kAvailability;
-        _nextCallTime = 0;
+        flags_ = kInited | kAvailability;
+        nextCallTime_ = 0;
     }
 }
 
@@ -47,11 +47,11 @@ Module::Module()
  * @param prior task priority
  */
 Module::Module(const char* name, uint32_t stack, UBaseType_t prior)
-    : xHandle(NULL)
+    : xHandle_(NULL)
 {
     if (!isInited()) {
-        _flags = kInited | kAvailability;
-        _nextCallTime = 0;
+        flags_ = kInited | kAvailability;
+        nextCallTime_ = 0;
     }
     taskInit(name, stack, prior);
 }
@@ -66,8 +66,8 @@ Module::Module(const char* name, uint32_t stack, UBaseType_t prior)
  */
 void Module::taskInit(const char* name, uint32_t stack, UBaseType_t prior)
 {
-    if (xHandle == NULL)
-        xTaskCreate(task, name, stack, this, prior, &xHandle);
+    if (xHandle_ == NULL)
+        xTaskCreate(task, name, stack, this, prior, &xHandle_);
 }
 #endif
 
@@ -76,8 +76,8 @@ void Module::taskInit(const char* name, uint32_t stack, UBaseType_t prior)
  */
 void Module::reset()
 {
-    _flags = kInited | kAvailability;
-    _nextCallTime = 0;
+    flags_ = kInited | kAvailability;
+    nextCallTime_ = 0;
 }
 
 /**
@@ -88,7 +88,7 @@ void Module::reset()
  */
 bool Module::isInited() const
 {
-    return (_flags & kInited) == kInited;
+    return (flags_ & kInited) == kInited;
 }
 
 /**
@@ -102,7 +102,7 @@ bool Module::isInited() const
  */
 bool Module::isAvailable() const
 {
-    return (_flags & kAvailability) == kAvailability;
+    return (flags_ & kAvailability) == kAvailability;
 }
 
 /**
@@ -113,10 +113,10 @@ bool Module::isAvailable() const
  */
 const Time Module::delayTime() const
 {
-    if (_nextCallTime.isZero())
+    if (nextCallTime_.isZero())
         return 0;
     else {
-        Time delta = _nextCallTime - Time::now();
+        Time delta = nextCallTime_ - Time::now();
         if (delta < Time(0, 0, 0))
             return 0;
         else
@@ -132,7 +132,7 @@ const Time Module::delayTime() const
  */
 const Time& Module::nextCallTime() const
 {
-    return _nextCallTime;
+    return nextCallTime_;
 }
 
 /**
@@ -148,8 +148,8 @@ void Module::dispatcher()
 
     // Dispatcher called only if was zero delay or time has come
     Time now = Time::now();
-    if (_nextCallTime.isZero() || now >= _nextCallTime) {
-        _nextCallTime = now + _dispatcher();
+    if (nextCallTime_.isZero() || now >= nextCallTime_) {
+        nextCallTime_ = now + _dispatcher();
     }
 }
 
@@ -160,13 +160,13 @@ void Module::suspend()
 {
 #if defined(FREERTOS_USED)
     // Suspend by FreeRTOS function or set suspend flag for no RTOS work
-    if (xHandle)
+    if (xHandle_)
         vTaskSuspend(NULL);
     else
-        _flags |= kSuspended;
+        flags_ |= kSuspended;
 #else
     // Set suspend flag for no RTOS work
-    _flags |= kSuspended;
+    flags_ |= kSuspended;
 #endif
 }
 
@@ -179,12 +179,12 @@ bool Module::isSuspended() const
 {
     bool result = false;
 #if defined(FREERTOS_USED)
-    if (xHandle)
-        result = eTaskGetState(xHandle) == eSuspended;
+    if (xHandle_)
+        result = eTaskGetState(xHandle_) == eSuspended;
     else
-        result = (_flags & kSuspended) == kSuspended;
+        result = (flags_ & kSuspended) == kSuspended;
 #else
-    result = (_flags & kSuspended) == kSuspended;
+    result = (flags_ & kSuspended) == kSuspended;
 #endif
     return result;
 }
@@ -196,21 +196,21 @@ bool Module::isSuspended() const
 void Module::resume()
 {
     // Zeroing delay time causes calling of the virtual _dispatcher function
-    _nextCallTime = 0;
+    nextCallTime_ = 0;
 #if defined(FREERTOS_USED)
     // With FreeRTOS also notify or resume task if it in suspended state,
     // or reset suspend flag for no RTOS work
-    if (xHandle) {
-        if (eTaskGetState(xHandle) == eSuspended)
-            vTaskResume(xHandle);
+    if (xHandle_) {
+        if (eTaskGetState(xHandle_) == eSuspended)
+            vTaskResume(xHandle_);
         else
-            xTaskNotifyGive(xHandle);
+            xTaskNotifyGive(xHandle_);
     } else {
-        _flags &= ~kSuspended;
+        flags_ &= ~kSuspended;
     }
 #else
     // Reset suspend flag for no RTOS work
-    _flags &= ~kSuspended;
+    flags_ &= ~kSuspended;
 #endif
 }
 
@@ -224,9 +224,9 @@ void Module::resume()
 void Module::setAvailability(bool value)
 {
     if (value)
-        _flags |= kAvailability;
+        flags_ |= kAvailability;
     else
-        _flags &= ~kAvailability;
+        flags_ &= ~kAvailability;
 }
 
 #if defined(FREERTOS_USED)

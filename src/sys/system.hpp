@@ -82,10 +82,10 @@ private:
     Version* version;
     char versionStr[Version::FW_SIZE];
 
-    ResetReason _resetReason;
-    WakeupReason _wakeupReason;
-    uint32_t _wakeupTime;
-    int32_t _wakeupPin;
+    ResetReason resetReason_;
+    WakeupReason wakeupReason_;
+    uint32_t wakeupTime_;
+    int32_t wakeupPin_;
 };
 
 #endif /* __SYSTEM_H */

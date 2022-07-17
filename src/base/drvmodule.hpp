@@ -39,7 +39,7 @@ protected:
     void* drv() const;
 
 private:
-    void* _drv;
+    void* drv_;
 };
 
 #endif /* __DRV_MODULE_H */

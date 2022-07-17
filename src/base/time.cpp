@@ -118,9 +118,9 @@ Time::Time(void)
  */
 Time::Time(int32_t ms)
 {
-    msec = ms;
-    sec = 0;
-    hour = 0;
+    msec_ = ms;
+    sec_ = 0;
+    hour_ = 0;
     normalize();
 }
 
@@ -133,9 +133,9 @@ Time::Time(int32_t ms)
  */
 Time::Time(int32_t h, int32_t s, int32_t ms)
 {
-    msec = ms;
-    sec = s;
-    hour = h;
+    msec_ = ms;
+    sec_ = s;
+    hour_ = h;
     normalize();
 }
 
@@ -157,7 +157,7 @@ bool Time::isZero() const
  */
 int32_t Time::toSec(void) const
 {
-    return hour * kSecondsInHour + sec;
+    return hour_ * kSecondsInHour + sec_;
 }
 
 /**
@@ -167,7 +167,7 @@ int32_t Time::toSec(void) const
  */
 int32_t Time::toMsec(void) const
 {
-    return hour * kMilisecondsInHour + sec * kMilisecondsInSecond + msec;
+    return hour_ * kMilisecondsInHour + sec_ * kMilisecondsInSecond + msec_;
 }
 
 /**
@@ -178,7 +178,7 @@ int32_t Time::toMsec(void) const
  */
 int32_t Time::toUTC(void) const
 {
-    return hour * kSecondsInHour + sec + deltaUTC;
+    return hour_ * kSecondsInHour + sec_ + deltaUTC;
 }
 
 /**
@@ -188,7 +188,7 @@ int32_t Time::toUTC(void) const
  */
 int32_t Time::getHour(void) const
 {
-    return hour;
+    return hour_;
 }
 
 /**
@@ -198,7 +198,7 @@ int32_t Time::getHour(void) const
  */
 int32_t Time::getSec(void) const
 {
-    return sec;
+    return sec_;
 }
 
 /**
@@ -208,7 +208,7 @@ int32_t Time::getSec(void) const
  */
 int32_t Time::getMsec(void) const
 {
-    return msec;
+    return msec_;
 }
 
 /**
@@ -239,7 +239,7 @@ void Time::setDeltaUTC(uint32_t delta)
  */
 Time& Time::addSec(int32_t s)
 {
-    sec += s;
+    sec_ += s;
     normalize();
     return *this;
 }
@@ -263,9 +263,9 @@ Time& Time::addMsec(int32_t ms)
  */
 const Time& Time::operator=(const Time& c)
 {
-    msec = c.msec;
-    sec = c.sec;
-    hour = c.hour;
+    msec_ = c.msec_;
+    sec_ = c.sec_;
+    hour_ = c.hour_;
     return *this;
 }
 
@@ -276,9 +276,9 @@ const Time& Time::operator=(const Time& c)
  */
 Time& Time::operator+=(const Time& c)
 {
-	msec += c.msec;
-    sec += c.sec;
-	hour += c.hour;
+	msec_ += c.msec_;
+    sec_ += c.sec_;
+	hour_ += c.hour_;
     normalize();
     return *this;
 }
@@ -290,7 +290,7 @@ Time& Time::operator+=(const Time& c)
  */
 Time& Time::operator+=(const int32_t& c)
 {
-    msec += c;
+    msec_ += c;
     normalize();
     return *this;
 }
@@ -302,9 +302,9 @@ Time& Time::operator+=(const int32_t& c)
  */
 Time& Time::operator-=(const Time& c)
 {
-	msec -= c.msec;
-    sec -= c.sec;
-	hour -= c.hour;
+	msec_ -= c.msec_;
+    sec_ -= c.sec_;
+	hour_ -= c.hour_;
     normalize();
     return *this;
 }
@@ -316,7 +316,7 @@ Time& Time::operator-=(const Time& c)
  */
 Time& Time::operator-=(const int32_t& c)
 {
-    msec -= c;
+    msec_ -= c;
     normalize();
     return *this;
 }
@@ -373,7 +373,7 @@ const Time Time::operator-(const int32_t& c) const
  */
 bool Time::operator==(const Time& c) const
 {
-    return (hour == c.hour && sec == c.sec && msec == c.msec);
+    return (hour_ == c.hour_ && sec_ == c.sec_ && msec_ == c.msec_);
 }
 
 /**
@@ -395,9 +395,9 @@ bool Time::operator!=(const Time& c) const
  */
 bool Time::operator<(const Time& c) const
 {
-    return (hour < c.hour) ||
-        (hour == c.hour && sec < c.sec) ||
-        (hour == c.hour && sec == c.sec && msec < c.msec);
+    return (hour_ < c.hour_) ||
+        (hour_ == c.hour_ && sec_ < c.sec_) ||
+        (hour_ == c.hour_ && sec_ == c.sec_ && msec_ < c.msec_);
 }
 
 /**
@@ -440,20 +440,20 @@ bool Time::operator>=(const Time& c) const
  */
 void Time::normalize(void)
 {
-    int32_t tmp = msec / kMilisecondsInSecond;
-    sec += tmp;
-    msec -= tmp * kMilisecondsInSecond;
-    if (msec < 0) {
-        msec += kMilisecondsInSecond;
-        sec--;
+    int32_t tmp = msec_ / kMilisecondsInSecond;
+    sec_ += tmp;
+    msec_ -= tmp * kMilisecondsInSecond;
+    if (msec_ < 0) {
+        msec_ += kMilisecondsInSecond;
+        sec_--;
     }
 
-    tmp = sec / kSecondsInHour;
-    hour += tmp;
-    sec -= tmp * kSecondsInHour;
-    if (sec < 0) {
-        sec += kSecondsInHour;
-        hour--;
+    tmp = sec_ / kSecondsInHour;
+    hour_ += tmp;
+    sec_ -= tmp * kSecondsInHour;
+    if (sec_ < 0) {
+        sec_ += kSecondsInHour;
+        hour_--;
     }
 }
 

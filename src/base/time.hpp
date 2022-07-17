@@ -69,9 +69,9 @@ private:
 
     static uint32_t deltaUTC;
 
-    int32_t hour;
-    int32_t sec;
-    int32_t msec;
+    int32_t hour_;
+    int32_t sec_;
+    int32_t msec_;
 };
 
 #endif /* __TIME_H */

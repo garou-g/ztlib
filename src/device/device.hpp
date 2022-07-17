@@ -58,10 +58,10 @@ private:
 
     Time _dispatcher() override;
 
-    static Device* device;
+    static Device* device_;
 
-    State _state;
-    uint32_t _versionCode;
+    State state_;
+    uint32_t versionCode_;
 };
 
 #endif /* __DEVICE_H */

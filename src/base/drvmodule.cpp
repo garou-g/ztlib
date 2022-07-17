@@ -20,7 +20,7 @@
  *      until driver instance is set
  */
 DrvModule::DrvModule()
-    : _drv(nullptr)
+    : drv_(nullptr)
 {
     setAvailability(false);
 }
@@ -37,7 +37,7 @@ DrvModule::DrvModule()
  */
 DrvModule::DrvModule(const char* name, uint32_t stack, UBaseType_t prior)
     : Module(name, stack, prior)
-    , _drv(nullptr)
+    , drv_(nullptr)
 {
     setAvailability(false);
 }
@@ -50,8 +50,8 @@ DrvModule::DrvModule(const char* name, uint32_t stack, UBaseType_t prior)
  */
 void DrvModule::setDriver(void* drvInst)
 {
-    _drv = drvInst;
-    setAvailability(_drv != nullptr);
+    drv_ = drvInst;
+    setAvailability(drv_ != nullptr);
 }
 
 /**
@@ -61,7 +61,7 @@ void DrvModule::setDriver(void* drvInst)
  */
 void* DrvModule::drv() const
 {
-    return _drv;
+    return drv_;
 }
 
 /* Private functions ---------------------------------------------------------*/
