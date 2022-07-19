@@ -116,23 +116,33 @@ void Version::getHardwareVersion(Hardware& hw)
 void Version::getFirmwareVersion(Firmware& fw, char* fwStr)
 {
     FwString fwString = getFwValue();
-    char buf[FW_SIZE] = {0};
-    int j = 0, prevJ = 0;
-
-    // Parse version string
+    int j = 0;
     fw = { 0, 0, 0, 0 };
-    for (int i = 0; i < 4; i++) {
+
+    for (int i = 0; i < 4; ++i) {
         int value = 0;
-        for (; j < FW_SIZE; j++) {
+        int k = 0;
+        char buf[FW_SIZE] = { 0 };
+        for (; j < FW_SIZE; ++j) {
+            // Delimiter symbols is . - and zero
             if (fwString.data[j] == '.'
                 || fwString.data[j] == '-'
                 || fwString.data[j] == '\0') {
-                for (int k = 0; k < (j - prevJ); k++)
-                    buf[k] = fwString.data[prevJ + k];
-                buf[j - prevJ] = '\0';
-                prevJ = ++j;
+                buf[k] = '\0';
                 value = atoi(buf);
+                ++j;
                 break;
+            // If next symbol is not digit - fw string is ended
+            } else if (fwString.data[j] < '0'
+                || fwString.data[j] > '9') {
+                // Change symbol to zero char
+                fwString.data[j] = '0';
+                value = 0;
+                ++j;
+                break;
+            // Take digit to buffer
+            } else {
+                buf[k++] = fwString.data[j];
             }
         }
         if (i == 0)
@@ -147,7 +157,7 @@ void Version::getFirmwareVersion(Firmware& fw, char* fwStr)
 
     // Copy actual part of version in result buffer if present
     if (fwStr != nullptr) {
-        memcpy(fwStr, fwString.data, j - 1);
+        memcpy(fwStr, fwString.data, j);
         fwStr[j] = '\0';
     }
 }
