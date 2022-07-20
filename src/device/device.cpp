@@ -65,9 +65,10 @@ uint32_t Device::versionCode() const
 /**
  * @brief Default device constructor with basic initialization
  */
-Device::Device()
+Device::Device(uint32_t defDispathDelayMs)
     : state_(kInit)
     , versionCode_(0)
+    , dispatchDelayMs_(defDispathDelayMs)
 {
 }
 
@@ -88,7 +89,7 @@ void Device::setVersionCode(uint32_t code)
  */
 Time Device::_dispatcher()
 {
-    Time delay = Time(0, 0, 10); // TODO: make delay setuped from costructor
+    Time delay = Time(0, 0, dispatchDelayMs_);
 
     switch (state_) {
     // Init state

@@ -36,7 +36,7 @@ public:
     uint32_t versionCode() const;
 
 protected:
-    Device();
+    Device(uint32_t defDispathDelayMs = 10U);
     virtual ~Device() {} // Empty virtual destructor for inheritance fix
 
     void setVersionCode(uint32_t code);
@@ -62,6 +62,7 @@ private:
 
     State state_;
     uint32_t versionCode_;
+    const uint32_t dispatchDelayMs_;
 };
 
 #endif /* __DEVICE_H */
