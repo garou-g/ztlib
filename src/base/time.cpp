@@ -253,6 +253,7 @@ Time& Time::addSec(int32_t s)
 Time& Time::addMsec(int32_t ms)
 {
     *this += ms;
+    normalize();
     return *this;
 }
 
