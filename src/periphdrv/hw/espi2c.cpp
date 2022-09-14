@@ -102,7 +102,7 @@ int32_t EspI2c::write(const void* const buf, uint32_t len)
     esp_err_t ret = i2c_master_cmd_begin(i2c, cmd, timeoutMs);
     i2c_cmd_link_delete(cmd);
 
-    return ret == ESP_OK;
+    return ret == ESP_OK ? len : -1;
 }
 
 int32_t EspI2c::read(void* const buf, uint32_t len)
@@ -132,7 +132,7 @@ int32_t EspI2c::read(void* const buf, uint32_t len)
     esp_err_t ret = i2c_master_cmd_begin(i2c, cmd, timeoutMs);
     i2c_cmd_link_delete(cmd);
 
-    return ret == ESP_OK;
+    return ret == ESP_OK ? len : -1;
 }
 
 bool EspI2c::ioctl(uint32_t cmd, void* const pValue)
