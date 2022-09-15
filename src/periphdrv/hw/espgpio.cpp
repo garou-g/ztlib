@@ -36,10 +36,11 @@ bool EspGpio::open(const void* const drvConfig)
     if (!GPIO_IS_VALID_OUTPUT_GPIO(config->pin))
         return false;
     pin = static_cast<gpio_num_t>(config->pin);
+    setInversed(config->inverse);
 
     gpio_pad_select_gpio(pin);
     gpio_set_direction(pin, GPIO_MODE_OUTPUT);
-    gpio_set_level(pin, 0);
+    gpio_set_level(pin, isInversed() ? 1: 0);
     gpio_hold_en(pin);
     setOpened(true);
 
@@ -62,7 +63,7 @@ int32_t EspGpio::set()
         return -1;
 
     gpio_hold_dis(pin);
-    gpio_set_level(pin, 1);
+    gpio_set_level(pin, isInversed() ? 0: 1);
     gpio_hold_en(pin);
 
     return 0;
@@ -74,7 +75,7 @@ int32_t EspGpio::reset()
         return -1;
 
     gpio_hold_dis(pin);
-    gpio_set_level(pin, 0);
+    gpio_set_level(pin, isInversed() ? 1: 0);
     gpio_hold_en(pin);
 
     return 0;

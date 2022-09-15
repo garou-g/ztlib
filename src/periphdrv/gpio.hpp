@@ -23,6 +23,7 @@ class Gpio {
 public:
     struct Config {
         int32_t pin;
+        bool inverse;
     };
 
     enum IoctlCmd {
@@ -64,6 +65,13 @@ public:
     virtual int32_t reset() = 0;
 
     /**
+     * @brief Check gpio inverse state processing
+     *
+     * @return true if gpio is inversed otherwise false
+     */
+    bool isInversed() const;
+
+    /**
      * @brief Execute chosen command on driver
      *
      * @param cmd command to execute
@@ -80,8 +88,16 @@ protected:
      */
     void setOpened(bool state);
 
+    /**
+     * @brief Set gpio inverse processing
+     *
+     * @param state new inverse state
+     */
+    void setInversed(bool state);
+
 private:
     bool opened;
+    bool inversed;
 };
 
 #endif /* __GPIO_DRIVER_H */

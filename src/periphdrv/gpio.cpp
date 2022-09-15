@@ -29,6 +29,16 @@ void Gpio::setOpened(bool state)
     opened = state;
 }
 
+bool Gpio::isInversed() const
+{
+    return inversed;
+}
+
+void Gpio::setInversed(bool state)
+{
+    inversed = state;
+}
+
 /* Private functions ---------------------------------------------------------*/
 
 /***************************** END OF FILE ************************************/
