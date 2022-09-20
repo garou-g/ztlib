@@ -25,7 +25,7 @@ EspGpio::EspGpio()
 {
 }
 
-bool EspGpio::open(const void* const drvConfig)
+bool EspGpio::open(const void* drvConfig)
 {
     if (isOpen())
         return false;
@@ -81,7 +81,7 @@ int32_t EspGpio::reset()
     return 0;
 }
 
-bool EspGpio::ioctl(uint32_t cmd, void* const pValue)
+bool EspGpio::ioctl(uint32_t cmd, void* pValue)
 {
     if (!isOpen())
         return false;

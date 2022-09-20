@@ -29,13 +29,13 @@ EspUart::EspUart()
 {
 }
 
-bool EspUart::open(const void* const drvConfig)
+bool EspUart::open(const void* drvConfig)
 {
     if (isOpen())
         return false;
 
     assert(drvConfig != nullptr);
-    const Uart::Config* const config
+    const Uart::Config* config
         = static_cast<const Uart::Config*>(drvConfig);
 
     if (config->uart < 0 || config->uart >= SOC_UART_NUM)
@@ -76,7 +76,7 @@ void EspUart::close()
     }
 }
 
-int32_t EspUart::write(const void* const buf, uint32_t len)
+int32_t EspUart::write(const void* buf, uint32_t len)
 {
     assert(buf != nullptr);
 
@@ -86,7 +86,7 @@ int32_t EspUart::write(const void* const buf, uint32_t len)
     return uart_write_bytes(uart, buf, len);
 }
 
-int32_t EspUart::read(void* const buf, uint32_t len)
+int32_t EspUart::read(void* buf, uint32_t len)
 {
     assert(buf != nullptr);
 
@@ -96,7 +96,7 @@ int32_t EspUart::read(void* const buf, uint32_t len)
     return uart_read_bytes(uart, buf, len, 0);
 }
 
-bool EspUart::ioctl(uint32_t cmd, void* const pValue)
+bool EspUart::ioctl(uint32_t cmd, void* pValue)
 {
     if (!isOpen())
         return false;

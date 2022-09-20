@@ -40,7 +40,7 @@ public:
      * @param drvConfig driver configuration
      * @return true if success opened otherwise false
      */
-    virtual bool open(const void* const drvConfig) = 0;
+    virtual bool open(const void* drvConfig) = 0;
 
     /**
      * @brief Check driver opened state

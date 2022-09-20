@@ -22,13 +22,13 @@ class EspI2c final : public I2c {
 public:
     EspI2c();
 
-    bool open(const void* const drvConfig) override;
+    bool open(const void* drvConfig) override;
     void close() override;
 
-    int32_t write(const void* const buf, uint32_t len) override;
-    int32_t read(void* const buf, uint32_t len) override;
+    int32_t write(const void* buf, uint32_t len) override;
+    int32_t read(void* buf, uint32_t len) override;
 
-    bool ioctl(uint32_t cmd, void* const pValue) override;
+    bool ioctl(uint32_t cmd, void* pValue) override;
 
 private:
     static const uint32_t timeoutMs;

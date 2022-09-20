@@ -34,7 +34,7 @@ EspI2c::EspI2c()
 {
 }
 
-bool EspI2c::open(const void* const drvConfig)
+bool EspI2c::open(const void* drvConfig)
 {
     if (isOpen())
         return false;
@@ -81,14 +81,14 @@ void EspI2c::close()
     }
 }
 
-int32_t EspI2c::write(const void* const buf, uint32_t len)
+int32_t EspI2c::write(const void* buf, uint32_t len)
 {
     assert(buf != nullptr);
 
     if (!isOpen() || addr < 0)
         return -1;
 
-    const uint8_t* const bytes = static_cast<const uint8_t*>(buf);
+    const uint8_t* bytes = static_cast<const uint8_t*>(buf);
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, addr | I2C_MASTER_WRITE, true);
@@ -105,14 +105,14 @@ int32_t EspI2c::write(const void* const buf, uint32_t len)
     return ret == ESP_OK ? len : -1;
 }
 
-int32_t EspI2c::read(void* const buf, uint32_t len)
+int32_t EspI2c::read(void* buf, uint32_t len)
 {
     assert(buf != nullptr);
 
     if (!isOpen() || addr < 0 || len == 0)
         return -1;
 
-    uint8_t* const bytes = static_cast<uint8_t*>(buf);
+    uint8_t* bytes = static_cast<uint8_t*>(buf);
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
     // Without register just read data as is
     if (getReg() >= 0) {
@@ -135,7 +135,7 @@ int32_t EspI2c::read(void* const buf, uint32_t len)
     return ret == ESP_OK ? len : -1;
 }
 
-bool EspI2c::ioctl(uint32_t cmd, void* const pValue)
+bool EspI2c::ioctl(uint32_t cmd, void* pValue)
 {
     if (!isOpen())
         return false;

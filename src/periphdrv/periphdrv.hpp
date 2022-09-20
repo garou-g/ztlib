@@ -32,7 +32,7 @@ public:
      * @param drvConfig driver configuration
      * @return true if success opened otherwise false
      */
-    virtual bool open(const void* const drvConfig) = 0;
+    virtual bool open(const void* drvConfig) = 0;
 
     /**
      * @brief Check driver opened state
@@ -53,7 +53,7 @@ public:
      * @param len length of data buffer
      * @return int32_t actually written data length, -1 on error
      */
-    virtual int32_t write(const void* const buf, uint32_t len) = 0;
+    virtual int32_t write(const void* buf, uint32_t len) = 0;
 
     /**
      * @brief Write data to driver with register access
@@ -63,7 +63,7 @@ public:
      * @param len length of data buffer
      * @return int32_t actually written data length, -1 on error
      */
-    int32_t write(uint8_t reg, const void* const buf, uint32_t len);
+    int32_t write(uint8_t reg, const void* buf, uint32_t len);
 
     /**
      * @brief Receive data from driver
@@ -72,7 +72,7 @@ public:
      * @param len length of data to read
      * @return int32_t actually readed data length, -1 on error
      */
-    virtual int32_t read(void* const buf, uint32_t len) = 0;
+    virtual int32_t read(void* buf, uint32_t len) = 0;
 
     /**
      * @brief Receive data from driver with register access
@@ -82,7 +82,7 @@ public:
      * @param len length of data to read
      * @return int32_t actually readed data length, -1 on error
      */
-    int32_t read(uint8_t reg, void* const buf, uint32_t len);
+    int32_t read(uint8_t reg, void* buf, uint32_t len);
 
     /**
      * @brief Execute chosen command on driver
@@ -91,7 +91,7 @@ public:
      * @param pValue pointer for command data
      * @return true if command executed successfully otherwise false
      */
-    virtual bool ioctl(uint32_t cmd, void* const pValue) = 0;
+    virtual bool ioctl(uint32_t cmd, void* pValue) = 0;
 
 protected:
     /**
