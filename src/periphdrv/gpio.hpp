@@ -78,7 +78,7 @@ public:
      * @param pValue pointer for command data
      * @return true if command executed successfully otherwise false
      */
-    virtual bool ioctl(uint32_t cmd, void* const pValue) = 0;
+    virtual bool ioctl(uint32_t cmd, void* pValue) = 0;
 
 protected:
     /**

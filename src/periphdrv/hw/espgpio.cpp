@@ -31,7 +31,7 @@ bool EspGpio::open(const void* drvConfig)
         return false;
 
     assert(drvConfig != nullptr);
-    const Gpio::Config* const config
+    const Gpio::Config* config
         = static_cast<const Gpio::Config*>(drvConfig);
     if (!GPIO_IS_VALID_OUTPUT_GPIO(config->pin))
         return false;

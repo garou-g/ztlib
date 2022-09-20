@@ -40,7 +40,7 @@ bool EspI2c::open(const void* drvConfig)
         return false;
 
     assert(drvConfig != nullptr);
-    const I2c::Config* const config
+    const I2c::Config* config
         = static_cast<const I2c::Config*>(drvConfig);
 
     if (config->i2c < 0 || config->i2c >= SOC_I2C_NUM)
