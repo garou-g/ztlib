@@ -64,22 +64,15 @@ uint32_t Device::versionCode() const
 
 /**
  * @brief Default device constructor with basic initialization
+ *
+ * @param versionCode device version code
+ * @param defDispathDelayMs default dispatcher frequency
  */
-Device::Device(uint32_t defDispathDelayMs)
+Device::Device(uint32_t versionCode, uint32_t defDispathDelayMs)
     : state_(kInit)
-    , versionCode_(0)
+    , versionCode_(versionCode)
     , dispatchDelayMs_(defDispathDelayMs)
 {
-}
-
-/**
- * @brief Sets new device specific version code. Used in successor classes
- *
- * @param code new device version code
- */
-void Device::setVersionCode(uint32_t code)
-{
-    versionCode_ = code;
 }
 
 /**
