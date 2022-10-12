@@ -137,14 +137,19 @@ const Time& Module::nextCallTime() const
 
 /**
  * @brief Module dispatcher function. Calls the virtual dispatch function
- *      to actually work in the successor classes. Returns the Time object
- *      to wait for the next call to this object's dispatcher
+ *      to actually work in the successor classes.
  */
 void Module::dispatcher()
 {
     // If suspended - no processing, just return
     if (isSuspended())
         return;
+
+    // If not available - no processing, suspend and return
+    if (!isAvailable()) {
+        suspend();
+        return;
+    }
 
     // Dispatcher called only if was zero delay or time has come
     Time now = Time::now();
