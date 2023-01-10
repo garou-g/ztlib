@@ -54,8 +54,10 @@ Version::HwVolt EspVersion::getHwValue()
     hwMajor /= NO_OF_SAMPLES;
     hwMinor /= NO_OF_SAMPLES;
     HwVolt hw;
-    hw.major = esp_adc_cal_raw_to_voltage(hwMajor, &adc_chars);
-    hw.minor = esp_adc_cal_raw_to_voltage(hwMinor, &adc_chars);
+
+    // Decrease by 40 mV because ESP ADC measurement overstates
+    hw.major = esp_adc_cal_raw_to_voltage(hwMajor, &adc_chars) - 40;
+    hw.minor = esp_adc_cal_raw_to_voltage(hwMinor, &adc_chars) - 40;
     return hw;
 }
 
