@@ -10,6 +10,10 @@
 #include "driver/adc.h"
 #include "esp_adc_cal.h"
 #include "esp_ota_ops.h"
+#include "nvs_flash.h"
+#include "esp_log.h"
+
+#define TAG "ver"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private defines -----------------------------------------------------------*/
@@ -43,6 +47,23 @@ EspVersion::EspVersion()
  */
 Version::HwVolt EspVersion::getHwValue()
 {
+    nvs_handle_t handle;
+    const esp_err_t openErr = nvs_open("device", NVS_READWRITE, &handle);
+    ESP_LOGI(TAG, "nvs_open device %d", openErr);
+
+    HwVolt hw;
+    if (openErr == ESP_OK) {
+        size_t size = sizeof(HwVolt);
+        const esp_err_t err = nvs_get_blob(handle, "hwvolt", &hw, &size);
+        ESP_LOGI(TAG, "nvs_get_blob hwvolt %d", err);
+        if (err == ESP_OK) {
+            ESP_LOGI(TAG, "get version from memory");
+            ESP_LOGI(TAG, "hw.major = %d, hw.minor = %d", hw.major, hw.minor);
+            nvs_close(handle);
+            return hw;
+        }
+    }
+
     const int NO_OF_SAMPLES = 64;
     const int DEFAULT_VREF = 1100;
 
@@ -62,11 +83,21 @@ Version::HwVolt EspVersion::getHwValue()
     }
     hwMajor /= NO_OF_SAMPLES;
     hwMinor /= NO_OF_SAMPLES;
-    HwVolt hw;
 
     // Decrease by 40 mV because ESP ADC measurement overstates
     hw.major = esp_adc_cal_raw_to_voltage(hwMajor, &adc_chars) - 40;
     hw.minor = esp_adc_cal_raw_to_voltage(hwMinor, &adc_chars) - 40;
+    ESP_LOGI(TAG, "get version from adc");
+    ESP_LOGI(TAG, "hw.major = %d, hw.minor = %d", hw.major, hw.minor);
+
+    if (openErr == ESP_OK) {
+        const esp_err_t err = nvs_set_blob(handle, "hwvolt", &hw, sizeof(hw));
+        ESP_LOGI(TAG, "nvs_set_blob hwvolt %d", err);
+        nvs_commit(handle);
+        nvs_close(handle);
+        ESP_LOGI(TAG, "save version to memory");
+    }
+
     return hw;
 }
 
