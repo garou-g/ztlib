@@ -31,6 +31,16 @@ EspSystem::EspSystem()
     // Disable default pullup of IO5
     gpio_pullup_dis(GPIO_NUM_5);
 
+    // One time NVS flash init
+    esp_err_t nvsErr = nvs_flash_init();
+    if (nvsErr == ESP_ERR_NVS_NO_FREE_PAGES ||
+        nvsErr == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        // NVS partition was truncated and needs to be erased
+        // Retry nvs_flash_init
+        nvs_flash_erase();
+        nvs_flash_init();
+    }
+
     // Get reset reason
     System::ResetReason reset;
     switch (esp_reset_reason()) {
