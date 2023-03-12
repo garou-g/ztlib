@@ -11,7 +11,6 @@
 #include "hal/gpio_types.h"
 #include "driver/gpio.h"
 #include "driver/rtc_io.h"
-#include "esp_log.h"
 
 #include "espsystem.hpp"
 #include "espversion.hpp"
@@ -88,15 +87,6 @@ EspSystem::EspSystem()
  */
 void EspSystem::restart()
 {
-    nvs_handle_t handle;
-    const esp_err_t openErr = nvs_open("device", NVS_READWRITE, &handle);
-    if (openErr == ESP_OK) {
-        const esp_err_t err = nvs_erase_key(handle, "hwvolt");
-        ESP_LOGI("ver", "erase hwvolt %d", err);
-        nvs_commit(handle);
-        nvs_close(handle);
-    }
-
     esp_restart();
 }
 
