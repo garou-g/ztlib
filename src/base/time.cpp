@@ -10,30 +10,18 @@
 #include "time.hpp"
 #include "attr.h"
 
-/* Private typedef -----------------------------------------------------------*/
-/* Private defines -----------------------------------------------------------*/
-/* Private macros ------------------------------------------------------------*/
-/* Private function prototypes -----------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
-
-const int32_t Time::kSecondsInHour = 3600;
-const int32_t Time::kMilisecondsInSecond = 1000;
-const int32_t Time::kMilisecondsInHour = 3600000;
-
 /**
  * @brief UTC correction value is global for all Time instance.
  *      It needs to be placed in noinit section to prevent zeroing on restart.
  */
 RETAIN_NOINIT_ATTR uint32_t Time::deltaUTC;
 
-/* Exported functions --------------------------------------------------------*/
-
 /**
  * @brief Returns current system time from device start
  *
  * @return Time current time object
  */
-Time Time::now(void)
+Time Time::now()
 {
     struct timeval tvNow;
     gettimeofday(&tvNow, NULL);
@@ -107,7 +95,7 @@ bool Time::setSystemTime(uint32_t utc, uint32_t maxDelta)
 /**
  * @brief Construct a new Time object without initialization
  */
-Time::Time(void)
+Time::Time()
 {
 }
 
@@ -149,7 +137,7 @@ bool Time::isZero() const
  *
  * @return int32_t seconds value
  */
-int32_t Time::toSec(void) const
+int32_t Time::toSec() const
 {
     return hour_ * kSecondsInHour + sec_;
 }
@@ -159,7 +147,7 @@ int32_t Time::toSec(void) const
  *
  * @return int32_t milliseconds value
  */
-int32_t Time::toMsec(void) const
+int32_t Time::toMsec() const
 {
     return hour_ * kMilisecondsInHour + sec_ * kMilisecondsInSecond + msec_;
 }
@@ -170,7 +158,7 @@ int32_t Time::toMsec(void) const
  *
  * @return int32_t seconds value with UTC correction
  */
-int32_t Time::toUTC(void) const
+int32_t Time::toUTC() const
 {
     return hour_ * kSecondsInHour + sec_ + deltaUTC;
 }
@@ -180,7 +168,7 @@ int32_t Time::toUTC(void) const
  *
  * @return int32_t hours
  */
-int32_t Time::getHour(void) const
+int32_t Time::getHour() const
 {
     return hour_;
 }
@@ -190,7 +178,7 @@ int32_t Time::getHour(void) const
  *
  * @return int32_t seconds
  */
-int32_t Time::getSec(void) const
+int32_t Time::getSec() const
 {
     return sec_;
 }
@@ -200,7 +188,7 @@ int32_t Time::getSec(void) const
  *
  * @return int32_t milliseconds
  */
-int32_t Time::getMsec(void) const
+int32_t Time::getMsec() const
 {
     return msec_;
 }
@@ -210,7 +198,7 @@ int32_t Time::getMsec(void) const
  *
  * @return uint32_t UTC value
  */
-uint32_t Time::getDeltaUTC(void)
+uint32_t Time::getDeltaUTC()
 {
     return deltaUTC;
 }
@@ -278,7 +266,7 @@ Time& Time::operator+=(const Time& c)
  *
  * @param c milliseconds value
  */
-Time& Time::operator+=(const int32_t& c)
+Time& Time::operator+=(int32_t c)
 {
     normalize(hour_, sec_, msec_ + c);
     return *this;
@@ -300,7 +288,7 @@ Time& Time::operator-=(const Time& c)
  *
  * @param c milliseconds value
  */
-Time& Time::operator-=(const int32_t& c)
+Time& Time::operator-=(int32_t c)
 {
     normalize(hour_, sec_, msec_ - c);
     return *this;
@@ -323,7 +311,7 @@ const Time Time::operator+(const Time& c) const
  * @param c milliseconds value
  * @return result of addition
  */
-const Time Time::operator+(const int32_t& c) const
+const Time Time::operator+(int32_t c) const
 {
     return Time(*this) += c;
 }
@@ -345,7 +333,7 @@ const Time Time::operator-(const Time& c) const
  * @param c milliseconds value
  * @return result of subtraction
  */
-const Time Time::operator-(const int32_t& c) const
+const Time Time::operator-(int32_t c) const
 {
     return Time(*this) -= c;
 }
