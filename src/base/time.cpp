@@ -118,10 +118,7 @@ Time::Time(void)
  */
 Time::Time(int32_t ms)
 {
-    msec_ = ms;
-    sec_ = 0;
-    hour_ = 0;
-    normalize();
+    normalize(0, 0, ms);
 }
 
 /**
@@ -133,10 +130,7 @@ Time::Time(int32_t ms)
  */
 Time::Time(int32_t h, int32_t s, int32_t ms)
 {
-    msec_ = ms;
-    sec_ = s;
-    hour_ = h;
-    normalize();
+    normalize(h, s, ms);
 }
 
 /**
@@ -239,8 +233,7 @@ void Time::setDeltaUTC(uint32_t delta)
  */
 Time& Time::addSec(int32_t s)
 {
-    sec_ += s;
-    normalize();
+    normalize(hour_, sec_ + s, msec_);
     return *this;
 }
 
@@ -253,7 +246,6 @@ Time& Time::addSec(int32_t s)
 Time& Time::addMsec(int32_t ms)
 {
     *this += ms;
-    normalize();
     return *this;
 }
 
@@ -277,10 +269,7 @@ const Time& Time::operator=(const Time& c)
  */
 Time& Time::operator+=(const Time& c)
 {
-	msec_ += c.msec_;
-    sec_ += c.sec_;
-	hour_ += c.hour_;
-    normalize();
+    normalize(hour_ + c.hour_, sec_ + c.sec_, msec_ + c.msec_);
     return *this;
 }
 
@@ -291,8 +280,7 @@ Time& Time::operator+=(const Time& c)
  */
 Time& Time::operator+=(const int32_t& c)
 {
-    msec_ += c;
-    normalize();
+    normalize(hour_, sec_, msec_ + c);
     return *this;
 }
 
@@ -303,10 +291,7 @@ Time& Time::operator+=(const int32_t& c)
  */
 Time& Time::operator-=(const Time& c)
 {
-	msec_ -= c.msec_;
-    sec_ -= c.sec_;
-	hour_ -= c.hour_;
-    normalize();
+    normalize(hour_ - c.hour_, sec_ - c.sec_, msec_ - c.msec_);
     return *this;
 }
 
@@ -317,8 +302,7 @@ Time& Time::operator-=(const Time& c)
  */
 Time& Time::operator-=(const int32_t& c)
 {
-    msec_ -= c;
-    normalize();
+    normalize(hour_, sec_, msec_ - c);
     return *this;
 }
 
@@ -439,23 +423,27 @@ bool Time::operator>=(const Time& c) const
 /**
  * @brief Perform fields normalization and modification to less values
  */
-void Time::normalize(void)
+void Time::normalize(int32_t h, int32_t s, int32_t ms)
 {
-    int32_t tmp = msec_ / kMilisecondsInSecond;
-    sec_ += tmp;
-    msec_ -= tmp * kMilisecondsInSecond;
-    if (msec_ < 0) {
-        msec_ += kMilisecondsInSecond;
-        sec_--;
+    int32_t tmp = ms / kMilisecondsInSecond;
+    s += tmp;
+    ms -= tmp * kMilisecondsInSecond;
+    if (ms < 0) {
+        ms += kMilisecondsInSecond;
+        --s;
     }
 
-    tmp = sec_ / kSecondsInHour;
-    hour_ += tmp;
-    sec_ -= tmp * kSecondsInHour;
-    if (sec_ < 0) {
-        sec_ += kSecondsInHour;
-        hour_--;
+    tmp = s / kSecondsInHour;
+    h += tmp;
+    s -= tmp * kSecondsInHour;
+    if (s < 0) {
+        s += kSecondsInHour;
+        --h;
     }
+
+    hour_ = h;
+    sec_ = s;
+    msec_ = ms;
 }
 
 /***************************** END OF FILE ************************************/

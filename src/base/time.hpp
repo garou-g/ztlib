@@ -65,13 +65,13 @@ public:
     bool operator>=(const Time& c) const;
 
 private:
-    void normalize(void);
+    void normalize(int32_t h, int32_t s, int32_t ms);
 
     static uint32_t deltaUTC;
 
     int32_t hour_;
-    int32_t sec_;
-    int32_t msec_;
+    int16_t sec_;
+    int16_t msec_;
 };
 
 #endif /* __TIME_H */
