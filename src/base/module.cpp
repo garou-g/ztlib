@@ -13,8 +13,10 @@
 /* Private function prototypes -----------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 
+#if defined(FREERTOS_USED)
 /// Default priority for module tasks
 const UBaseType_t Module::kDefaultPrior = tskIDLE_PRIORITY + 10;
+#endif
 
 const int Module::kSuspended = 0x1;
 const int Module::kAvailability = 0x2;
