@@ -11,25 +11,11 @@
 /* Includes ------------------------------------------------------------------*/
 #include "periphdrv.hpp"
 
-/* Exported constants --------------------------------------------------------*/
-/* Exported types ------------------------------------------------------------*/
-/* Exported macro ------------------------------------------------------------*/
-/* Exported functions --------------------------------------------------------*/
+/* Class definition ----------------------------------------------------------*/
 
-/**
- * @brief UART peripheral driver
- */
+/// @brief UART peripheral driver
 class Uart : public PeriphDrv {
 public:
-    struct Config {
-        int32_t uart;
-        int32_t baudrate;
-        int32_t tx;
-        int32_t rx;
-        uint32_t txBufSize;
-        uint32_t rxBufSize;
-    };
-
     enum IoctlCmd {
         kSetBaudrate,   // Sets UART baudrate
         kFlushInput,

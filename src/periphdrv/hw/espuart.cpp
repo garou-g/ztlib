@@ -5,18 +5,9 @@
  ******************************************************************************/
 
 /* Includes ------------------------------------------------------------------*/
-#include <cassert>
-
-#include "driver/gpio.h"
-
 #include "espuart.hpp"
 
-/* Private typedef -----------------------------------------------------------*/
-/* Private defines -----------------------------------------------------------*/
-/* Private macros ------------------------------------------------------------*/
-/* Private function prototypes -----------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
-/* Exported functions --------------------------------------------------------*/
+#include <cassert>
 
 /**
  * @brief Default empty constructor
@@ -24,8 +15,8 @@
 EspUart::EspUart()
     : Uart()
     , uart(-1)
-    , tx(-1)
-    , rx(-1)
+    , tx(GPIO_NUM_NC)
+    , rx(GPIO_NUM_NC)
 {
 }
 
@@ -35,8 +26,8 @@ bool EspUart::open(const void* drvConfig)
         return false;
 
     assert(drvConfig != nullptr);
-    const Uart::Config* config
-        = static_cast<const Uart::Config*>(drvConfig);
+    const EspUart::Config* config
+        = static_cast<const EspUart::Config*>(drvConfig);
 
     if (config->uart < 0 || config->uart >= SOC_UART_NUM)
         return false;
@@ -66,13 +57,13 @@ void EspUart::close()
     if (isOpen()) {
         uart_wait_tx_done(uart, pdMS_TO_TICKS(100));
         uart_driver_delete(uart);
-        gpio_reset_pin(static_cast<gpio_num_t>(tx));
-        gpio_reset_pin(static_cast<gpio_num_t>(rx));
-        gpio_pullup_dis(static_cast<gpio_num_t>(tx));
-        gpio_pullup_dis(static_cast<gpio_num_t>(rx));
+        gpio_reset_pin(tx);
+        gpio_reset_pin(rx);
+        gpio_pullup_dis(tx);
+        gpio_pullup_dis(rx);
         setOpened(false);
         uart = -1;
-        tx = rx = -1;
+        tx = rx = GPIO_NUM_NC;
     }
 }
 

@@ -10,17 +10,24 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "driver/uart.h"
+#include "driver/gpio.h"
 
 #include "uart.hpp"
 
-/* Exported constants --------------------------------------------------------*/
-/* Exported types ------------------------------------------------------------*/
-/* Exported macro ------------------------------------------------------------*/
-/* Exported functions --------------------------------------------------------*/
+/* Class definition ----------------------------------------------------------*/
 
 class EspUart final : public Uart {
 public:
     EspUart();
+
+    struct Config {
+        uart_port_t uart;
+        gpio_num_t tx;
+        gpio_num_t rx;
+        int32_t baudrate;
+        int32_t txBufSize;
+        int32_t rxBufSize;
+    };
 
     bool open(const void* drvConfig) override;
     void close() override;
@@ -31,9 +38,9 @@ public:
     bool ioctl(uint32_t cmd, void* pValue) override;
 
 private:
-    int32_t uart;
-    int32_t tx;
-    int32_t rx;
+    uart_port_t uart;
+    gpio_num_t tx;
+    gpio_num_t rx;
 };
 
 #endif /* __ESP_UART_DRIVER_H */
