@@ -22,7 +22,7 @@ public:
         kFlushOutput,   // Blocks until output will be empty or timeout comes
     };
 
-    Uart();
+    Uart() {}
 };
 
 #endif /* __UART_DRIVER_H */
