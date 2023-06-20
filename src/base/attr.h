@@ -20,6 +20,12 @@ extern "C" {
 #define NOINIT_ATTR                 __NOINIT_ATTR
 #define RETAIN_NOINIT_ATTR          RTC_NOINIT_ATTR
 
+#elif defined(GD32_PLATFORM)
+/* GD32 Section --------------------------------------------------------------*/
+
+#define NOINIT_ATTR                 __attribute__ ((section (".noinit")))
+#define RETAIN_NOINIT_ATTR          __attribute__ ((section (".noinit")))
+
 #else
 /* Unknown platform ----------------------------------------------------------*/
 
