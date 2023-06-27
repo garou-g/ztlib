@@ -11,16 +11,15 @@
 /* Includes ------------------------------------------------------------------*/
 #include "periphdrv.hpp"
 
-/* Exported constants --------------------------------------------------------*/
-/* Exported types ------------------------------------------------------------*/
-/* Exported macro ------------------------------------------------------------*/
-/* Exported functions --------------------------------------------------------*/
+/* Class definition ----------------------------------------------------------*/
 
-/**
- * @brief I2C bus peripheral driver
- */
+/// @brief I2C bus peripheral driver
 class I2c : public PeriphDrv {
 public:
+    enum IoctlCmd {
+        kSetAddress,    // Sets I2C device address for all next transmissions
+    };
+
     enum Mode {
         kMaster,
         kSlave,
@@ -36,11 +35,7 @@ public:
         bool sdaPullup;
     };
 
-    enum IoctlCmd {
-        kSetAddress,    // Sets I2C device address for all next transmissions
-    };
-
-    I2c();
+    I2c() {}
 };
 
 #endif /* __I2C_DRIVER_H */
