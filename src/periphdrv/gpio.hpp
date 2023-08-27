@@ -30,9 +30,9 @@ public:
     };
 
     /**
-     * @brief Default constructor. Almost empty
+     * @brief Default constructor
      */
-    Gpio();
+    Gpio() = default;
 
     /**
      * @brief Open driver with selected config
@@ -47,7 +47,7 @@ public:
      *
      * @return true if opened otherwise false
      */
-    bool isOpen() const;
+    bool isOpen() const { return opened; }
 
     /**
      * @brief Close driver
@@ -69,7 +69,7 @@ public:
      *
      * @return true if gpio is inversed otherwise false
      */
-    bool isInversed() const;
+    bool isInversed() const { return inversed; }
 
     /**
      * @brief Execute chosen command on driver
@@ -86,18 +86,18 @@ protected:
      *
      * @param state new opened state
      */
-    void setOpened(bool state);
+    void setOpened(bool state) { opened = state; }
 
     /**
      * @brief Set gpio inverse processing
      *
      * @param state new inverse state
      */
-    void setInversed(bool state);
+    void setInversed(bool state) { inversed = state; }
 
 private:
-    bool opened;
-    bool inversed;
+    bool opened = false;
+    bool inversed = false;
 };
 
 #endif /* __GPIO_DRIVER_H */
