@@ -67,7 +67,7 @@ void EspUart::close()
     }
 }
 
-int32_t EspUart::write(const void* buf, uint32_t len)
+int32_t EspUart::write_(const void* buf, uint32_t len)
 {
     assert(buf != nullptr);
 
@@ -77,7 +77,7 @@ int32_t EspUart::write(const void* buf, uint32_t len)
     return uart_write_bytes(uart, buf, len);
 }
 
-int32_t EspUart::read(void* buf, uint32_t len)
+int32_t EspUart::read_(void* buf, uint32_t len)
 {
     assert(buf != nullptr);
 
@@ -123,7 +123,5 @@ bool EspUart::ioctl(uint32_t cmd, void* pValue)
 
     return false;
 }
-
-/* Private functions ---------------------------------------------------------*/
 
 /***************************** END OF FILE ************************************/

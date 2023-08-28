@@ -5,16 +5,18 @@
  ******************************************************************************/
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __PERIPHDRV_DRIVER_H
-#define __PERIPHDRV_DRIVER_H
+#ifndef __PERIPH_DRIVER_H
+#define __PERIPH_DRIVER_H
 
 /* Includes ------------------------------------------------------------------*/
+#if defined(FREERTOS_USED)
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
+#endif
+
 #include <stdint.h>
 
-/* Exported constants --------------------------------------------------------*/
-/* Exported types ------------------------------------------------------------*/
-/* Exported macro ------------------------------------------------------------*/
-/* Exported functions --------------------------------------------------------*/
+/* Class definition ----------------------------------------------------------*/
 
 /**
  * @brief Abstract peripheral driver
@@ -53,7 +55,7 @@ public:
      * @param len length of data buffer
      * @return int32_t actually written data length, -1 on error
      */
-    virtual int32_t write(const void* buf, uint32_t len) = 0;
+    int32_t write(const void* buf, uint32_t len);
 
     /**
      * @brief Write data to driver with register access
@@ -66,13 +68,24 @@ public:
     int32_t write(uint8_t reg, const void* buf, uint32_t len);
 
     /**
+     * @brief Write data to driver with register access and address
+     *
+     * @param addr address of device
+     * @param reg register to write data
+     * @param buf data buffer
+     * @param len length of data buffer
+     * @return int32_t actually written data length, -1 on error
+     */
+    int32_t write(uint32_t addr, uint8_t reg, const void* buf, uint32_t len);
+
+    /**
      * @brief Receive data from driver
      *
      * @param buf data buffer
      * @param len length of data to read
      * @return int32_t actually readed data length, -1 on error
      */
-    virtual int32_t read(void* buf, uint32_t len) = 0;
+    int32_t read(void* buf, uint32_t len);
 
     /**
      * @brief Receive data from driver with register access
@@ -85,6 +98,17 @@ public:
     int32_t read(uint8_t reg, void* buf, uint32_t len);
 
     /**
+     * @brief Receive data from driver with register access andd address
+     *
+     * @param addr address of device
+     * @param reg register to write data
+     * @param buf data buffer
+     * @param len length of data to read
+     * @return int32_t actually readed data length, -1 on error
+     */
+    int32_t read(uint32_t addr, uint8_t reg, void* buf, uint32_t len);
+
+    /**
      * @brief Execute chosen command on driver
      *
      * @param cmd command to execute
@@ -94,6 +118,24 @@ public:
     virtual bool ioctl(uint32_t cmd, void* pValue) = 0;
 
 protected:
+    /**
+     * @brief Abstract write data to driver
+     *
+     * @param buf data buffer
+     * @param len length of data buffer
+     * @return int32_t actually written data length, -1 on error
+     */
+    virtual int32_t write_(const void* buf, uint32_t len) = 0;
+
+    /**
+     * @brief Abstract receive data from driver
+     *
+     * @param buf data buffer
+     * @param len length of data to read
+     * @return int32_t actually readed data length, -1 on error
+     */
+    virtual int32_t read_(void* buf, uint32_t len) = 0;
+
     /**
      * @brief Set opened state of driver from successor classes
      *
@@ -108,11 +150,22 @@ protected:
      */
     int32_t getReg() const;
 
+    /**
+     * @brief Get address value for current operation
+     *
+     * @return int32_t address value
+     */
+    int32_t getAddr() const;
+
 private:
-    bool opened;
-    int32_t reg;
+    bool opened_;
+    int32_t reg_;
+    int32_t addr_;
+#if defined(FREERTOS_USED)
+    SemaphoreHandle_t mutex_;
+#endif
 };
 
-#endif /* __PERIPHDRV_DRIVER_H */
+#endif /* __PERIPH_DRIVER_H */
 
 /***************************** END OF FILE ************************************/

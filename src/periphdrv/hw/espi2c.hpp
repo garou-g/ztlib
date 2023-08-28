@@ -13,10 +13,7 @@
 
 #include "i2c.hpp"
 
-/* Exported constants --------------------------------------------------------*/
-/* Exported types ------------------------------------------------------------*/
-/* Exported macro ------------------------------------------------------------*/
-/* Exported functions --------------------------------------------------------*/
+/* Class definition ----------------------------------------------------------*/
 
 class EspI2c final : public I2c {
 public:
@@ -25,13 +22,13 @@ public:
     bool open(const void* drvConfig) override;
     void close() override;
 
-    int32_t write(const void* buf, uint32_t len) override;
-    int32_t read(void* buf, uint32_t len) override;
-
     bool ioctl(uint32_t cmd, void* pValue) override;
 
 private:
     static const uint32_t timeoutMs;
+
+    int32_t write_(const void* buf, uint32_t len) override;
+    int32_t read_(void* buf, uint32_t len) override;
 
     i2c_port_t i2c;
     int32_t addr;

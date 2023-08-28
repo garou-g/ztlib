@@ -7,50 +7,119 @@
 /* Includes ------------------------------------------------------------------*/
 #include "periphdrv.hpp"
 
-/* Private typedef -----------------------------------------------------------*/
-/* Private defines -----------------------------------------------------------*/
-/* Private macros ------------------------------------------------------------*/
-/* Private function prototypes -----------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
-/* Exported functions --------------------------------------------------------*/
-
 PeriphDrv::PeriphDrv()
-    : opened(false)
-    , reg(-1)
+    : opened_(false)
+    , reg_(-1)
+    , addr_(-1)
 {
+#if defined(FREERTOS_USED)
+    mutex_ = xSemaphoreCreateBinary();
+    xSemaphoreGive(mutex_);
+#endif
 }
 
 bool PeriphDrv::isOpen() const
 {
-    return opened;
+    return opened_;
+}
+
+int32_t PeriphDrv::write(const void* buf, uint32_t len)
+{
+#if defined(FREERTOS_USED)
+    xSemaphoreTake(mutex_, portMAX_DELAY);
+#endif
+    int32_t res = write_(buf, len);
+#if defined(FREERTOS_USED)
+    xSemaphoreGive(mutex_);
+#endif
+    return res;
 }
 
 int32_t PeriphDrv::write(uint8_t reg, const void* buf, uint32_t len)
 {
-    this->reg = reg;
-    int32_t res = write(buf, len);
-    this->reg = -1; // Mark that no actual register value after writing
+#if defined(FREERTOS_USED)
+    xSemaphoreTake(mutex_, portMAX_DELAY);
+#endif
+    reg_ = reg;
+    int32_t res = write_(buf, len);
+    reg_ = -1; // Mark that no actual register value after writing
+#if defined(FREERTOS_USED)
+    xSemaphoreGive(mutex_);
+#endif
+    return res;
+}
+
+int32_t PeriphDrv::write(uint32_t addr, uint8_t reg, const void* buf, uint32_t len)
+{
+#if defined(FREERTOS_USED)
+    xSemaphoreTake(mutex_, portMAX_DELAY);
+#endif
+    addr_ = addr;
+    reg_ = reg;
+    int32_t res = write_(buf, len);
+    addr_ = -1;
+    reg_ = -1; // Mark that no actual register value after writing
+#if defined(FREERTOS_USED)
+    xSemaphoreGive(mutex_);
+#endif
+    return res;
+}
+
+int32_t PeriphDrv::read(void* buf, uint32_t len)
+{
+    #if defined(FREERTOS_USED)
+    xSemaphoreTake(mutex_, portMAX_DELAY);
+#endif
+    int32_t res = read_(buf, len);
+#if defined(FREERTOS_USED)
+    xSemaphoreGive(mutex_);
+#endif
     return res;
 }
 
 int32_t PeriphDrv::read(uint8_t reg, void* buf, uint32_t len)
 {
-    this->reg = reg;
-    int32_t res = read(buf, len);
-    this->reg = -1; // Mark that no actual register value after writing
+#if defined(FREERTOS_USED)
+    xSemaphoreTake(mutex_, portMAX_DELAY);
+#endif
+    reg_ = reg;
+    int32_t res = read_(buf, len);
+    reg_ = -1; // Mark that no actual register value after writing
+#if defined(FREERTOS_USED)
+    xSemaphoreGive(mutex_);
+#endif
+    return res;
+}
+
+int32_t PeriphDrv::read(uint32_t addr, uint8_t reg, void* buf, uint32_t len)
+{
+#if defined(FREERTOS_USED)
+    xSemaphoreTake(mutex_, portMAX_DELAY);
+#endif
+    addr_ = addr;
+    reg_ = reg;
+    int32_t res = read_(buf, len);
+    addr_ = -1;
+    reg_ = -1; // Mark that no actual register value after writing
+#if defined(FREERTOS_USED)
+    xSemaphoreGive(mutex_);
+#endif
     return res;
 }
 
 void PeriphDrv::setOpened(bool state)
 {
-    opened = state;
+    opened_ = state;
 }
 
 int32_t PeriphDrv::getReg() const
 {
-    return reg;
+    return reg_;
 }
 
-/* Private functions ---------------------------------------------------------*/
+int32_t PeriphDrv::getAddr() const
+{
+    return addr_;
+}
 
 /***************************** END OF FILE ************************************/

@@ -11,16 +11,8 @@
 
 #include "espi2c.hpp"
 
-/* Private typedef -----------------------------------------------------------*/
-/* Private defines -----------------------------------------------------------*/
-/* Private macros ------------------------------------------------------------*/
-/* Private function prototypes -----------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
-
 /// I2C driver operation timeout in milliseconds
 const uint32_t EspI2c::timeoutMs = pdMS_TO_TICKS(100);
-
-/* Exported functions --------------------------------------------------------*/
 
 /**
  * @brief Default empty constructor
@@ -81,9 +73,14 @@ void EspI2c::close()
     }
 }
 
-int32_t EspI2c::write(const void* buf, uint32_t len)
+int32_t EspI2c::write_(const void* buf, uint32_t len)
 {
     assert(buf != nullptr);
+
+    // Take address from parent first if exists
+    if (getAddr() >= 0) {
+        addr = getAddr() << 1;
+    }
 
     if (!isOpen() || addr < 0)
         return -1;
@@ -105,9 +102,14 @@ int32_t EspI2c::write(const void* buf, uint32_t len)
     return ret == ESP_OK ? len : -1;
 }
 
-int32_t EspI2c::read(void* buf, uint32_t len)
+int32_t EspI2c::read_(void* buf, uint32_t len)
 {
     assert(buf != nullptr);
+
+    // Take address from parent first if exists
+    if (getAddr() >= 0) {
+        addr = getAddr() << 1;
+    }
 
     if (!isOpen() || addr < 0 || len == 0)
         return -1;
@@ -154,7 +156,5 @@ bool EspI2c::ioctl(uint32_t cmd, void* pValue)
 
     return false;
 }
-
-/* Private functions ---------------------------------------------------------*/
 
 /***************************** END OF FILE ************************************/

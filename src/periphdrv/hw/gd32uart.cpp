@@ -69,7 +69,7 @@ void Gd32Uart::close()
     }
 }
 
-int32_t Gd32Uart::write(const void* buf, uint32_t len)
+int32_t Gd32Uart::write_(const void* buf, uint32_t len)
 {
     assert(buf != nullptr);
 
@@ -84,7 +84,7 @@ int32_t Gd32Uart::write(const void* buf, uint32_t len)
     return len;
 }
 
-int32_t Gd32Uart::read(void* buf, uint32_t len)
+int32_t Gd32Uart::read_(void* buf, uint32_t len)
 {
     assert(buf != nullptr);
 

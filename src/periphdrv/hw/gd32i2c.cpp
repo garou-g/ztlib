@@ -65,9 +65,14 @@ void Gd32I2c::close()
     }
 }
 
-int32_t Gd32I2c::write(const void* buf, uint32_t len)
+int32_t Gd32I2c::write_(const void* buf, uint32_t len)
 {
     assert(buf != nullptr);
+
+    // Take address from parent first if exists
+    if (getAddr() >= 0) {
+        addr = getAddr() << 1;
+    }
 
     if (!isOpen() || addr < 0 || i2c_flag_get(i2c, I2C_FLAG_I2CBSY))
         return -1;
@@ -129,9 +134,14 @@ int32_t Gd32I2c::write(const void* buf, uint32_t len)
     return res;
 }
 
-int32_t Gd32I2c::read(void* buf, uint32_t len)
+int32_t Gd32I2c::read_(void* buf, uint32_t len)
 {
     assert(buf != nullptr);
+
+    // Take address from parent first if exists
+    if (getAddr() >= 0) {
+        addr = getAddr() << 1;
+    }
 
     if (!isOpen() || addr < 0 || len == 0 || i2c_flag_get(i2c, I2C_FLAG_I2CBSY))
         return -1;
