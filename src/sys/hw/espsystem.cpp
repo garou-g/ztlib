@@ -30,6 +30,7 @@ EspSystem::EspSystem()
 {
     // Disable default pullup of IO5
     gpio_pullup_dis(GPIO_NUM_5);
+    rtc_gpio_hold_dis(GPIO_NUM_4);
 
     // One time NVS flash init
     esp_err_t nvsErr = nvs_flash_init();
