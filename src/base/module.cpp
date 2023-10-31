@@ -255,6 +255,16 @@ void Module::task(void *instance)
             ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(delayMs));
     }
 }
+#else
+/**
+ * @brief Task function make infinite loop with the dispatcher
+ */
+void Module::task()
+{
+    while (1) {
+        dispatcher();
+    }
+}
 #endif
 
 /***************************** END OF FILE ************************************/

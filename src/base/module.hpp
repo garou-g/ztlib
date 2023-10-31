@@ -71,6 +71,9 @@ private:
 #if defined(FREERTOS_USED)
     TaskHandle_t xHandle_;
     static void task(void* instance);
+#else
+public:
+    void task();
 #endif
 };
 
