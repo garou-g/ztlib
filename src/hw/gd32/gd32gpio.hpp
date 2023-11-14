@@ -7,8 +7,7 @@
 #pragma once
 
 #include "gpio.hpp"
-
-#include "gd32f30x.h"
+#include "gd32.h"
 
 class Gd32Gpio final : public Gpio {
 public:

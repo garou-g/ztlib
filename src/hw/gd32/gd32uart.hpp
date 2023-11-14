@@ -8,8 +8,7 @@
 
 #include "uart.hpp"
 #include "gd32gpio.hpp"
-
-#include "gd32f30x.h"
+#include "gd32.h"
 
 class Gd32Uart final : public Uart {
 public:
