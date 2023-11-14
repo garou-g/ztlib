@@ -4,14 +4,9 @@
  * @brief   Header file of UART driver.
  ******************************************************************************/
 
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __UART_DRIVER_H
-#define __UART_DRIVER_H
+#pragma once
 
-/* Includes ------------------------------------------------------------------*/
 #include "periphdrv.hpp"
-
-/* Class definition ----------------------------------------------------------*/
 
 /// @brief UART peripheral driver
 class Uart : public PeriphDrv {
@@ -22,9 +17,7 @@ public:
         kFlushOutput,   // Blocks until output will be empty or timeout comes
     };
 
-    Uart() {}
+    Uart() = default;
 };
-
-#endif /* __UART_DRIVER_H */
 
 /***************************** END OF FILE ************************************/

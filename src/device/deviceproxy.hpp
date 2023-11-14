@@ -4,17 +4,9 @@
  * @brief   Header file of device proxy class.
  ******************************************************************************/
 
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __DEVICE_PROXY_H
-#define __DEVICE_PROXY_H
+#pragma once
 
-/* Includes ------------------------------------------------------------------*/
 #include "device.hpp"
-
-/* Exported constants --------------------------------------------------------*/
-/* Exported types ------------------------------------------------------------*/
-/* Exported macro ------------------------------------------------------------*/
-/* Exported functions --------------------------------------------------------*/
 
 /**
  * @brief Proxy class for handle different version of Device modules and
@@ -33,7 +25,5 @@ public:
      */
     static Device* initDeviceByVersion();
 };
-
-#endif /* __DEVICE_PROXY_H */
 
 /***************************** END OF FILE ************************************/

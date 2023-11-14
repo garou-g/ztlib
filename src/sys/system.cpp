@@ -4,26 +4,17 @@
  * @brief   Global system class functions.
  ******************************************************************************/
 
-/* Includes ------------------------------------------------------------------*/
-#include <cassert>
-
 #include "system.hpp"
 #include "systemproxy.hpp"
 #include "attr.h"
 
-/* Private typedef -----------------------------------------------------------*/
-/* Private defines -----------------------------------------------------------*/
-/* Private macros ------------------------------------------------------------*/
-/* Private function prototypes -----------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
+#include <cassert>
 
 /// Global system data structure that holds between any sleep states
 RETAIN_NOINIT_ATTR System::SystemData System::systemData;
 
 /// Global object pointer for singleton operations
 System* System::system = nullptr;
-
-/* Exported functions --------------------------------------------------------*/
 
 /**
  * @brief Init singleton instance. MUST BE called before any actions with module
@@ -155,8 +146,6 @@ int32_t System::wakeupPin() const
 {
     return wakeupPin_;
 }
-
-/* Private functions ---------------------------------------------------------*/
 
 /**
  * @brief Construct a new System object

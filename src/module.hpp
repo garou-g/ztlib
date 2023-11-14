@@ -4,21 +4,14 @@
  * @brief   Header file of base module class.
  ******************************************************************************/
 
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __MODULE_H
-#define __MODULE_H
+#pragma once
 
-/* Includes ------------------------------------------------------------------*/
 #include "time.hpp"
 
 #if defined(FREERTOS_USED)
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #endif
-
-/* Exported constants --------------------------------------------------------*/
-/* Exported types ------------------------------------------------------------*/
-/* Exported functions --------------------------------------------------------*/
 
 /**
  * @brief Base class for designing device modules. Has dispatcher method with
@@ -35,7 +28,7 @@ public:
 
     static const UBaseType_t kDefaultPrior;
 #endif
-    virtual ~Module() {}
+    virtual ~Module() = default;
     virtual void reset();
 
     bool isInited() const;
@@ -76,7 +69,5 @@ public:
     void task();
 #endif
 };
-
-#endif /* __MODULE_H */
 
 /***************************** END OF FILE ************************************/

@@ -4,19 +4,11 @@
  * @brief   ESP32 version ADC driver module.
  ******************************************************************************/
 
-/* Includes ------------------------------------------------------------------*/
 #include "espversion.hpp"
 
 #include "driver/adc.h"
 #include "esp_adc_cal.h"
 #include "esp_ota_ops.h"
-
-/* Private typedef -----------------------------------------------------------*/
-/* Private defines -----------------------------------------------------------*/
-/* Private macros ------------------------------------------------------------*/
-/* Private function prototypes -----------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
-/* Exported functions --------------------------------------------------------*/
 
 /**
  * @brief Construct a new version driver instance
@@ -24,8 +16,6 @@
 EspVersion::EspVersion()
 {
 }
-
-/* Private functions ---------------------------------------------------------*/
 
 /**
  * @brief Read HW version voltages and return it

@@ -4,19 +4,14 @@
  * @brief   Header file of abstract peripheral driver.
  ******************************************************************************/
 
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __PERIPH_DRIVER_H
-#define __PERIPH_DRIVER_H
+#pragma once
 
-/* Includes ------------------------------------------------------------------*/
 #if defined(FREERTOS_USED)
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #endif
 
 #include <stdint.h>
-
-/* Class definition ----------------------------------------------------------*/
 
 /**
  * @brief Abstract peripheral driver
@@ -165,7 +160,5 @@ private:
     SemaphoreHandle_t mutex_;
 #endif
 };
-
-#endif /* __PERIPH_DRIVER_H */
 
 /***************************** END OF FILE ************************************/

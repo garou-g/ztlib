@@ -4,16 +4,11 @@
  * @brief   Header file of GD32 GPIO driver.
  ******************************************************************************/
 
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __GD32_GPIO_DRIVER_H
-#define __GD32_GPIO_DRIVER_H
-
-/* Includes ------------------------------------------------------------------*/
-#include "gd32f30x.h"
+#pragma once
 
 #include "gpio.hpp"
 
-/* Class definition ----------------------------------------------------------*/
+#include "gd32f30x.h"
 
 class Gd32Gpio final : public Gpio {
 public:
@@ -41,7 +36,5 @@ private:
     uint32_t port;
     int32_t pin;
 };
-
-#endif /* __GD32_GPIO_DRIVER_H */
 
 /***************************** END OF FILE ************************************/

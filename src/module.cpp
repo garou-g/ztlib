@@ -4,14 +4,7 @@
  * @brief   Base class for other modules with time and event functions.
  ******************************************************************************/
 
-/* Includes ------------------------------------------------------------------*/
 #include "module.hpp"
-
-/* Private typedef -----------------------------------------------------------*/
-/* Private defines -----------------------------------------------------------*/
-/* Private macros ------------------------------------------------------------*/
-/* Private function prototypes -----------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
 
 #if defined(FREERTOS_USED)
 /// Default priority for module tasks
@@ -21,8 +14,6 @@ const UBaseType_t Module::kDefaultPrior = tskIDLE_PRIORITY + 10;
 const int Module::kSuspended = 0x1;
 const int Module::kAvailability = 0x2;
 const int Module::kInited = 0x55AA0000;
-
-/* Exported functions --------------------------------------------------------*/
 
 /**
  * @brief Construct a new Module object
@@ -220,8 +211,6 @@ void Module::resume()
     flags_ &= ~kSuspended;
 #endif
 }
-
-/* Private functions ---------------------------------------------------------*/
 
 /**
  * @brief Set the availability property of the module

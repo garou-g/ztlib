@@ -2,21 +2,12 @@
  * @file    versoin.cpp
  * @author  garou (xgaroux@gmail.com)
  * @brief   Firmware and hardware version file.
- * @date    2021-06-29
  ******************************************************************************/
-
-/* Includes ------------------------------------------------------------------*/
-#include <stdlib.h>
-#include <string.h>
 
 #include "version.hpp"
 
-/* Private typedef -----------------------------------------------------------*/
-/* Private defines -----------------------------------------------------------*/
-/* Private macros ------------------------------------------------------------*/
-/* Private function prototypes -----------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
-/* Exported functions --------------------------------------------------------*/
+#include <stdlib.h>
+#include <string.h>
 
 /**
  * @brief Construct a new Version object
@@ -161,7 +152,5 @@ void Version::getFirmwareVersion(Firmware& fw, char* fwStr)
         fwStr[j] = '\0';
     }
 }
-
-/* Private functions ---------------------------------------------------------*/
 
 /***************************** END OF FILE ************************************/

@@ -4,17 +4,12 @@
  * @brief   Header file of GD32 UART driver.
  ******************************************************************************/
 
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __GD32_UART_DRIVER_H
-#define __GD32_UART_DRIVER_H
-
-/* Includes ------------------------------------------------------------------*/
-#include "gd32f30x.h"
+#pragma once
 
 #include "uart.hpp"
 #include "gd32gpio.hpp"
 
-/* Class definition ----------------------------------------------------------*/
+#include "gd32f30x.h"
 
 class Gd32Uart final : public Uart {
 public:
@@ -38,7 +33,5 @@ private:
 
     uint32_t uart;
 };
-
-#endif /* __GD32_UART_DRIVER_H */
 
 /***************************** END OF FILE ************************************/

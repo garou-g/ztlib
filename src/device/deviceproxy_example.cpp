@@ -4,14 +4,11 @@
  * @brief   Device proxy class file.
  ******************************************************************************/
 
-/* Includes ------------------------------------------------------------------*/
 #include "deviceproxy.hpp"
 #include "system.hpp"
 
 /* Add device specific includes here -----------------------------------------*/
 #include "dummy_device.hpp"
-
-/* Exported functions --------------------------------------------------------*/
 
 /**
  * @brief Reference realization of this method. Copy this file into your project

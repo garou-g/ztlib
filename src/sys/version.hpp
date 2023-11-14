@@ -4,17 +4,9 @@
  * @brief   Header file of firmware and hardware versions.
  ******************************************************************************/
 
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __VERSION_H
-#define __VERSION_H
+#pragma once
 
-/* Includes ------------------------------------------------------------------*/
 #include <stdint.h>
-
-/* Exported constants --------------------------------------------------------*/
-/* Exported types ------------------------------------------------------------*/
-/* Exported macro ------------------------------------------------------------*/
-/* Exported functions --------------------------------------------------------*/
 
 /**
  * @brief Class for firmware and hardware version reading. This class can
@@ -42,7 +34,7 @@ public:
     } Firmware;
 
     Version();
-    virtual ~Version() {} // Empty virtual destructor for inheritance fix
+    virtual ~Version() = default;
 
     void getHardwareVersion(Hardware& hw);
     void getFirmwareVersion(Firmware& fw, char* fwStr = nullptr);
@@ -60,7 +52,5 @@ protected:
     virtual HwVolt getHwValue() { return HwVolt(); };
     virtual FwString getFwValue() { return FwString(); };
 };
-
-#endif /* __VERSION_H */
 
 /***************************** END OF FILE ************************************/

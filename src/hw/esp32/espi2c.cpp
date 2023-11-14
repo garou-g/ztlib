@@ -4,12 +4,11 @@
  * @brief   ESP32 I2C bus driver.
  ******************************************************************************/
 
-/* Includes ------------------------------------------------------------------*/
-#include <cassert>
+#include "espi2c.hpp"
 
 #include "driver/i2c.h"
 
-#include "espi2c.hpp"
+#include <cassert>
 
 /// I2C driver operation timeout in milliseconds
 const uint32_t EspI2c::timeoutMs = pdMS_TO_TICKS(100);

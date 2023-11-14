@@ -4,17 +4,9 @@
  * @brief   Header file of abstract gpio driver.
  ******************************************************************************/
 
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __GPIO_DRIVER_H
-#define __GPIO_DRIVER_H
+#pragma once
 
-/* Includes ------------------------------------------------------------------*/
 #include <stdint.h>
-
-/* Exported constants --------------------------------------------------------*/
-/* Exported types ------------------------------------------------------------*/
-/* Exported macro ------------------------------------------------------------*/
-/* Exported functions --------------------------------------------------------*/
 
 /**
  * @brief Abstract gpio driver
@@ -99,7 +91,5 @@ private:
     bool opened = false;
     bool inversed = false;
 };
-
-#endif /* __GPIO_DRIVER_H */
 
 /***************************** END OF FILE ************************************/

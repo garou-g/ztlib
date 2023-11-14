@@ -4,23 +4,15 @@
  * @brief   ESP global system class functions.
  ******************************************************************************/
 
-/* Includes ------------------------------------------------------------------*/
+#include "espsystem.hpp"
+#include "espversion.hpp"
+
 #include "nvs_flash.h"
 #include "esp_system.h"
 #include "esp_sleep.h"
 #include "hal/gpio_types.h"
 #include "driver/gpio.h"
 #include "driver/rtc_io.h"
-
-#include "espsystem.hpp"
-#include "espversion.hpp"
-
-/* Private typedef -----------------------------------------------------------*/
-/* Private defines -----------------------------------------------------------*/
-/* Private macros ------------------------------------------------------------*/
-/* Private function prototypes -----------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
-/* Exported functions --------------------------------------------------------*/
 
 /**
  * @brief Construct a new EspSystem object
@@ -129,7 +121,5 @@ void EspSystem::goToSleep() const
     // Go to deep sleep. 150 uA without anything, 300 uA with sensors enabled
     esp_deep_sleep_start();
 }
-
-/* Private functions ---------------------------------------------------------*/
 
 /***************************** END OF FILE ************************************/

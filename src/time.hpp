@@ -4,15 +4,13 @@
  * @brief   Header file of time measurement.
  ******************************************************************************/
 
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __TIME_H
-#define __TIME_H
+#pragma once
 
-/* Includes ------------------------------------------------------------------*/
 #include <stdint.h>
 
-/* Class definition ----------------------------------------------------------*/
-
+/**
+ * @brief Time manipulation class
+ */
 class Time {
 public:
     static Time now();
@@ -71,7 +69,5 @@ private:
     int16_t sec_;
     int16_t msec_;
 };
-
-#endif /* __TIME_H */
 
 /***************************** END OF FILE ************************************/

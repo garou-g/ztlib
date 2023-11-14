@@ -4,17 +4,9 @@
  * @brief   System proxy class file.
  ******************************************************************************/
 
-/* Includes ------------------------------------------------------------------*/
 #include "systemproxy.hpp"
 
 #include "espsystem.hpp"
-
-/* Private typedef -----------------------------------------------------------*/
-/* Private defines -----------------------------------------------------------*/
-/* Private macros ------------------------------------------------------------*/
-/* Private function prototypes -----------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
-/* Exported functions --------------------------------------------------------*/
 
 /**
  * @brief Choose correct system successor for main instance init
@@ -29,7 +21,5 @@ System* SystemProxy::initSystemByPlatform()
 #error("Not defined platform for version definition")
 #endif
 }
-
-/* Private functions ---------------------------------------------------------*/
 
 /***************************** END OF FILE ************************************/

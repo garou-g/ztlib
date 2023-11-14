@@ -4,19 +4,11 @@
  * @brief   Header file of global system functions.
  ******************************************************************************/
 
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __SYSTEM_H
-#define __SYSTEM_H
-
-/* Includes ------------------------------------------------------------------*/
-#include <stdint.h>
+#pragma once
 
 #include "version.hpp"
 
-/* Exported constants --------------------------------------------------------*/
-/* Exported types ------------------------------------------------------------*/
-/* Exported macro ------------------------------------------------------------*/
-/* Exported functions --------------------------------------------------------*/
+#include <stdint.h>
 
 /**
  * @brief System class with system-wide functions
@@ -62,7 +54,7 @@ public:
 
 protected:
     System(Version* ver);
-    virtual ~System() {} // Empty virtual destructor for inheritance fix
+    virtual ~System() = default;
 
     void setResetReason(ResetReason reset);
     void setWakeupReason(WakeupReason wakeup);
@@ -87,7 +79,5 @@ private:
     uint32_t wakeupTime_;
     int32_t wakeupPin_;
 };
-
-#endif /* __SYSTEM_H */
 
 /***************************** END OF FILE ************************************/

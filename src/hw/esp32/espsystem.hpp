@@ -4,19 +4,11 @@
  * @brief   Header file of ESP32 global system functions.
  ******************************************************************************/
 
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __ESP_SYSTEM_H
-#define __ESP_SYSTEM_H
-
-/* Includes ------------------------------------------------------------------*/
-#include <stdint.h>
+#pragma once
 
 #include "system.hpp"
 
-/* Exported constants --------------------------------------------------------*/
-/* Exported types ------------------------------------------------------------*/
-/* Exported macro ------------------------------------------------------------*/
-/* Exported functions --------------------------------------------------------*/
+#include <stdint.h>
 
 /**
  * @brief ESP system class with system-wide functions
@@ -30,7 +22,5 @@ public:
 
     void goToSleep() const override;
 };
-
-#endif /* __ESP_SYSTEM_H */
 
 /***************************** END OF FILE ************************************/

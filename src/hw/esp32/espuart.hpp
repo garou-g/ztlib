@@ -4,17 +4,12 @@
  * @brief   Header file of ESP32 UART driver.
  ******************************************************************************/
 
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __ESP_UART_DRIVER_H
-#define __ESP_UART_DRIVER_H
-
-/* Includes ------------------------------------------------------------------*/
-#include "driver/uart.h"
-#include "driver/gpio.h"
+#pragma once
 
 #include "uart.hpp"
 
-/* Class definition ----------------------------------------------------------*/
+#include "driver/uart.h"
+#include "driver/gpio.h"
 
 class EspUart final : public Uart {
 public:
@@ -42,7 +37,5 @@ private:
     gpio_num_t tx;
     gpio_num_t rx;
 };
-
-#endif /* __ESP_UART_DRIVER_H */
 
 /***************************** END OF FILE ************************************/

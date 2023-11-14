@@ -4,14 +4,9 @@
  * @brief   Header file of I2C bus driver.
  ******************************************************************************/
 
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __I2C_DRIVER_H
-#define __I2C_DRIVER_H
+#pragma once
 
-/* Includes ------------------------------------------------------------------*/
 #include "periphdrv.hpp"
-
-/* Class definition ----------------------------------------------------------*/
 
 /// @brief I2C bus peripheral driver
 class I2c : public PeriphDrv {
@@ -35,9 +30,7 @@ public:
         bool sdaPullup;
     };
 
-    I2c() {}
+    I2c() = default;
 };
-
-#endif /* __I2C_DRIVER_H */
 
 /***************************** END OF FILE ************************************/

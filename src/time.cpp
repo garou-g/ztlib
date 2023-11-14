@@ -4,11 +4,10 @@
  * @brief   Time measurement module.
  ******************************************************************************/
 
-/* Includes ------------------------------------------------------------------*/
-#include <sys/time.h>
-
 #include "time.hpp"
 #include "attr.h"
+
+#include <sys/time.h>
 
 /**
  * @brief UTC correction value is global for all Time instance.
@@ -405,8 +404,6 @@ bool Time::operator>=(const Time& c) const
 {
     return !(*this < c);
 }
-
-/* Private functions ---------------------------------------------------------*/
 
 /**
  * @brief Perform fields normalization and modification to less values

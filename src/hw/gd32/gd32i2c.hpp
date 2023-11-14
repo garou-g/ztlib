@@ -4,17 +4,12 @@
  * @brief   Header file of GD32 I2C bus driver.
  ******************************************************************************/
 
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __GD32_I2C_DRIVER_H
-#define __GD32_I2C_DRIVER_H
-
-/* Includes ------------------------------------------------------------------*/
-#include "gd32f30x.h"
+#pragma once
 
 #include "i2c.hpp"
 #include "gd32gpio.hpp"
 
-/* Class definition ----------------------------------------------------------*/
+#include "gd32f30x.h"
 
 class Gd32I2c final : public I2c {
 public:
@@ -52,7 +47,5 @@ private:
     uint32_t i2c;
     int32_t addr;
 };
-
-#endif /* __ESP_I2C_DRIVER_H */
 
 /***************************** END OF FILE ************************************/

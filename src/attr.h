@@ -4,9 +4,7 @@
  * @brief   Header file of some cross-platform attributes definition.
  ******************************************************************************/
 
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __ATTR_H
-#define __ATTR_H
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,7 +35,5 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ATTR_H */
 
 /***************************** END OF FILE ************************************/

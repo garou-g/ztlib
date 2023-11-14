@@ -4,16 +4,12 @@
  * @brief   Header file of ESP32 I2C bus driver.
  ******************************************************************************/
 
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __ESP_I2C_DRIVER_H
-#define __ESP_I2C_DRIVER_H
+#pragma once
 
-/* Includes ------------------------------------------------------------------*/
-#include "driver/i2c.h"
 
 #include "i2c.hpp"
 
-/* Class definition ----------------------------------------------------------*/
+#include "driver/i2c.h"
 
 class EspI2c final : public I2c {
 public:
@@ -35,7 +31,5 @@ private:
     int32_t scl;
     int32_t sda;
 };
-
-#endif /* __ESP_I2C_DRIVER_H */
 
 /***************************** END OF FILE ************************************/
