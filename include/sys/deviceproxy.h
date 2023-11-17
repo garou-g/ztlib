@@ -1,12 +1,12 @@
 /*******************************************************************************
- * @file    deviceproxy.hpp
+ * @file    deviceproxy.h
  * @author  garou (xgaroux@gmail.com)
  * @brief   Header file of device proxy class.
  ******************************************************************************/
 
 #pragma once
 
-#include "device.hpp"
+#include "device.h"
 
 /**
  * @brief Proxy class for handle different version of Device modules and

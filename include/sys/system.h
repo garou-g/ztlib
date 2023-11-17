@@ -1,12 +1,12 @@
 /*******************************************************************************
- * @file    system.hpp
+ * @file    system.h
  * @author  garou (xgaroux@gmail.com)
  * @brief   Header file of global system functions.
  ******************************************************************************/
 
 #pragma once
 
-#include "version.hpp"
+#include "version.h"
 
 #include <stdint.h>
 

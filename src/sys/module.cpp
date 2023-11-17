@@ -4,7 +4,7 @@
  * @brief   Base class for other modules with time and event functions.
  ******************************************************************************/
 
-#include "module.hpp"
+#include "module.h"
 
 #if defined(FREERTOS_USED)
 /// Default priority for module tasks

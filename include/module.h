@@ -1,12 +1,12 @@
 /*******************************************************************************
- * @file    module.hpp
+ * @file    module.h
  * @author  garou (xgaroux@gmail.com)
  * @brief   Header file of base module class.
  ******************************************************************************/
 
 #pragma once
 
-#include "time.hpp"
+#include "timing.h"
 
 #if defined(FREERTOS_USED)
 #include "freertos/FreeRTOS.h"

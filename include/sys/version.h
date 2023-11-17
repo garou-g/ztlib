@@ -1,5 +1,5 @@
 /*******************************************************************************
- * @file    version.hpp
+ * @file    version.h
  * @author  garou (xgaroux@gmail.com)
  * @brief   Header file of firmware and hardware versions.
  ******************************************************************************/

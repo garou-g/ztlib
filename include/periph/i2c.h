@@ -1,15 +1,15 @@
 /*******************************************************************************
- * @file    i2c.hpp
+ * @file    i2c.h
  * @author  garou (xgaroux@gmail.com)
  * @brief   Header file of I2C bus driver.
  ******************************************************************************/
 
 #pragma once
 
-#include "periphdrv.hpp"
+#include "serialdrv.h"
 
 /// @brief I2C bus peripheral driver
-class I2c : public PeriphDrv {
+class I2c : public SerialDrv {
 public:
     enum IoctlCmd {
         kSetAddress,    // Sets I2C device address for all next transmissions

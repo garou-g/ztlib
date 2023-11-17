@@ -4,7 +4,7 @@
  * @brief   Firmware and hardware version file.
  ******************************************************************************/
 
-#include "version.hpp"
+#include "version.h"
 
 #include <stdlib.h>
 #include <string.h>

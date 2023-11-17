@@ -4,8 +4,8 @@
  * @brief   Global system class functions.
  ******************************************************************************/
 
-#include "system.hpp"
-#include "systemproxy.hpp"
+#include "system.h"
+#include "systemproxy.h"
 #include "attr.h"
 
 #include <cassert>

@@ -1,12 +1,12 @@
 /*******************************************************************************
- * @file    systemproxy.hpp
+ * @file    systemproxy.h
  * @author  garou (xgaroux@gmail.com)
  * @brief   Header file of system proxy class.
  ******************************************************************************/
 
 #pragma once
 
-#include "system.hpp"
+#include "system.h"
 
 /**
  * @brief Proxy class for handle different version of System modules and

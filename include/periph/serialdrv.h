@@ -1,7 +1,7 @@
 /*******************************************************************************
- * @file    periphdrv.hpp
+ * @file    serialdrv.hpp
  * @author  garou (xgaroux@gmail.com)
- * @brief   Header file of abstract peripheral driver.
+ * @brief   Header file of abstract serial peripheral driver.
  ******************************************************************************/
 
 #pragma once
@@ -16,12 +16,12 @@
 /**
  * @brief Abstract peripheral driver
  */
-class PeriphDrv {
+class SerialDrv {
 public:
     /**
      * @brief Default constructor. Almost empty
      */
-    PeriphDrv();
+    SerialDrv();
 
     /**
      * @brief Open driver with selected config

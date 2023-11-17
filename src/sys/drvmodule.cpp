@@ -4,7 +4,7 @@
  * @brief   Base class for other modules with driver instance.
  ******************************************************************************/
 
-#include "drvmodule.hpp"
+#include "drvmodule.h"
 
 /**
  * @brief Construct a new DrvModule object with only driver initialization.

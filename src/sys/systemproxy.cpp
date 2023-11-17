@@ -4,9 +4,9 @@
  * @brief   System proxy class file.
  ******************************************************************************/
 
-#include "systemproxy.hpp"
+#include "systemproxy.h"
 
-#include "espsystem.hpp"
+#include "espsystem.h"
 
 /**
  * @brief Choose correct system successor for main instance init

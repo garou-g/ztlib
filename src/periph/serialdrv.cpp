@@ -1,12 +1,12 @@
 /*******************************************************************************
- * @file    periphdrv.cpp
+ * @file    serialdrv.cpp
  * @author  garou (xgaroux@gmail.com)
- * @brief   Abstract peripheral driver.
+ * @brief   Abstract serial peripheral driver.
  ******************************************************************************/
 
-#include "periphdrv.hpp"
+#include "serialdrv.h"
 
-PeriphDrv::PeriphDrv()
+SerialDrv::SerialDrv()
     : opened_(false)
     , reg_(-1)
     , addr_(-1)
@@ -17,12 +17,12 @@ PeriphDrv::PeriphDrv()
 #endif
 }
 
-bool PeriphDrv::isOpen() const
+bool SerialDrv::isOpen() const
 {
     return opened_;
 }
 
-int32_t PeriphDrv::write(const void* buf, uint32_t len)
+int32_t SerialDrv::write(const void* buf, uint32_t len)
 {
 #if defined(FREERTOS_USED)
     xSemaphoreTake(mutex_, portMAX_DELAY);
@@ -34,7 +34,7 @@ int32_t PeriphDrv::write(const void* buf, uint32_t len)
     return res;
 }
 
-int32_t PeriphDrv::write(uint8_t reg, const void* buf, uint32_t len)
+int32_t SerialDrv::write(uint8_t reg, const void* buf, uint32_t len)
 {
 #if defined(FREERTOS_USED)
     xSemaphoreTake(mutex_, portMAX_DELAY);
@@ -48,7 +48,7 @@ int32_t PeriphDrv::write(uint8_t reg, const void* buf, uint32_t len)
     return res;
 }
 
-int32_t PeriphDrv::write(uint32_t addr, uint8_t reg, const void* buf, uint32_t len)
+int32_t SerialDrv::write(uint32_t addr, uint8_t reg, const void* buf, uint32_t len)
 {
 #if defined(FREERTOS_USED)
     xSemaphoreTake(mutex_, portMAX_DELAY);
@@ -64,7 +64,7 @@ int32_t PeriphDrv::write(uint32_t addr, uint8_t reg, const void* buf, uint32_t l
     return res;
 }
 
-int32_t PeriphDrv::read(void* buf, uint32_t len)
+int32_t SerialDrv::read(void* buf, uint32_t len)
 {
     #if defined(FREERTOS_USED)
     xSemaphoreTake(mutex_, portMAX_DELAY);
@@ -76,7 +76,7 @@ int32_t PeriphDrv::read(void* buf, uint32_t len)
     return res;
 }
 
-int32_t PeriphDrv::read(uint8_t reg, void* buf, uint32_t len)
+int32_t SerialDrv::read(uint8_t reg, void* buf, uint32_t len)
 {
 #if defined(FREERTOS_USED)
     xSemaphoreTake(mutex_, portMAX_DELAY);
@@ -90,7 +90,7 @@ int32_t PeriphDrv::read(uint8_t reg, void* buf, uint32_t len)
     return res;
 }
 
-int32_t PeriphDrv::read(uint32_t addr, uint8_t reg, void* buf, uint32_t len)
+int32_t SerialDrv::read(uint32_t addr, uint8_t reg, void* buf, uint32_t len)
 {
 #if defined(FREERTOS_USED)
     xSemaphoreTake(mutex_, portMAX_DELAY);
@@ -106,17 +106,17 @@ int32_t PeriphDrv::read(uint32_t addr, uint8_t reg, void* buf, uint32_t len)
     return res;
 }
 
-void PeriphDrv::setOpened(bool state)
+void SerialDrv::setOpened(bool state)
 {
     opened_ = state;
 }
 
-int32_t PeriphDrv::getReg() const
+int32_t SerialDrv::getReg() const
 {
     return reg_;
 }
 
-int32_t PeriphDrv::getAddr() const
+int32_t SerialDrv::getAddr() const
 {
     return addr_;
 }

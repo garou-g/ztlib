@@ -1,12 +1,12 @@
 /*******************************************************************************
- * @file    drvmodule.hpp
+ * @file    drvmodule.h
  * @author  garou (xgaroux@gmail.com)
  * @brief   Header file of base module with driver instance class.
  ******************************************************************************/
 
 #pragma once
 
-#include "module.hpp"
+#include "module.h"
 
 /// Macro to get a driver instance with a static cast for the required class
 #define DRV(type) static_cast<type*>(drv())

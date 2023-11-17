@@ -1,10 +1,10 @@
 /*******************************************************************************
- * @file    time.cpp
+ * @file    timing.cpp
  * @author  garou (xgaroux@gmail.com)
  * @brief   Time measurement module.
  ******************************************************************************/
 
-#include "time.hpp"
+#include "timing.h"
 #include "attr.h"
 
 #include <sys/time.h>
