@@ -8,10 +8,18 @@
 
 #include <stdint.h>
 
+/// @brief Basic gpio driver config structure
+struct GpioConfig {
+    uint32_t pin;
+    bool inverse;
+};
+
 /// @brief Abstract gpio driver
 class Gpio {
 public:
-    /// @brief Default constructor
+    /**
+     * @brief Default constructor
+     */
     Gpio() = default;
 
     /**
@@ -27,15 +35,21 @@ public:
      *
      * @return true if opened otherwise false
      */
-    bool isOpen() const { return config_ != nullptr; }
+    bool isOpen() const { return port_ != -1; }
 
-    /// @brief Close driver
+    /**
+     * @brief Close driver
+     */
     void close();
 
-    /// @brief Sets configured gpio to high level
+    /**
+     * @brief Sets configured gpio to high level
+     */
     void set();
 
-    /// @brief Sets configured gpio to low level
+    /**
+     * @brief Sets configured gpio to low level
+     */
     void reset();
 
     /**
@@ -48,7 +62,14 @@ public:
     bool ioctl(uint32_t cmd, void* pValue);
 
 private:
-    void *config_ = nullptr;
+    /// @brief Gpio port number
+    int32_t port_ = -1;
+
+    /// @brief Gpio port pin number
+    int32_t pin_ = -1;
+
+    /// @brief Flag of gpio inversion parameter
+    bool inverse_ = false;
 };
 
 /***************************** END OF FILE ************************************/

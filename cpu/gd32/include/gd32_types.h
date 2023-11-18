@@ -10,6 +10,8 @@
 
 #include <stdint.h>
 
+namespace gd32 {
+
 struct GpioConfig {
     rcu_periph_enum clock;
     uint32_t port;
@@ -37,3 +39,5 @@ struct UartConfig {
     GpioConfig rx;
     int32_t baudrate;
 };
+
+}; // gd32

@@ -1,29 +1,14 @@
 /*******************************************************************************
  * @file    gpio.cpp
  * @author  garou (xgaroux@gmail.com)
- * @brief   GD32 GPIO driver module.
+ * @brief   ESP32 GPIO driver module.
  ******************************************************************************/
 
 #include "gpio.h"
-#include "gd32_types.h"
+
+#include "driver/gpio.h"
 
 #include <cassert>
-
-using namespace gd32;
-
-/**
- * @brief Checks correctness of chosen gpio port
- *
- * @param port gpio port
- * @return true if port value is correct otherwise false
- */
-static bool isPortExist(uint32_t port)
-{
-    return port == GPIOA || port == GPIOB
-        || port == GPIOC || port == GPIOD
-        || port == GPIOE || port == GPIOF
-        || port == GPIOG;
-}
 
 bool Gpio::open(const void* drvConfig)
 {
@@ -33,23 +18,25 @@ bool Gpio::open(const void* drvConfig)
     assert(drvConfig != nullptr);
     const GpioConfig* config
         = static_cast<const GpioConfig*>(drvConfig);
-    if ((config->pin & GPIO_PIN_ALL) == 0 || !isPortExist(config->port))
+    if (!GPIO_IS_VALID_OUTPUT_GPIO(config->pin))
         return false;
 
-    port_ = config->port;
+    port_ = 0;
     pin_ = config->pin;
     inverse_ = config->inverse;
 
-    rcu_periph_clock_enable(config->clock);
-    gpio_init(port_, config->mode, GPIO_OSPEED_50MHZ, pin_);
-    gpio_bit_write(port_, pin_, inverse_ ? SET : RESET);
+    gpio_pad_select_gpio(pin_);
+    gpio_set_direction(pin_, GPIO_MODE_OUTPUT);
+    gpio_set_level(pin_, inverse_ ? 1: 0);
+    gpio_hold_en(pin_);
     return true;
 }
 
 void Gpio::close()
 {
     if (isOpen()) {
-        gpio_bit_write(port_, pin_, inverse_ ? SET : RESET);
+        gpio_hold_dis(pin_);
+        gpio_reset_pin(pin_);
         port_ = -1;
         pin_ = -1;
         inverse_ = false;
@@ -60,14 +47,18 @@ void Gpio::set()
 {
     if (!isOpen())
         return;
-    gpio_bit_write(port_, pin_, inverse_ ? RESET : SET);
+    gpio_hold_dis(pin_);
+    gpio_set_level(pin_, inverse_ ? 0: 1);
+    gpio_hold_en(pin_);
 }
 
 void Gpio::reset()
 {
     if (!isOpen())
         return;
-    gpio_bit_write(port_, pin_, inverse_ ? SET : RESET);
+    gpio_hold_dis(pin_);
+    gpio_set_level(pin_, inverse_ ? 1: 0);
+    gpio_hold_en(pin_);
 }
 
 bool Gpio::ioctl(uint32_t cmd, void* pValue)
