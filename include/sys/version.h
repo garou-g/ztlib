@@ -39,7 +39,7 @@ public:
     void getHardwareVersion(Hardware& hw);
     void getFirmwareVersion(Firmware& fw, char* fwStr = nullptr);
 
-protected:
+private:
     struct HwVolt {
         int major;
         int minor;
@@ -49,8 +49,8 @@ protected:
         char data[FW_SIZE];
     };
 
-    virtual HwVolt getHwValue() { return HwVolt(); };
-    virtual FwString getFwValue() { return FwString(); };
+    HwVolt getHwValue();
+    FwString getFwValue();
 };
 
 /***************************** END OF FILE ************************************/

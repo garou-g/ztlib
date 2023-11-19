@@ -1,11 +1,11 @@
 /*******************************************************************************
- * @file    espsystem.cpp
+ * @file    system.cpp
  * @author  garou (xgaroux@gmail.com)
  * @brief   ESP global system class functions.
  ******************************************************************************/
 
-#include "espsystem.hpp"
-#include "espversion.hpp"
+#include "system.h"
+#include "version.h"
 
 #include "nvs_flash.h"
 #include "esp_system.h"
@@ -15,10 +15,10 @@
 #include "driver/rtc_io.h"
 
 /**
- * @brief Construct a new EspSystem object
+ * @brief Constructor platform initialization
+ *
  */
-EspSystem::EspSystem()
-    : System(new EspVersion())
+void System::platformInit()
 {
     // Disable default pullup of IO5
     gpio_pullup_dis(GPIO_NUM_5);
@@ -35,7 +35,7 @@ EspSystem::EspSystem()
     }
 
     // Get reset reason
-    System::ResetReason reset;
+    ResetReason reset;
     switch (esp_reset_reason()) {
     case ESP_RST_POWERON:
         reset = kResetPowerOn;
@@ -64,7 +64,7 @@ EspSystem::EspSystem()
     setResetReason(reset);
 
     // Get wakeup reason
-    System::WakeupReason wakeup;
+    WakeupReason wakeup;
     if (reset == kResetSleep) {
         switch (esp_sleep_get_wakeup_cause()) {
         case ESP_SLEEP_WAKEUP_EXT0:
@@ -88,7 +88,7 @@ EspSystem::EspSystem()
 /**
  * @brief Restarts CPU
  */
-void EspSystem::restart()
+void System::restart()
 {
     esp_restart();
 }
@@ -96,7 +96,7 @@ void EspSystem::restart()
 /**
  * @brief Switchs CPU to sleep mode with selected wakeup modes
  */
-void EspSystem::goToSleep() const
+void System::goToSleep() const
 {
     // Check wakeup time and enable wakeup event
     uint32_t time = wakeupTime();

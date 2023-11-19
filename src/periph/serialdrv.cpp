@@ -121,4 +121,9 @@ int32_t SerialDrv::getAddr() const
     return addr_;
 }
 
+void SerialDrv::setAddr(int32_t addr)
+{
+    addr_ = addr;
+}
+
 /***************************** END OF FILE ************************************/

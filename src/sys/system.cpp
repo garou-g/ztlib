@@ -5,7 +5,6 @@
  ******************************************************************************/
 
 #include "system.h"
-#include "systemproxy.h"
 #include "attr.h"
 
 #include <cassert>
@@ -23,7 +22,7 @@ void System::initInstance()
 {
     if (system != nullptr)
         delete system;
-    system = SystemProxy::initSystemByPlatform();
+    system = new System(new Version());
 }
 
 /**
@@ -177,6 +176,8 @@ System::System(Version* ver)
     // Software version always updates.
     // It changes when software update for example
     version->getFirmwareVersion(systemData.firmware, versionStr);
+
+    platformInit();
 }
 
 /**

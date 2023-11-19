@@ -39,14 +39,14 @@ public:
         kWakeupTimer,
     };
 
-    virtual void restart() = 0;
+    void restart();
+    void goToSleep() const;
 
     bool isFirstStart() const;
     uint16_t resetCounter() const;
     ResetReason resetReason() const;
     WakeupReason wakeupReason() const;
 
-    virtual void goToSleep() const = 0;
     void setWakeupTime(uint32_t timeMs);
     uint32_t wakeupTime() const;
     void setWakeupPin(int32_t pin);
@@ -55,6 +55,7 @@ public:
 protected:
     System(Version* ver);
     virtual ~System() = default;
+    void platformInit();
 
     void setResetReason(ResetReason reset);
     void setWakeupReason(WakeupReason wakeup);

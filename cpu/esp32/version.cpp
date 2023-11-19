@@ -1,28 +1,21 @@
 /*******************************************************************************
- * @file    espversion.cpp
+ * @file    version.cpp
  * @author  garou (xgaroux@gmail.com)
  * @brief   ESP32 version ADC driver module.
  ******************************************************************************/
 
-#include "espversion.hpp"
+#include "version.h"
 
 #include "driver/adc.h"
 #include "esp_adc_cal.h"
 #include "esp_ota_ops.h"
 
 /**
- * @brief Construct a new version driver instance
- */
-EspVersion::EspVersion()
-{
-}
-
-/**
  * @brief Read HW version voltages and return it
  *
  * @return Version::HwVolt structure with HW voltages
  */
-Version::HwVolt EspVersion::getHwValue()
+Version::HwVolt Version::getHwValue()
 {
     const int NO_OF_SAMPLES = 64;
     const int DEFAULT_VREF = 1100;
@@ -56,7 +49,7 @@ Version::HwVolt EspVersion::getHwValue()
  *
  * @return Version::FwString structure with FW version
  */
-Version::FwString EspVersion::getFwValue()
+Version::FwString Version::getFwValue()
 {
     const esp_app_desc_t* app = esp_ota_get_app_description();
     const size_t size = sizeof(app->version) < FW_SIZE ?

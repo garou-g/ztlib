@@ -16,8 +16,7 @@ bool Gpio::open(const void* drvConfig)
         return false;
 
     assert(drvConfig != nullptr);
-    const GpioConfig* config
-        = static_cast<const GpioConfig*>(drvConfig);
+    const GpioConfig* config = static_cast<const GpioConfig*>(drvConfig);
     if (!GPIO_IS_VALID_OUTPUT_GPIO(config->pin))
         return false;
 
@@ -25,18 +24,20 @@ bool Gpio::open(const void* drvConfig)
     pin_ = config->pin;
     inverse_ = config->inverse;
 
+    const gpio_num_t pin = static_cast<gpio_num_t>(pin_);
     gpio_pad_select_gpio(pin_);
-    gpio_set_direction(pin_, GPIO_MODE_OUTPUT);
-    gpio_set_level(pin_, inverse_ ? 1: 0);
-    gpio_hold_en(pin_);
+    gpio_set_direction(pin, GPIO_MODE_OUTPUT);
+    gpio_set_level(pin, inverse_ ? 1: 0);
+    gpio_hold_en(pin);
     return true;
 }
 
 void Gpio::close()
 {
     if (isOpen()) {
-        gpio_hold_dis(pin_);
-        gpio_reset_pin(pin_);
+        const gpio_num_t pin = static_cast<gpio_num_t>(pin_);
+        gpio_hold_dis(pin);
+        gpio_reset_pin(pin);
         port_ = -1;
         pin_ = -1;
         inverse_ = false;
@@ -47,18 +48,20 @@ void Gpio::set()
 {
     if (!isOpen())
         return;
-    gpio_hold_dis(pin_);
-    gpio_set_level(pin_, inverse_ ? 0: 1);
-    gpio_hold_en(pin_);
+    const gpio_num_t pin = static_cast<gpio_num_t>(pin_);
+    gpio_hold_dis(pin);
+    gpio_set_level(pin, inverse_ ? 0: 1);
+    gpio_hold_en(pin);
 }
 
 void Gpio::reset()
 {
     if (!isOpen())
         return;
-    gpio_hold_dis(pin_);
-    gpio_set_level(pin_, inverse_ ? 1: 0);
-    gpio_hold_en(pin_);
+    const gpio_num_t pin = static_cast<gpio_num_t>(pin_);
+    gpio_hold_dis(pin);
+    gpio_set_level(pin, inverse_ ? 1: 0);
+    gpio_hold_en(pin);
 }
 
 bool Gpio::ioctl(uint32_t cmd, void* pValue)

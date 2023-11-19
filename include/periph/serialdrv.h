@@ -152,6 +152,13 @@ protected:
      */
     int32_t getAddr() const;
 
+    /**
+     * @brief Sets address value for current operation
+     *
+     * @param addr new address value
+     */
+    void setAddr(int32_t addr);
+
 private:
     bool opened_;
     int32_t reg_;
