@@ -1,4 +1,4 @@
-# fw-common-lib
+# ztlib
 Library with common modules for using in firmware's projects.
 
 ## Modules
