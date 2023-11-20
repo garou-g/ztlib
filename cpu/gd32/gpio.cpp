@@ -9,8 +9,6 @@
 
 #include <cassert>
 
-using namespace gd32;
-
 /**
  * @brief Checks correctness of chosen gpio port
  *
@@ -31,8 +29,8 @@ bool Gpio::open(const void* drvConfig)
         return false;
 
     assert(drvConfig != nullptr);
-    const GpioConfig* config
-        = static_cast<const GpioConfig*>(drvConfig);
+    const gd32::GpioConfig* config
+        = static_cast<const gd32::GpioConfig*>(drvConfig);
     if ((config->pin & GPIO_PIN_ALL) == 0 || !isPortExist(config->port))
         return false;
 
