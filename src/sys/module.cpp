@@ -251,7 +251,7 @@ void Module::task(void *instance)
 void Module::task()
 {
     while (1) {
-        dispatcher();
+        _dispatcher();
     }
 }
 #endif
