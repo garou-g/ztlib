@@ -7,6 +7,11 @@
 #include "system.h"
 #include "version.h"
 #include "gd32.h"
+#include "attr.h"
+
+#include <sys/time.h>
+
+RETAIN_NOINIT_ATTR static uint32_t sysTime;
 
 /**
  * @brief Constructor platform initialization
@@ -14,6 +19,10 @@
  */
 void System::platformInit()
 {
+    sysTime = 0;
+    SysTick_Config(SystemCoreClock / 1000U); // 1 ms clock
+    NVIC_SetPriority(SysTick_IRQn, 0x00U);
+
     // Get reset reason
     ResetReason reset;
     if (SET == rcu_flag_get(RCU_FLAG_EPRST)) {
@@ -52,6 +61,25 @@ void System::restart()
 void System::goToSleep() const
 {
     // Not realizied
+}
+
+/**
+ * @brief Acquiring system time and fill structure
+ */
+int _gettimeofday(struct timeval *tv, void *tzvp)
+{
+    const uint32_t t = sysTime;
+    tv->tv_sec = t / 1000;
+    tv->tv_usec = ( t % 1000 ) * 1000;
+    return 0;
+}
+
+/**
+ * @brief Systick IRQ handler increments system time
+ */
+void SysTick_Handler(void)
+{
+    ++sysTime;
 }
 
 /***************************** END OF FILE ************************************/
