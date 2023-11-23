@@ -25,7 +25,7 @@ bool Uart::open(const void* drvConfig)
     uart_ = config->uart;
 
     rcu_periph_enum uartClock;
-    switch (uart) {
+    switch (uart_) {
     default:
     case USART0: uartClock = RCU_USART0; break;
     case USART1: uartClock = RCU_USART1; break;

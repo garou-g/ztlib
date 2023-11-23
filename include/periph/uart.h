@@ -36,8 +36,8 @@ private:
     int32_t read_(void* buf, uint32_t len) override;
 
     int32_t uart_ = -1;
-    int32_t tx_ - 1;
-    int32_t rx_ - 1;
+    int32_t tx_ = -1;
+    int32_t rx_ = -1;
 };
 
 /***************************** END OF FILE ************************************/
