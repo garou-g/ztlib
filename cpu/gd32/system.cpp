@@ -77,7 +77,7 @@ int _gettimeofday(struct timeval *tv, void *tzvp)
 /**
  * @brief Systick IRQ handler increments system time
  */
-void SysTick_Handler(void)
+extern "C" void SysTick_Handler(void)
 {
     ++sysTime;
 }
