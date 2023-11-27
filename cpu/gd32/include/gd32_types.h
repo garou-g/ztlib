@@ -21,8 +21,8 @@ struct GpioConfig {
 };
 
 enum class I2cMode {
-    kMaster,
-    kSlave,
+    Master,
+    Slave,
 };
 
 struct I2cConfig {
