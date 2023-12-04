@@ -33,6 +33,30 @@ struct I2cConfig {
     int32_t speed;
 };
 
+#include "spi_types.h"
+
+enum class SpiPrescaler {
+    Div2 = 0,
+    Div4 = 1,
+    Div8 = 2,
+    Div16 = 3,
+    Div32 = 4,
+    Div64 = 5,
+    Div128 = 6,
+    Div256 = 7,
+};
+
+struct SpiConfig {
+    uint32_t spi;
+    SpiMode mode;
+    SpiPolarity polarity;
+    SpiFrame frame;
+    SpiPrescaler prescaler;
+    GpioConfig clk;
+    GpioConfig mosi;
+    GpioConfig miso;
+};
+
 struct UartConfig {
     uint32_t uart;
     GpioConfig tx;
