@@ -53,6 +53,13 @@ public:
     void reset();
 
     /**
+     * @brief Sets configured gpio to new state
+     *
+     * @param state sets to high if true otherwise sets to low
+     */
+    void set(bool state) { if (state) set(); else reset(); }
+
+    /**
      * @brief Execute chosen command on driver
      *
      * @param cmd command to execute
