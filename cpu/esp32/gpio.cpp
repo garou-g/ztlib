@@ -64,6 +64,16 @@ void Gpio::reset()
     gpio_hold_en(pin);
 }
 
+bool Gpio::get() const
+{
+    if (!isOpen())
+        return false;
+
+    const gpio_num_t pin = static_cast<gpio_num_t>(pin_);
+    const bool res = gpio_get_level(pin) == 1;
+    return inverse_ ? !res : res;
+}
+
 bool Gpio::ioctl(uint32_t cmd, void* pValue)
 {
     return true;

@@ -60,6 +60,13 @@ public:
     void set(bool state) { if (state) set(); else reset(); }
 
     /**
+     * @brief Gets current state of gpio
+     *
+     * @return true if gpio set otherwise false
+     */
+    bool get() const;
+
+    /**
      * @brief Execute chosen command on driver
      *
      * @param cmd command to execute

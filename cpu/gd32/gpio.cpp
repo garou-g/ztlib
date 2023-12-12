@@ -68,6 +68,15 @@ void Gpio::reset()
     gpio_bit_write(port_, pin_, inverse_ ? SET : RESET);
 }
 
+bool Gpio::get() const
+{
+    if (!isOpen())
+        return false;
+
+    const bool res = gpio_input_bit_get(port_, pin_) == SET;
+    return inverse_ ? !res : res;
+}
+
 bool Gpio::ioctl(uint32_t cmd, void* pValue)
 {
     return true;
