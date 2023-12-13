@@ -17,6 +17,7 @@ enum class State {
     Stop,
 };
 
+static void initI2cGpio(const gd32::GpioConfig& conf);
 static bool waitForFlagSet(int32_t i2c, i2c_flag_enum flag);
 
 bool I2c::open(const void* drvConfig)
@@ -39,11 +40,11 @@ bool I2c::open(const void* drvConfig)
         i2cClock = RCU_I2C1;
     }
     rcu_periph_clock_enable(i2cClock);
-    rcu_periph_clock_enable(config->scl.clock);
-    rcu_periph_clock_enable(config->sda.clock);
 
-    gpio_init(config->scl.port, config->scl.mode, GPIO_OSPEED_50MHZ, config->scl.pin);
-    gpio_init(config->sda.port, config->sda.mode, GPIO_OSPEED_50MHZ, config->sda.pin);
+    if (config->scl.port != 0)
+        initI2cGpio(config->scl);
+    if (config->sda.port != 0)
+        initI2cGpio(config->sda);
 
     i2c_clock_config(i2c_, config->speed, I2C_DTCY_2);
     i2c_mode_addr_config(i2c_, I2C_I2CMODE_ENABLE, I2C_ADDFORMAT_7BITS, 0);
@@ -275,6 +276,18 @@ bool I2c::ioctl(uint32_t cmd, void* pValue)
     }
 
     return false;
+}
+
+static void initI2cGpio(const gd32::GpioConfig& conf)
+{
+    rcu_periph_clock_enable(conf.clock);
+#if defined(GD32F4XX_H)
+    gpio_af_set(conf.port, conf.mode, conf.pin);
+    gpio_mode_set(conf.port, GPIO_MODE_AF, GPIO_PUPD_NONE, conf.pin);
+    gpio_output_options_set(conf.port, GPIO_OTYPE_OD, GPIO_OSPEED_50MHZ, conf.pin);
+#else
+    gpio_init(conf.port, conf.mode, GPIO_OSPEED_50MHZ, conf.pin);
+#endif
 }
 
 static bool waitForFlagSet(int32_t i2c, i2c_flag_enum flag)

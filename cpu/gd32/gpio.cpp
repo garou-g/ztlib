@@ -39,7 +39,13 @@ bool Gpio::open(const void* drvConfig)
     inverse_ = config->inverse;
 
     rcu_periph_clock_enable(config->clock);
+#if defined(GD32F4XX_H)
+    gpio_mode_set(port_, config->mode, GPIO_PUPD_NONE, pin_);
+    if (config->mode == GPIO_MODE_OUTPUT)
+        gpio_output_options_set(port_, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, pin_);
+#else
     gpio_init(port_, config->mode, GPIO_OSPEED_50MHZ, pin_);
+#endif
     gpio_bit_write(port_, pin_, inverse_ ? SET : RESET);
     return true;
 }

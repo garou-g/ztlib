@@ -9,6 +9,8 @@
 
 #include <cassert>
 
+static void initUartGpio(const gd32::GpioConfig& conf);
+
 bool Uart::open(const void* drvConfig)
 {
     if (isOpen())
@@ -34,11 +36,11 @@ bool Uart::open(const void* drvConfig)
     case UART4: uartClock = RCU_UART4; break;
     }
     rcu_periph_clock_enable(uartClock);
-    rcu_periph_clock_enable(config->tx.clock);
-    rcu_periph_clock_enable(config->rx.clock);
 
-    gpio_init(config->tx.port, config->tx.mode, GPIO_OSPEED_50MHZ, config->tx.pin);
-    gpio_init(config->rx.port, config->rx.mode, GPIO_OSPEED_50MHZ, config->rx.pin);
+    if (config->tx.port != 0)
+        initUartGpio(config->tx);
+    if (config->rx.port != 0)
+        initUartGpio(config->rx);
 
     usart_deinit(uart_);
     usart_baudrate_set(uart_, config->baudrate);
@@ -117,6 +119,18 @@ bool Uart::ioctl(uint32_t cmd, void* pValue)
     }
 
     return false;
+}
+
+static void initUartGpio(const gd32::GpioConfig& conf)
+{
+    rcu_periph_clock_enable(conf.clock);
+#if defined(GD32F4XX_H)
+    gpio_af_set(conf.port, conf.mode, conf.pin);
+    gpio_mode_set(conf.port, GPIO_MODE_AF, GPIO_PUPD_NONE, conf.pin);
+    gpio_output_options_set(conf.port, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, conf.pin);
+#else
+    gpio_init(conf.port, conf.mode, GPIO_OSPEED_50MHZ, conf.pin);
+#endif
 }
 
 /***************************** END OF FILE ************************************/

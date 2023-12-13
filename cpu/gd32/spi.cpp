@@ -11,6 +11,8 @@
 
 using namespace gd32;
 
+static void initSpiGpio(const gd32::GpioConfig& conf);
+
 bool Spi::open(const void* drvConfig)
 {
     if (isOpen())
@@ -35,13 +37,13 @@ bool Spi::open(const void* drvConfig)
         spiClock = RCU_SPI2;
     }
     rcu_periph_clock_enable(spiClock);
-    rcu_periph_clock_enable(config->clk.clock);
-    rcu_periph_clock_enable(config->mosi.clock);
-    rcu_periph_clock_enable(config->miso.clock);
 
-    gpio_init(config->clk.port, config->clk.mode, GPIO_OSPEED_50MHZ, config->clk.pin);
-    gpio_init(config->mosi.port, config->mosi.mode, GPIO_OSPEED_50MHZ, config->mosi.pin);
-    gpio_init(config->miso.port, config->miso.mode, GPIO_OSPEED_50MHZ, config->miso.pin);
+    if (config->clk.port != 0)
+        initSpiGpio(config->clk);
+    if (config->mosi.port != 0)
+        initSpiGpio(config->mosi);
+    if (config->miso.port != 0)
+        initSpiGpio(config->miso);
 
     spi_i2s_deinit(spi_);
     spi_parameter_struct spiParams = {
@@ -169,6 +171,18 @@ bool Spi::ioctl(uint32_t cmd, void* pValue)
     }
 
     return false;
+}
+
+static void initSpiGpio(const gd32::GpioConfig& conf)
+{
+    rcu_periph_clock_enable(conf.clock);
+#if defined(GD32F4XX_H)
+    gpio_af_set(conf.port, conf.mode, conf.pin);
+    gpio_mode_set(conf.port, GPIO_MODE_AF, GPIO_PUPD_NONE, conf.pin);
+    gpio_output_options_set(conf.port, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, conf.pin);
+#else
+    gpio_init(conf.port, conf.mode, GPIO_OSPEED_50MHZ, conf.pin);
+#endif
 }
 
 /***************************** END OF FILE ************************************/
