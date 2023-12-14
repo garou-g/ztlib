@@ -15,7 +15,6 @@ RETAIN_NOINIT_ATTR static uint32_t sysTime;
 
 /**
  * @brief Constructor platform initialization
- *
  */
 void System::platformInit()
 {
@@ -66,7 +65,7 @@ void System::goToSleep() const
 /**
  * @brief Acquiring system time and fill structure
  */
-int _gettimeofday(struct timeval *tv, void *tzvp)
+extern "C" int _gettimeofday(struct timeval *tv, void *tzvp)
 {
     const uint32_t t = sysTime;
     tv->tv_sec = t / 1000;
