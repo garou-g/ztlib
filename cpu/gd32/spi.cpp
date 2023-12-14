@@ -123,7 +123,7 @@ int32_t Spi::write_(const void* buf, uint32_t len)
 
         if (frame_ == SpiFrame::Frame32Bit) {
             spi_i2s_data_transmit(spi_, (words[i] >> 16) & 0xFFFF);
-            while (SET == spi_i2s_flag_get(spi_, SPI_FLAG_TRANS));
+            while (RESET == spi_i2s_flag_get(spi_, SPI_FLAG_TBE));
             spi_i2s_data_transmit(spi_, words[i] & 0xFFFF);
         } else if (frame_ == SpiFrame::Frame16Bit) {
             spi_i2s_data_transmit(spi_, halfwords[i]);
