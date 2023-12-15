@@ -10,8 +10,8 @@
 
 /// @brief Basic gpio driver config structure
 struct GpioConfig {
-    uint32_t pin;
-    bool inverse;
+    int32_t port;
+    int32_t pin;
 };
 
 /// @brief Abstract gpio driver
@@ -35,7 +35,7 @@ public:
      *
      * @return true if opened otherwise false
      */
-    bool isOpen() const { return port_ != -1; }
+    bool isOpen() const { return conf_.port != -1; }
 
     /**
      * @brief Close driver
@@ -76,14 +76,10 @@ public:
     bool ioctl(uint32_t cmd, void* pValue);
 
 private:
-    /// @brief Gpio port number
-    int32_t port_ = -1;
-
-    /// @brief Gpio port pin number
-    int32_t pin_ = -1;
-
-    /// @brief Flag of gpio inversion parameter
-    bool inverse_ = false;
+    GpioConfig conf_ = {
+        .port = -1,
+        .pin = -1,
+    };
 };
 
 /***************************** END OF FILE ************************************/

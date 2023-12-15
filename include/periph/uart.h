@@ -7,12 +7,17 @@
 #pragma once
 
 #include "serialdrv.h"
+#include "etl/queue.h"
 
+/// @brief Queue buffer pointer for UART transmit/receive purposes
+typedef etl::iqueue<uint8_t, etl::memory_model::MEMORY_MODEL_SMALL>* UartQueue;
+
+/// @brief UART configuration data structure
 struct UartConfig {
     int32_t uart;
-    int32_t tx;
-    int32_t rx;
-    int32_t baudrate;
+    UartQueue txBuf;
+    UartQueue rxBuf;
+    uint32_t baudrate;
 };
 
 /// @brief UART peripheral driver
@@ -35,9 +40,12 @@ private:
     int32_t write_(const void* buf, uint32_t len) override;
     int32_t read_(void* buf, uint32_t len) override;
 
-    int32_t uart_ = -1;
-    int32_t tx_ = -1;
-    int32_t rx_ = -1;
+    UartConfig conf_ = {
+        .uart = -1,
+        .txBuf = nullptr,
+        .rxBuf = nullptr,
+        .baudrate = 0,
+    };
 };
 
 /***************************** END OF FILE ************************************/

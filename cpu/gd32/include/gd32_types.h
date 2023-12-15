@@ -13,12 +13,15 @@
 namespace gd32 {
 
 struct GpioConfig {
-    rcu_periph_enum clock;
     uint32_t port;
     uint32_t pin;
     uint32_t mode;
-    bool inverse;
+    uint32_t function;
+    uint32_t pull;
+    uint32_t outputType;
 };
+
+void initGpioPeriph(const gd32::GpioConfig* conf);
 
 enum class I2cMode {
     Master,
@@ -58,10 +61,9 @@ struct SpiConfig {
 };
 
 struct UartConfig {
-    uint32_t uart;
+    void* baseConf;
     GpioConfig tx;
     GpioConfig rx;
-    int32_t baudrate;
 };
 
-}; // gd32
+}; // namespace gd32

@@ -9,7 +9,47 @@
 
 #include <cassert>
 
-static void initUartGpio(const gd32::GpioConfig& conf);
+/**
+ * @brief Checks correctness of chosen uart
+ *
+ * @param port uart port
+ * @return true if port value is correct otherwise false
+ */
+static bool isPortExist(uint32_t port)
+{
+    return port == USART0 || port == USART1
+        || port == USART2
+        || port == UART3 || port == UART4
+#if defined(GD32F4XX_H)
+        || port == UART6 || port == UART7 || port == USART5
+#endif
+        ;
+}
+
+/**
+ * @brief Enables clock of chosen uart port
+ *
+ * @param port uart port
+ */
+static void enableClock(uint32_t port)
+{
+    rcu_periph_enum portClk;
+    switch (port) {
+    case GPIOA: portClk = RCU_GPIOA; break;
+    case GPIOB: portClk = RCU_GPIOB; break;
+    case GPIOC: portClk = RCU_GPIOC; break;
+    case GPIOD: portClk = RCU_GPIOD; break;
+    case GPIOE: portClk = RCU_GPIOE; break;
+    case GPIOF: portClk = RCU_GPIOF; break;
+    case GPIOG: portClk = RCU_GPIOG; break;
+#if defined(GD32F4XX_H)
+    case GPIOH: portClk = RCU_GPIOH; break;
+    case GPIOI: portClk = RCU_GPIOI; break;
+#endif
+    default: return;
+    }
+    rcu_periph_clock_enable(portClk);
+}
 
 bool Uart::open(const void* drvConfig)
 {
@@ -19,34 +59,22 @@ bool Uart::open(const void* drvConfig)
     assert(drvConfig != nullptr);
     const gd32::UartConfig* config
         = static_cast<const gd32::UartConfig*>(drvConfig);
-    if (config->uart == 0 || !(config->uart == USART0
-        || config->uart == USART1 || config->uart == USART2
-        || config->uart == UART3 || config->uart == UART4))
+    const UartConfig* baseConfig
+        = static_cast<const UartConfig*>(config->baseConf);
+    if (baseConfig->uart == 0 || !isPortExist(baseConfig->uart))
         return false;
 
-    uart_ = config->uart;
+    conf_ = *baseConfig;
 
-    rcu_periph_enum uartClock;
-    switch (uart_) {
-    default:
-    case USART0: uartClock = RCU_USART0; break;
-    case USART1: uartClock = RCU_USART1; break;
-    case USART2: uartClock = RCU_USART2; break;
-    case UART3: uartClock = RCU_UART3; break;
-    case UART4: uartClock = RCU_UART4; break;
-    }
-    rcu_periph_clock_enable(uartClock);
+    initGpioPeriph(&config->tx);
+    initGpioPeriph(&config->rx);
 
-    if (config->tx.port != 0)
-        initUartGpio(config->tx);
-    if (config->rx.port != 0)
-        initUartGpio(config->rx);
-
-    usart_deinit(uart_);
-    usart_baudrate_set(uart_, config->baudrate);
-    usart_receive_config(uart_, USART_RECEIVE_ENABLE);
-    usart_transmit_config(uart_, USART_TRANSMIT_ENABLE);
-    usart_enable(uart_);
+    enableClock(conf_.uart);
+    usart_deinit(conf_.uart);
+    usart_baudrate_set(conf_.uart, conf_.baudrate);
+    usart_receive_config(conf_.uart, USART_RECEIVE_ENABLE);
+    usart_transmit_config(conf_.uart, USART_TRANSMIT_ENABLE);
+    usart_enable(conf_.uart);
     setOpened(true);
 
     return true;
@@ -55,10 +83,10 @@ bool Uart::open(const void* drvConfig)
 void Uart::close()
 {
     if (isOpen()) {
-        usart_disable(uart_);
-        usart_deinit(uart_);
+        usart_disable(conf_.uart);
+        usart_deinit(conf_.uart);
         setOpened(false);
-        uart_ = 0;
+        conf_.uart = 0;
     }
 }
 
@@ -70,9 +98,10 @@ int32_t Uart::write_(const void* buf, uint32_t len)
         return -1;
 
     const uint8_t *data = static_cast<const uint8_t*>(buf);
+    // queue.push(data[0]);
     for (uint32_t i = 0; i < len; ++i) {
-        usart_data_transmit(uart_, data[i]);
-        while (RESET == usart_flag_get(uart_, USART_FLAG_TBE));
+        usart_data_transmit(conf_.uart, data[i]);
+        while (RESET == usart_flag_get(conf_.uart, USART_FLAG_TBE));
     }
     return len;
 }
@@ -98,7 +127,7 @@ bool Uart::ioctl(uint32_t cmd, void* pValue)
         if (pValue != nullptr) {
             int32_t newBaud = *static_cast<int32_t*>(pValue);
             if (newBaud > 0) {
-                usart_baudrate_set(uart_, newBaud);
+                usart_baudrate_set(conf_.uart, newBaud);
                 return true;
             }
         }
@@ -109,7 +138,7 @@ bool Uart::ioctl(uint32_t cmd, void* pValue)
 
     case kFlushOutput:
         if (pValue != nullptr) {
-            while (RESET == usart_flag_get(uart_, USART_FLAG_TBE));
+            while (RESET == usart_flag_get(conf_.uart, USART_FLAG_TBE));
             return true;
         }
         break;
@@ -119,18 +148,6 @@ bool Uart::ioctl(uint32_t cmd, void* pValue)
     }
 
     return false;
-}
-
-static void initUartGpio(const gd32::GpioConfig& conf)
-{
-    rcu_periph_clock_enable(conf.clock);
-#if defined(GD32F4XX_H)
-    gpio_af_set(conf.port, conf.mode, conf.pin);
-    gpio_mode_set(conf.port, GPIO_MODE_AF, GPIO_PUPD_NONE, conf.pin);
-    gpio_output_options_set(conf.port, GPIO_OTYPE_PP, GPIO_OSPEED_50MHZ, conf.pin);
-#else
-    gpio_init(conf.port, conf.mode, GPIO_OSPEED_50MHZ, conf.pin);
-#endif
 }
 
 /***************************** END OF FILE ************************************/
