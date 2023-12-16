@@ -15,8 +15,8 @@ typedef etl::iqueue<uint8_t, etl::memory_model::MEMORY_MODEL_SMALL>* UartQueue;
 /// @brief UART configuration data structure
 struct UartConfig {
     int32_t uart;
-    UartQueue txBuf;
-    UartQueue rxBuf;
+    UartQueue txQueue;
+    UartQueue rxQueue;
     uint32_t baudrate;
 };
 
@@ -36,14 +36,16 @@ public:
 
     bool ioctl(uint32_t cmd, void* pValue) override;
 
+    static void irqHandler(Uart* uart);
+
 private:
     int32_t write_(const void* buf, uint32_t len) override;
     int32_t read_(void* buf, uint32_t len) override;
 
     UartConfig conf_ = {
         .uart = -1,
-        .txBuf = nullptr,
-        .rxBuf = nullptr,
+        .txQueue = nullptr,
+        .rxQueue = nullptr,
         .baudrate = 0,
     };
 };
