@@ -68,9 +68,11 @@ void initGpioPeriph(const gd32::GpioConfig* conf)
 
     enableClock(conf->port);
 #if defined(GD32F4XX_H)
-    gpio_af_set(conf->port, conf->function, conf->pin);
     gpio_mode_set(conf->port, conf->mode, conf->pull, conf->pin);
-    gpio_output_options_set(conf->port, conf->outputType, GPIO_OSPEED_50MHZ, conf->pin);
+    if (conf->mode == GPIO_MODE_AF)
+        gpio_af_set(conf->port, conf->function, conf->pin);
+    if (conf->mode == GPIO_MODE_AF || conf->mode == GPIO_MODE_OUTPUT)
+        gpio_output_options_set(conf->port, conf->outputType, GPIO_OSPEED_50MHZ, conf->pin);
 #else
     gpio_init(conf->port, conf->mode, GPIO_OSPEED_50MHZ, conf->pin);
 #endif
