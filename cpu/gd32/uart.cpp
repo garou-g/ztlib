@@ -76,12 +76,16 @@ static void setIrq(uint32_t port, bool enable)
     case USART0: irqType = USART0_IRQn; break;
     case USART1: irqType = USART1_IRQn; break;
     case USART2: irqType = USART2_IRQn; break;
-#if defined(GD32F10X_HD)
+#if defined(GD32F4XX_H) || defined(GD32F10X_HD)
     case UART3: irqType = UART3_IRQn; break;
     case UART4: irqType = UART4_IRQn; break;
 #endif
-#if defined(GD32F4XX_H)
+#if defined(GD32F407) || defined(GD32F427) || \
+    defined (GD32F405) || defined (GD32F425) || \
+    defined (GD32F450) || defined (GD32F470)
     case USART5: irqType = USART5_IRQn; break;
+#endif
+#if defined (GD32F450) || defined (GD32F470)
     case UART6: irqType = UART6_IRQn; break;
     case UART7: irqType = UART7_IRQn; break;
 #endif
@@ -159,7 +163,7 @@ int32_t Uart::write_(const void* buf, uint32_t len)
     }
 
     // Start transmission if it is idle
-    if (RESET == usart_flag_get(conf_.uart, USART_FLAG_TBE)) {
+    if (SET == usart_flag_get(conf_.uart, USART_FLAG_TBE)) {
         usart_data_transmit(conf_.uart, conf_.txQueue->front());
         conf_.txQueue->pop();
         usart_interrupt_enable(conf_.uart, USART_INT_TBE);
