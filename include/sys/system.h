@@ -10,6 +10,11 @@
 
 #include <stdint.h>
 
+enum class SysFreqSrc {
+    External,
+    Internal,
+};
+
 /**
  * @brief System class with system-wide functions
  *      such as HW and FW versions, boot status and etc.
@@ -38,6 +43,8 @@ public:
         kWakeupPin,
         kWakeupTimer,
     };
+
+    bool setFrequency(uint32_t freq, SysFreqSrc freqSrc = SysFreqSrc::External);
 
     void restart();
     void goToSleep() const;

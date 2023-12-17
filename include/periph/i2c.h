@@ -28,6 +28,7 @@ class I2c : public SerialDrv {
 public:
     enum IoctlCmd {
         kSetAddress,    // Sets I2C device address for all next transmissions
+        kSetSpeed,      // Sets I2C speed
     };
 
     I2c() = default;

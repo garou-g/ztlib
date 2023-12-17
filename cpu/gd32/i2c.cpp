@@ -268,6 +268,11 @@ bool I2c::ioctl(uint32_t cmd, void* pValue)
             return true;
         }
         break;
+    case kSetSpeed:
+        if (pValue != nullptr) {
+            i2c_clock_config(i2c_, *static_cast<uint32_t*>(pValue), I2C_DTCY_2);
+            return true;
+        }
     default:
         break;
     }
