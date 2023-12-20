@@ -110,6 +110,102 @@ bool System::setFrequency(uint32_t freq, SysFreqSrc freqSrc)
     /* wait until PLL is selected as system clock */
     while(0U == (RCU_CFG0 & RCU_SCSS_PLLP)){
     }
+#elif defined(GD32F30X_H)
+    if (freqSrc == SysFreqSrc::External) {
+        // Enable HXTAL and wait until it is stable
+        RCU_CTL |= RCU_CTL_HXTALEN;
+        do {
+            timeout++;
+            flag = RCU_CTL & RCU_CTL_HXTALSTB;
+        } while (0 == flag && HXTAL_STARTUP_TIMEOUT != timeout);
+
+        // Return on fail
+        if (timeout == HXTAL_STARTUP_TIMEOUT) {
+            return false;
+        }
+    } else {
+        // Enable IRC16M and wait until it is stable
+        RCU_CTL |= RCU_CTL_IRC8MEN;
+        do {
+            timeout++;
+            flag = RCU_CTL & RCU_CTL_IRC8MSTB;
+        } while (0 == flag && IRC8M_STARTUP_TIMEOUT != timeout);
+
+        // Return on fail
+        if (timeout == IRC8M_STARTUP_TIMEOUT) {
+            return false;
+        }
+    }
+
+    RCU_APB1EN |= RCU_APB1EN_PMUEN;
+    PMU_CTL |= PMU_CTL_LDOVS;
+
+    /* AHB = SYSCLK */
+    RCU_CFG0 |= RCU_AHB_CKSYS_DIV1;
+    /* APB2 = AHB/1 */
+    RCU_CFG0 |= RCU_APB2_CKAHB_DIV1;
+    /* APB1 = AHB/2 */
+    RCU_CFG0 |= RCU_APB1_CKAHB_DIV2;
+
+    if (freqSrc == SysFreqSrc::External) {
+        switch (freq) {
+        case 120000000:
+#if (defined(GD32F30X_HD) || defined(GD32F30X_XD))
+            /* select HXTAL/2 as clock source */
+            RCU_CFG0 &= ~(RCU_CFG0_PLLSEL | RCU_CFG0_PREDV0);
+            RCU_CFG0 |= (RCU_PLLSRC_HXTAL_IRC48M | RCU_CFG0_PREDV0);
+
+            /* CK_PLL = (CK_HXTAL/2) * 30 = 120 MHz */
+            RCU_CFG0 &= ~(RCU_CFG0_PLLMF | RCU_CFG0_PLLMF_4 | RCU_CFG0_PLLMF_5);
+            RCU_CFG0 |= RCU_PLL_MUL30;
+#elif defined(GD32F30X_CL)
+            /* CK_PLL = (CK_PREDIV0) * 30 = 120 MHz */
+            RCU_CFG0 &= ~(RCU_CFG0_PLLMF | RCU_CFG0_PLLMF_4 | RCU_CFG0_PLLMF_5);
+            RCU_CFG0 |= (RCU_PLLSRC_HXTAL_IRC48M | RCU_PLL_MUL30);
+
+            /* CK_PREDIV0 = (CK_HXTAL)/5 *8 /10 = 4 MHz */
+            RCU_CFG1 &= ~(RCU_CFG1_PLLPRESEL | RCU_CFG1_PREDV0SEL | RCU_CFG1_PLL1MF | RCU_CFG1_PREDV1 | RCU_CFG1_PREDV0);
+            RCU_CFG1 |= (RCU_PLLPRESRC_HXTAL | RCU_PREDV0SRC_CKPLL1 | RCU_PLL1_MUL8 | RCU_PREDV1_DIV5 | RCU_PREDV0_DIV10);
+
+            /* Enable PLL1 */
+            RCU_CTL |= RCU_CTL_PLL1EN;
+            /* Wait till PLL1 is ready */
+            while ((RCU_CTL & RCU_CTL_PLL1STB) == 0U) {}
+#endif /* GD32F30X_HD and GD32F30X_XD */
+            break;
+        default: return false;
+        }
+    } else {
+        switch (freq) {
+        case 120000000:
+            /* CK_PLL = (CK_IRC8M/2) * 30 = 120 MHz */
+            RCU_CFG0 &= ~(RCU_CFG0_PLLMF | RCU_CFG0_PLLMF_4 | RCU_CFG0_PLLMF_5);
+            RCU_CFG0 |= RCU_PLL_MUL30;
+            break;
+        default: return false;
+        }
+    }
+
+    /* enable PLL */
+    RCU_CTL |= RCU_CTL_PLLEN;
+
+    /* wait until PLL is stable */
+    while (0U == (RCU_CTL & RCU_CTL_PLLSTB)) {}
+
+    /* Enable the high-drive to extend the clock frequency to 120 Mhz */
+    PMU_CTL |= PMU_CTL_HDEN;
+    while (0U == (PMU_CS & PMU_CS_HDRF)) {}
+
+    /* select the high-drive mode */
+    PMU_CTL |= PMU_CTL_HDS;
+    while (0U == (PMU_CS & PMU_CS_HDSRF)) {}
+
+    /* select PLL as system clock */
+    RCU_CFG0 &= ~RCU_CFG0_SCS;
+    RCU_CFG0 |= RCU_CKSYSSRC_PLL;
+
+    /* wait until PLL is selected as system clock */
+    while (0U == (RCU_CFG0 & RCU_SCSS_PLL)) {}
 #else
     #error("Not defined setFrequency for CPU version!")
 #endif
