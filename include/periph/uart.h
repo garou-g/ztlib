@@ -10,7 +10,7 @@
 #include "etl/queue.h"
 
 /// @brief Queue buffer pointer for UART transmit/receive purposes
-typedef etl::iqueue<uint8_t, etl::memory_model::MEMORY_MODEL_SMALL>* UartQueue;
+typedef etl::iqueue<uint8_t, etl::memory_model::MEMORY_MODEL_MEDIUM>* UartQueue;
 
 /// @brief UART configuration data structure
 struct UartConfig {
