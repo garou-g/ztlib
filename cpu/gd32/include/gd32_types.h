@@ -19,6 +19,7 @@ struct GpioConfig {
     uint32_t function;
     uint32_t pull;
     uint32_t outputType;
+    bool initHigh;
 };
 
 void initGpioPeriph(const gd32::GpioConfig* conf);

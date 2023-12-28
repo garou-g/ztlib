@@ -94,14 +94,14 @@ bool Gpio::open(const void* drvConfig)
     initGpioPeriph(config);
     conf_.port = config->port;
     conf_.pin = config->pin;
-    gpio_bit_write(conf_.port, conf_.pin, RESET);
+    gpio_bit_write(conf_.port, conf_.pin, config->initHigh ? SET : RESET);
     return true;
 }
 
 void Gpio::close()
 {
     if (isOpen()) {
-        gpio_bit_write(conf_.port, conf_.pin, RESET);
+        // gpio_bit_write(conf_.port, conf_.pin, RESET);
         conf_.port = -1;
         conf_.pin = -1;
     }
