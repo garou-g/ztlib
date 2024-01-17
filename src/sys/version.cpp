@@ -148,8 +148,8 @@ void Version::getFirmwareVersion(Firmware& fw, char* fwStr)
 
     // Copy actual part of version in result buffer if present
     if (fwStr != nullptr) {
-        memcpy(fwStr, fwString.data, j);
-        fwStr[j] = '\0';
+        memcpy(fwStr, fwString.data, j-1);
+        fwStr[j-1] = '\0';
     }
 }
 
