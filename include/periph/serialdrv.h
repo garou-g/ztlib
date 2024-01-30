@@ -24,12 +24,27 @@ public:
     SerialDrv();
 
     /**
+     * @brief Set current driver configuration for further usage
+     *
+     * @param drvConfig driver configuration
+     * @return true if configuration accepted otherwise false
+     */
+    virtual bool setConfig(const void* drvConfig) = 0;
+
+    /**
+     * @brief Open driver with early saved configuration
+     *
+     * @return true if success opened otherwise false
+     */
+    virtual bool open() = 0;
+
+    /**
      * @brief Open driver with selected config
      *
      * @param drvConfig driver configuration
      * @return true if success opened otherwise false
      */
-    virtual bool open(const void* drvConfig) = 0;
+    bool open(const void* drvConfig);
 
     /**
      * @brief Check driver opened state

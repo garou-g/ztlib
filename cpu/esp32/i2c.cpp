@@ -10,6 +10,16 @@
 
 #include <cassert>
 
+struct I2cConfig {
+    int32_t i2c;
+    I2cMode mode;
+    uint32_t speed;
+    int32_t scl;
+    int32_t sda;
+    bool sclPullup;
+    bool sdaPullup;
+};
+
 /// I2C driver operation timeout in milliseconds
 static constexpr uint32_t timeoutMs = pdMS_TO_TICKS(100);
 

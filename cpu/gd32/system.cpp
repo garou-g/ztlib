@@ -6,7 +6,7 @@
 
 #include "system.h"
 #include "version.h"
-#include "gd32.h"
+#include "gd32/gd32.h"
 #include "attr.h"
 
 #include <sys/time.h>

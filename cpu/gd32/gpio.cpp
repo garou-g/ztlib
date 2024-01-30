@@ -4,8 +4,8 @@
  * @brief   GD32 GPIO driver module.
  ******************************************************************************/
 
-#include "gpio.h"
-#include "gd32_types.h"
+#include "periph/gpio.h"
+#include "gd32/gd32_types.h"
 
 #include <cassert>
 
@@ -75,6 +75,23 @@ void initGpioPeriph(const gd32::GpioConfig* conf)
         gpio_output_options_set(conf->port, conf->outputType, GPIO_OSPEED_50MHZ, conf->pin);
 #else
     gpio_init(conf->port, conf->mode, GPIO_OSPEED_50MHZ, conf->pin);
+#endif
+}
+
+/**
+ * @brief Helper function to deinit gpio pin
+ *
+ * @param conf gpio pin configuration
+ */
+void deinitGpioPeriph(const gd32::GpioConfig* conf)
+{
+    if (conf->port == 0)
+        return;
+
+#if defined(GD32F4XX_H)
+    gpio_mode_set(conf->port, GPIO_MODE_INPUT, GPIO_PUPD_NONE, conf->pin);
+#else
+    gpio_init(conf->port, GPIO_MODE_IN_FLOATING, GPIO_OSPEED_50MHZ, conf->pin);
 #endif
 }
 

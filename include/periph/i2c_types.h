@@ -1,20 +1,19 @@
 /*******************************************************************************
- * @file    spi.h
+ * @file    i2c_types.h
  * @author  garou (xgaroux@gmail.com)
- * @brief   Header file of SPI bus driver.
+ * @brief   Header file of common I2C types.
  ******************************************************************************/
 
 #pragma once
 
-#include "serialdrv.h"
-#include "spi_types.h"
+enum class I2cMode {
+    Master,
+    Slave,
+};
 
-/// @brief SPI bus peripheral driver
-class Spi : public SerialDrv {
-public:
-    enum IoctlCmd {
-        kSetCs,
-    };
+enum class I2cSpeed {
+    Speed100 = 100000,
+    Speed400 = 400000,
 };
 
 /***************************** END OF FILE ************************************/

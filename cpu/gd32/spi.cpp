@@ -4,54 +4,66 @@
  * @brief   GD32 SPI bus driver.
  ******************************************************************************/
 
-#include "spi.h"
-#include "gd32_types.h"
+#include "gd32/spi.h"
 
 #include <cassert>
 
-using namespace gd32;
+namespace gd32 {
 
-bool Spi::open(const void* drvConfig)
+static bool checkConfig(const gd32::SpiConfig* config)
+{
+    assert(config != nullptr);
+    return config->spi == SPI0 || config->spi == SPI1 || config->spi == SPI2;
+}
+
+bool Spi::setConfig(const void* drvConfig)
 {
     if (isOpen())
         return false;
 
-    assert(drvConfig != nullptr);
-    const gd32::SpiConfig* config
-        = static_cast<const gd32::SpiConfig*>(drvConfig);
-    if (config->spi == 0 || !(config->spi == SPI0 || config->spi == SPI1
-        || config->spi == SPI2))
+    const gd32::SpiConfig* config = static_cast<const gd32::SpiConfig*>(drvConfig);
+    if (!checkConfig(config)) {
+        return false;
+    }
+    config_ = *config;
+    return true;
+}
+
+bool Spi::open()
+{
+    if (isOpen())
         return false;
 
-    spi_ = config->spi;
-    frame_ = config->frame;
+    if (!checkConfig(&config_)) {
+        return false;
+    }
 
     rcu_periph_enum spiClock;
-    if (spi_ == SPI0) {
+    if (config_.spi == SPI0) {
         spiClock = RCU_SPI0;
-    } else if (spi_ == SPI1) {
+    } else if (config_.spi == SPI1) {
         spiClock = RCU_SPI1;
     } else {
         spiClock = RCU_SPI2;
     }
     rcu_periph_clock_enable(spiClock);
 
-    initGpioPeriph(&config->clk);
-    initGpioPeriph(&config->mosi);
-    initGpioPeriph(&config->miso);
+    initGpioPeriph(&config_.clk);
+    initGpioPeriph(&config_.mosi);
+    initGpioPeriph(&config_.miso);
 
-    spi_i2s_deinit(spi_);
+    spi_i2s_deinit(config_.spi);
     spi_parameter_struct spiParams = {
-        .device_mode = config->mode == SpiMode::Master ? SPI_MASTER : SPI_SLAVE,
+        .device_mode = config_.mode == SpiMode::Master ? SPI_MASTER : SPI_SLAVE,
         .trans_mode = SPI_TRANSMODE_FULLDUPLEX,
-        .frame_size = frame_ == SpiFrame::Frame8Bit
+        .frame_size = config_.frame == SpiFrame::Frame8Bit
             ? SPI_FRAMESIZE_8BIT : SPI_FRAMESIZE_16BIT,
         .nss = SPI_NSS_SOFT,
         .endian = SPI_ENDIAN_MSB,
         .clock_polarity_phase = 0,
         .prescale = 0,
     };
-    switch (config->polarity) {
+    switch (config_.polarity) {
     default:
     case SpiPolarity::Low1Edge:
         spiParams.clock_polarity_phase = SPI_CK_PL_LOW_PH_1EDGE; break;
@@ -62,7 +74,7 @@ bool Spi::open(const void* drvConfig)
     case SpiPolarity::High2Edge:
         spiParams.clock_polarity_phase = SPI_CK_PL_HIGH_PH_2EDGE; break;
     }
-    switch (config->prescaler) {
+    switch (config_.prescaler) {
     default:
     case SpiPrescaler::Div2:
         spiParams.prescale = SPI_PSC_2; break;
@@ -82,20 +94,21 @@ bool Spi::open(const void* drvConfig)
         spiParams.prescale = SPI_PSC_256; break;
     }
 
-    spi_init(spi_, &spiParams);
-    spi_enable(spi_);
+    spi_init(config_.spi, &spiParams);
+    spi_enable(config_.spi);
     setOpened(true);
-
     return true;
 }
 
 void Spi::close()
 {
     if (isOpen()) {
-        spi_disable(spi_);
-        setOpened(false);
-        spi_ = -1;
+        spi_disable(config_.spi);
+        deinitGpioPeriph(&config_.clk);
+        deinitGpioPeriph(&config_.mosi);
+        deinitGpioPeriph(&config_.miso);
         cs_ = nullptr;
+        setOpened(false);
     }
 }
 
@@ -112,20 +125,20 @@ int32_t Spi::write_(const void* buf, uint32_t len)
     const int32_t reg = getReg();
     const int32_t addr = getAddr();
 
-    for (size_t i = 0; i < len; ++i) {
+    for (uint32_t i = 0; i < len; ++i) {
         if (cs_)
             cs_->reset();
 
-        if (frame_ == SpiFrame::Frame32Bit) {
-            spi_i2s_data_transmit(spi_, (words[i] >> 16) & 0xFFFF);
-            while (RESET == spi_i2s_flag_get(spi_, SPI_FLAG_TBE));
-            spi_i2s_data_transmit(spi_, words[i] & 0xFFFF);
-        } else if (frame_ == SpiFrame::Frame16Bit) {
-            spi_i2s_data_transmit(spi_, halfwords[i]);
+        if (config_.frame == SpiFrame::Frame32Bit) {
+            spi_i2s_data_transmit(config_.spi, (words[i] >> 16) & 0xFFFF);
+            while (RESET == spi_i2s_flag_get(config_.spi, SPI_FLAG_TBE));
+            spi_i2s_data_transmit(config_.spi, words[i] & 0xFFFF);
+        } else if (config_.frame == SpiFrame::Frame16Bit) {
+            spi_i2s_data_transmit(config_.spi, halfwords[i]);
         } else {
-            spi_i2s_data_transmit(spi_, bytes[i]);
+            spi_i2s_data_transmit(config_.spi, bytes[i]);
         }
-        while (SET == spi_i2s_flag_get(spi_, SPI_FLAG_TRANS));
+        while (SET == spi_i2s_flag_get(config_.spi, SPI_FLAG_TRANS));
 
         if (cs_)
             cs_->set();
@@ -167,5 +180,7 @@ bool Spi::ioctl(uint32_t cmd, void* pValue)
 
     return false;
 }
+
+}; // namespace gd32
 
 /***************************** END OF FILE ************************************/

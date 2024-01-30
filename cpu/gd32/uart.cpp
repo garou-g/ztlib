@@ -4,28 +4,28 @@
  * @brief   GD32 UART driver module.
  ******************************************************************************/
 
-#include "uart.h"
-#include "gd32_types.h"
+#include "gd32/uart.h"
+#include "gd32/gd32_types.h"
 
 #include <cassert>
 
+namespace gd32 {
+
 static Uart* uartInstances[8] = { nullptr };
 
-/**
- * @brief Checks correctness of chosen uart
- *
- * @param port uart port
- * @return true if port value is correct otherwise false
- */
-static bool isPortExist(uint32_t port)
+static bool checkConfig(const gd32::UartConfig* config)
 {
-    return port == USART0 || port == USART1
-        || port == USART2
-        || port == UART3 || port == UART4
+    assert(config != nullptr);
+
+    return config->txQueue != nullptr && config->rxQueue != nullptr
+        && (config->uart == USART0 || config->uart == USART1
+        || config->uart == USART2
+        || config->uart == UART3 || config->uart == UART4
 #if defined(GD32F4XX_H)
-        || port == UART6 || port == UART7 || port == USART5
+        || config->uart == USART5
+        || config->uart == UART6 || config->uart == UART7
 #endif
-        ;
+        );
 }
 
 static void setHandler(uint32_t port, Uart* arg)
@@ -99,34 +99,40 @@ static void setIrq(uint32_t port, bool enable)
     }
 }
 
-bool Uart::open(const void* drvConfig)
+bool Uart::setConfig(const void* drvConfig)
 {
     if (isOpen())
         return false;
 
-    assert(drvConfig != nullptr);
-    const gd32::UartConfig* config
-        = static_cast<const gd32::UartConfig*>(drvConfig);
-    const UartConfig* baseConfig
-        = static_cast<const UartConfig*>(config->baseConf);
-    if (baseConfig->uart == 0 || !isPortExist(baseConfig->uart)
-        || baseConfig->txQueue == nullptr || baseConfig->rxQueue == nullptr)
+    const gd32::UartConfig* config = static_cast<const gd32::UartConfig*>(drvConfig);
+    if (!checkConfig(config)) {
+        return false;
+    }
+    config_ = *config;
+    return true;
+}
+
+bool Uart::open()
+{
+    if (isOpen())
         return false;
 
-    conf_ = *baseConfig;
+    if (!checkConfig(&config_)) {
+        return false;
+    }
 
-    initGpioPeriph(&config->tx);
-    initGpioPeriph(&config->rx);
+    initGpioPeriph(&config_.tx);
+    initGpioPeriph(&config_.rx);
 
-    enableClock(conf_.uart);
-    usart_deinit(conf_.uart);
-    usart_baudrate_set(conf_.uart, conf_.baudrate);
-    usart_receive_config(conf_.uart, USART_RECEIVE_ENABLE);
-    usart_transmit_config(conf_.uart, USART_TRANSMIT_ENABLE);
-    usart_enable(conf_.uart);
-    usart_interrupt_enable(conf_.uart, USART_INT_RBNE);
-    setHandler(conf_.uart, this);
-    setIrq(conf_.uart, true);
+    enableClock(config_.uart);
+    usart_deinit(config_.uart);
+    usart_baudrate_set(config_.uart, config_.baudrate);
+    usart_receive_config(config_.uart, USART_RECEIVE_ENABLE);
+    usart_transmit_config(config_.uart, USART_TRANSMIT_ENABLE);
+    usart_enable(config_.uart);
+    usart_interrupt_enable(config_.uart, USART_INT_RBNE);
+    setHandler(config_.uart, this);
+    setIrq(config_.uart, true);
     setOpened(true);
 
     return true;
@@ -135,12 +141,12 @@ bool Uart::open(const void* drvConfig)
 void Uart::close()
 {
     if (isOpen()) {
-        setIrq(conf_.uart, false);
-        setHandler(conf_.uart, nullptr);
-        usart_disable(conf_.uart);
-        usart_deinit(conf_.uart);
+        setIrq(config_.uart, false);
+        setHandler(config_.uart, nullptr);
+        usart_disable(config_.uart);
+        usart_deinit(config_.uart);
         setOpened(false);
-        conf_.uart = 0;
+        config_.uart = 0;
     }
 }
 
@@ -154,19 +160,17 @@ int32_t Uart::write_(const void* buf, uint32_t len)
     // Fill transmit queue
     __disable_irq();
     const uint8_t *data = static_cast<const uint8_t*>(buf);
-    const uint32_t available = conf_.txQueue->available();
+    const uint32_t available = config_.txQueue->available();
     const uint32_t size = available < len ? available : len;
     for (uint32_t i = 0; i < size; ++i) {
-        conf_.txQueue->push(data[i]);
-        // usart_data_transmit(conf_.uart, data[i]);
-        // while (RESET == usart_flag_get(conf_.uart, USART_FLAG_TBE));
+        config_.txQueue->push(data[i]);
     }
 
     // Start transmission if it is idle
-    if (SET == usart_flag_get(conf_.uart, USART_FLAG_TBE)) {
-        usart_data_transmit(conf_.uart, conf_.txQueue->front());
-        conf_.txQueue->pop();
-        usart_interrupt_enable(conf_.uart, USART_INT_TBE);
+    if (SET == usart_flag_get(config_.uart, USART_FLAG_TBE)) {
+        usart_data_transmit(config_.uart, config_.txQueue->front());
+        config_.txQueue->pop();
+        usart_interrupt_enable(config_.uart, USART_INT_TBE);
     }
     __enable_irq();
     return size;
@@ -182,11 +186,11 @@ int32_t Uart::read_(void* buf, uint32_t len)
     // Fill receive buffer from queue
     __disable_irq();
     uint8_t *data = static_cast<uint8_t*>(buf);
-    const uint32_t currSize = conf_.rxQueue->size();
+    const uint32_t currSize = config_.rxQueue->size();
     const uint32_t size = currSize < len ? currSize : len;
     for (uint32_t i = 0; i < size; ++i) {
-        data[i] = conf_.rxQueue->front();
-        conf_.rxQueue->pop();
+        data[i] = config_.rxQueue->front();
+        config_.rxQueue->pop();
     }
     __enable_irq();
     return size;
@@ -202,7 +206,7 @@ bool Uart::ioctl(uint32_t cmd, void* pValue)
         if (pValue != nullptr) {
             int32_t newBaud = *static_cast<int32_t*>(pValue);
             if (newBaud > 0) {
-                usart_baudrate_set(conf_.uart, newBaud);
+                usart_baudrate_set(config_.uart, newBaud);
                 return true;
             }
         }
@@ -213,7 +217,7 @@ bool Uart::ioctl(uint32_t cmd, void* pValue)
 
     case kFlushOutput:
         if (pValue != nullptr) {
-            while (RESET == usart_flag_get(conf_.uart, USART_FLAG_TBE));
+            while (RESET == usart_flag_get(config_.uart, USART_FLAG_TBE));
             return true;
         }
         break;
@@ -232,19 +236,19 @@ void Uart::irqHandler(Uart* uart)
         return;
 
     // Receive data
-    if (RESET != usart_interrupt_flag_get(uart->conf_.uart, USART_INT_FLAG_RBNE)) {
-        if (!uart->conf_.rxQueue->full()) {
-            uart->conf_.rxQueue->push(usart_data_receive(uart->conf_.uart));
+    if (RESET != usart_interrupt_flag_get(uart->config_.uart, USART_INT_FLAG_RBNE)) {
+        if (!uart->config_.rxQueue->full()) {
+            uart->config_.rxQueue->push(usart_data_receive(uart->config_.uart));
         }
     }
 
     // Transmit data
-    if (RESET != usart_interrupt_flag_get(uart->conf_.uart, USART_INT_FLAG_TBE)) {
-        if (uart->conf_.txQueue->empty()) {
-            usart_interrupt_disable(uart->conf_.uart, USART_INT_TBE);
+    if (RESET != usart_interrupt_flag_get(uart->config_.uart, USART_INT_FLAG_TBE)) {
+        if (uart->config_.txQueue->empty()) {
+            usart_interrupt_disable(uart->config_.uart, USART_INT_TBE);
         } else {
-            usart_data_transmit(uart->conf_.uart, uart->conf_.txQueue->front());
-            uart->conf_.txQueue->pop();
+            usart_data_transmit(uart->config_.uart, uart->config_.txQueue->front());
+            uart->config_.txQueue->pop();
         }
     }
 }
@@ -288,5 +292,7 @@ extern "C" void UART7_IRQHandler(void)
 {
     Uart::irqHandler(uartInstances[7]);
 }
+
+}; // namespace gd32
 
 /***************************** END OF FILE ************************************/

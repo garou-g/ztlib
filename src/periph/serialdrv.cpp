@@ -4,7 +4,7 @@
  * @brief   Abstract serial peripheral driver.
  ******************************************************************************/
 
-#include "serialdrv.h"
+#include "periph/serialdrv.h"
 
 SerialDrv::SerialDrv()
     : opened_(false)
@@ -15,6 +15,11 @@ SerialDrv::SerialDrv()
     mutex_ = xSemaphoreCreateBinary();
     xSemaphoreGive(mutex_);
 #endif
+}
+
+bool SerialDrv::open(const void* drvConfig)
+{
+    return setConfig(drvConfig) && open();
 }
 
 bool SerialDrv::isOpen() const
