@@ -17,7 +17,7 @@ SerialDrv::SerialDrv()
 #endif
 }
 
-bool SerialDrv::open(const void* drvConfig)
+bool SerialDrv::openWith(const void* drvConfig)
 {
     return setConfig(drvConfig) && open();
 }
