@@ -45,6 +45,7 @@ public:
     };
 
     bool setFrequency(uint32_t freq, SysFreqSrc freqSrc = SysFreqSrc::External);
+    uint32_t frequency() const;
 
     void restart();
     void goToSleep() const;

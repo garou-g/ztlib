@@ -13,6 +13,13 @@
 
 RETAIN_NOINIT_ATTR static uint32_t sysTime;
 
+/**
+ * @brief Sets system frequency with chosen frequency in Hz and source
+ *
+ * @param freq frequency in Hz
+ * @param freqSrc frequency source
+ * @return true if frequency updated otherwise false
+ */
 bool System::setFrequency(uint32_t freq, SysFreqSrc freqSrc)
 {
     bool res = true;
@@ -299,6 +306,16 @@ if (freqSrc == SysFreqSrc::External) {
     SystemCoreClock = freq;
     SysTick_Config(SystemCoreClock / 1000U);
     return true;
+}
+
+/**
+ * @brief Returns current system frequency
+ *
+ * @return uint32_t frequency in Hz
+ */
+uint32_t System::frequency() const
+{
+    return SystemCoreClock;
 }
 
 /**
