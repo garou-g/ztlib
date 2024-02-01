@@ -8,29 +8,54 @@
 
 #include "module.h"
 
-/// Macro to get a driver instance with a static cast for the required class
-#define DRV(type) static_cast<type*>(drv())
-
 /**
  * @brief Base class for designing device modules that uses drivers to access
  *      peripheral or other kind of dependences. For example sensor modules can
  *      have drivers with concrete sensor realization.
  */
+template<typename Drv>
 class DrvModule : public Module {
 public:
-    DrvModule();
+    /**
+     * @brief Construct a new DrvModule object with only driver initialization.
+     *      Unlike base Module constructor DrvModule by default is not available,
+     *      until driver instance is set
+     */
+    DrvModule()
+    : drv_(nullptr) {
+        setAvailability(false);
+    }
+
 #if defined(FREERTOS_USED)
-    DrvModule(const char* name, uint32_t stack, UBaseType_t prior);
+    /**
+     * @brief FreeRTOS ONLY. Construct a new DrvModule object with
+     *      internal task initialization. Also calls init inside because
+     *      task starts right after init
+     *
+     * @param name human readable task name
+     * @param stack task stack size
+     * @param prior task priority
+     */
+    DrvModule::DrvModule(const char* name, uint32_t stack, UBaseType_t prior)
+        : Module(name, stack, prior)
+        , drv_(nullptr) {
+            setAvailability(false);
+        }
 #endif
     virtual ~DrvModule() = default;
 
-    void setDriver(void* drvInst);
+    void setDriver(Drv* drvInst) {
+        drv_ = drvInst;
+        setAvailability(drv_ != nullptr);
+    }
 
 protected:
-    void* drv() const;
+    Drv* drv() const {
+        return drv_;
+    }
 
 private:
-    void* drv_;
+    Drv* drv_;
 };
 
 /***************************** END OF FILE ************************************/
