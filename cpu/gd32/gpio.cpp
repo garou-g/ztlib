@@ -4,12 +4,11 @@
  * @brief   GD32 GPIO driver module.
  ******************************************************************************/
 
-#include "periph/gpio.h"
-#include "gd32/gd32_types.h"
+#include "gpio.h"
 
 #include <cassert>
 
-using namespace gd32;
+namespace gd32 {
 
 /**
  * @brief Checks correctness of chosen gpio port
@@ -27,6 +26,12 @@ static bool isPortExist(uint32_t port)
         || port == GPIOH || port == GPIOI
 #endif
         ;
+}
+
+static bool checkConfig(const gd32::GpioConfig* config)
+{
+    assert(config != nullptr);
+    return (config->pin & GPIO_PIN_ALL) != 0 && isPortExist(config->port);
 }
 
 /**
@@ -53,8 +58,6 @@ static void enableClock(uint32_t port)
     }
     rcu_periph_clock_enable(portClk);
 }
-
-namespace gd32 {
 
 /**
  * @brief Helper function to init gpio pin with chosen configuration
@@ -95,32 +98,39 @@ void deinitGpioPeriph(const gd32::GpioConfig* conf)
 #endif
 }
 
-}; // namespace gd32
-
-bool Gpio::open(const void* drvConfig)
+bool Gpio::setConfig(const void* drvConfig)
 {
     if (isOpen())
         return false;
 
-    assert(drvConfig != nullptr);
-    const gd32::GpioConfig* config
-        = static_cast<const gd32::GpioConfig*>(drvConfig);
-    if ((config->pin & GPIO_PIN_ALL) == 0 || !isPortExist(config->port))
+    const gd32::GpioConfig* config = static_cast<const gd32::GpioConfig*>(drvConfig);
+    if (!checkConfig(config)) {
+        return false;
+    }
+    config_ = *config;
+    return true;
+}
+
+bool Gpio::open()
+{
+    if (isOpen())
         return false;
 
-    initGpioPeriph(config);
-    conf_.port = config->port;
-    conf_.pin = config->pin;
-    gpio_bit_write(conf_.port, conf_.pin, config->initHigh ? SET : RESET);
+    if (!checkConfig(&config_)) {
+        return false;
+    }
+
+    initGpioPeriph(&config_);
+    gpio_bit_write(config_.port, config_.pin, config_.initHigh ? SET : RESET);
+    setOpened(true);
     return true;
 }
 
 void Gpio::close()
 {
     if (isOpen()) {
-        // gpio_bit_write(conf_.port, conf_.pin, RESET);
-        conf_.port = -1;
-        conf_.pin = -1;
+        deinitGpioPeriph(&config_);
+        setOpened(false);
     }
 }
 
@@ -128,14 +138,14 @@ void Gpio::set()
 {
     if (!isOpen())
         return;
-    gpio_bit_write(conf_.port, conf_.pin, SET);
+    gpio_bit_write(config_.port, config_.pin, SET);
 }
 
 void Gpio::reset()
 {
     if (!isOpen())
         return;
-    gpio_bit_write(conf_.port, conf_.pin, RESET);
+    gpio_bit_write(config_.port, config_.pin, RESET);
 }
 
 bool Gpio::get() const
@@ -143,12 +153,14 @@ bool Gpio::get() const
     if (!isOpen())
         return false;
 
-    return gpio_input_bit_get(conf_.port, conf_.pin) == SET;
+    return gpio_input_bit_get(config_.port, config_.pin) == SET;
 }
 
 bool Gpio::ioctl(uint32_t cmd, void* pValue)
 {
     return true;
 }
+
+}; // namespace gd32
 
 /***************************** END OF FILE ************************************/

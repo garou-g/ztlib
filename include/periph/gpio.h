@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <stdint.h>
+#include "basedrv.h"
 
 /// @brief Basic gpio driver config structure
 struct GpioConfig {
@@ -15,7 +15,7 @@ struct GpioConfig {
 };
 
 /// @brief Abstract gpio driver
-class Gpio {
+class Gpio : public BaseDrv {
 public:
     /**
      * @brief Default constructor
@@ -23,63 +23,28 @@ public:
     Gpio() = default;
 
     /**
-     * @brief Open driver with selected config
-     *
-     * @param drvConfig driver configuration
-     * @return true if success opened otherwise false
-     */
-    bool open(const void* drvConfig);
-
-    /**
-     * @brief Check driver opened state
-     *
-     * @return true if opened otherwise false
-     */
-    bool isOpen() const { return conf_.port != -1; }
-
-    /**
-     * @brief Close driver
-     */
-    void close();
-
-    /**
      * @brief Sets configured gpio to high level
      */
-    void set();
+    virtual void set() = 0;
 
     /**
      * @brief Sets configured gpio to low level
      */
-    void reset();
+    virtual void reset() = 0;
 
     /**
      * @brief Sets configured gpio to new state
      *
      * @param state sets to high if true otherwise sets to low
      */
-    void set(bool state) { if (state) set(); else reset(); }
+    void setState(bool state) { if (state) set(); else reset(); }
 
     /**
      * @brief Gets current state of gpio
      *
      * @return true if gpio set otherwise false
      */
-    bool get() const;
-
-    /**
-     * @brief Execute chosen command on driver
-     *
-     * @param cmd command to execute
-     * @param pValue pointer for command data
-     * @return true if command executed successfully otherwise false
-     */
-    bool ioctl(uint32_t cmd, void* pValue);
-
-private:
-    GpioConfig conf_ = {
-        .port = -1,
-        .pin = -1,
-    };
+    virtual bool get() const = 0;
 };
 
 /***************************** END OF FILE ************************************/
