@@ -7,24 +7,13 @@
 #include "periph/serialdrv.h"
 
 SerialDrv::SerialDrv()
-    : opened_(false)
-    , reg_(-1)
+    : reg_(-1)
     , addr_(-1)
 {
 #if defined(FREERTOS_USED)
     mutex_ = xSemaphoreCreateBinary();
     xSemaphoreGive(mutex_);
 #endif
-}
-
-bool SerialDrv::openWith(const void* drvConfig)
-{
-    return setConfig(drvConfig) && open();
-}
-
-bool SerialDrv::isOpen() const
-{
-    return opened_;
 }
 
 int32_t SerialDrv::write(const void* buf, uint32_t len)
@@ -109,11 +98,6 @@ int32_t SerialDrv::read(uint32_t addr, uint8_t reg, void* buf, uint32_t len)
     xSemaphoreGive(mutex_);
 #endif
     return res;
-}
-
-void SerialDrv::setOpened(bool state)
-{
-    opened_ = state;
 }
 
 int32_t SerialDrv::getReg() const
