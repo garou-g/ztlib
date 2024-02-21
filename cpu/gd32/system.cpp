@@ -64,15 +64,21 @@ bool System::setFrequency(uint32_t freq, SysFreqSrc freqSrc)
     RCU_CFG0 |= RCU_APB1_CKAHB_DIV4;
 
     if (freqSrc == SysFreqSrc::External) {
+        uint32_t psc;
+#if (HXTAL_VALUE == 8000000)
+        psc = 8U;
+#else
+        psc = 25U;
+#endif
         switch (freq) {
         case 120000000:
             /* Configure the main PLL, PSC = 25, PLL_N = 240, PLL_P = 2, PLL_Q = 5 */
-            RCU_PLL = (25U | (240U << 6U) | (((2U >> 1U) - 1U) << 16U) |
+            RCU_PLL = (psc | (240U << 6U) | (((2U >> 1U) - 1U) << 16U) |
                 (RCU_PLLSRC_HXTAL) | (5U << 24U));
             break;
         case 168000000:
             /* Configure the main PLL, PSC = 25, PLL_N = 336, PLL_P = 2, PLL_Q = 7 */
-            RCU_PLL = (25U | (336U << 6U) | (((2U >> 1U) - 1U) << 16U) |
+            RCU_PLL = (psc | (336U << 6U) | (((2U >> 1U) - 1U) << 16U) |
                 (RCU_PLLSRC_HXTAL) | (7U << 24U));
             break;
         default: return false;
