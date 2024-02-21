@@ -8,6 +8,13 @@
 
 #include <stdint.h>
 
+/// @brief Driver operations result enumeration
+enum class DrvResult {
+    Finished,
+    InProgress,
+    Error,
+};
+
 /**
  * @brief Abstract peripheral driver
  */
