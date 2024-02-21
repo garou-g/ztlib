@@ -32,7 +32,12 @@ static bool waitForFlagSet(int32_t i2c, i2c_flag_enum flag)
 static bool checkConfig(const gd32::I2cConfig* config)
 {
     assert(config != nullptr);
-    return config->i2c == I2C0 || config->i2c == I2C1;
+    return config->i2c == I2C0
+        || config->i2c == I2C1
+#ifdef I2C2
+        || config->i2c == I2C2
+#endif
+        ;
 }
 
 bool I2c::setConfig(const void* drvConfig)
@@ -58,10 +63,13 @@ bool I2c::open()
     }
 
     rcu_periph_enum i2cClock;
-    if (config_.i2c == I2C0) {
-        i2cClock = RCU_I2C0;
-    } else {
-        i2cClock = RCU_I2C1;
+    switch (config_.i2c) {
+    default:
+    case I2C0: i2cClock = RCU_I2C0; break;
+    case I2C1: i2cClock = RCU_I2C1; break;
+#ifdef I2C2
+    case I2C2: i2cClock = RCU_I2C2; break;
+#endif
     }
     rcu_periph_clock_enable(i2cClock);
 
