@@ -65,11 +65,11 @@ bool System::setFrequency(uint32_t freq, SysFreqSrc freqSrc)
 
     if (freqSrc == SysFreqSrc::External) {
         uint32_t psc;
-#if (HXTAL_VALUE == 8000000)
-        psc = 8U;
-#else
-        psc = 25U;
-#endif
+        if (HXTAL_VALUE == 8000000)
+            psc = 8U;
+        else
+            psc = 25U;
+
         switch (freq) {
         case 120000000:
             /* Configure the main PLL, PSC = 25, PLL_N = 240, PLL_P = 2, PLL_Q = 5 */

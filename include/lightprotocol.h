@@ -94,21 +94,21 @@ public:
         }
 
         // Write if delegate was set
-        cb_.write.call_if(buf, msgLength);
+        deleg_.write.call_if(buf, msgLength);
     }
 
     /// @brief Writes ACK flag that mean success reception of the last message
     void ack()
     {
         uint8_t byte = kAck;
-        cb_.write.call_if(&byte, 1);
+        deleg_.write.call_if(&byte, 1);
     }
 
     /// @brief Writes NAK flag that mean errors in reception of the last message
     void nak()
     {
         uint8_t byte = kNak;
-        cb_.write.call_if(&byte, 1);
+        deleg_.write.call_if(&byte, 1);
     }
 
     /**
@@ -149,7 +149,7 @@ public:
                 // ACK/NAK received - just call callback
                 case kAck:
                 case kNak:
-                    cb_.ack.call_if(byte);
+                    deleg_.ack.call_if(byte);
                     break;
                 // Nothing to do if other
                 default:
@@ -188,7 +188,7 @@ public:
                     if (crc == msg_.crc) {
                         // Received success
                         ack();
-                        cb_.parse.call_if(msg_);
+                        deleg_.parse.call_if(msg_);
                     } else {
                         // CRC is wrong
                         nak();
