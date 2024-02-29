@@ -16,6 +16,7 @@ struct TimerConfig {
     int32_t timer;
     uint16_t prescaler;
     uint32_t period;
+    uint32_t outputVal = 0;
     TimerMode mode;
     GpioConfig pin;
 };

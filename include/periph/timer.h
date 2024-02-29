@@ -21,6 +21,7 @@ public:
     enum IoctlCmd {
         kSetPrescale,   // Sets timer prescale
         kSetPeriod,     // Sets repetition value
+        kSetOutputVal   // Sets output value in PWM mode
     };
 
     /// @brief Start timer
