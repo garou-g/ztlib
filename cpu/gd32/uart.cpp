@@ -278,6 +278,8 @@ extern "C" void UART4_IRQHandler(void)
     Uart::irqHandler(uartInstances[4]);
 }
 
+#if defined(GD32F4XX_H)
+
 extern "C" void USART5_IRQHandler(void)
 {
     Uart::irqHandler(uartInstances[5]);
@@ -292,6 +294,8 @@ extern "C" void UART7_IRQHandler(void)
 {
     Uart::irqHandler(uartInstances[7]);
 }
+
+#endif
 
 }; // namespace gd32
 
