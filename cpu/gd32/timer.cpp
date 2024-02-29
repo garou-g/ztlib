@@ -62,16 +62,52 @@ namespace gd32 {
             .prescaler = config_.prescaler,
             .alignedmode = TIMER_COUNTER_EDGE,
             .counterdirection = TIMER_COUNTER_UP,
-            .period = config_.period,
             .clockdivision = TIMER_CKDIV_DIV1,
-            .repetitioncounter = 0U};
-        // switch (config_.mode) {
-        // case gd32::TimerConfig::General: break;
-        // case gd32::TimerConfig::Capture: ;
-        // case gd32::TimerConfig::Pwm: ;
-        // }
+            .period = config_.period,
+            .repetitioncounter = 0U
+        };
 
         timer_init(config_.timer, &timerParams);
+
+        // adding configurations for alternative modes
+        switch (config_.mode)
+        {
+        case TimerMode::General:
+            break;
+        case TimerMode::Capture:
+            timer_ic_parameter_struct timer_icinitpara;
+
+            /* CH0 input capture configuration */
+            timer_icinitpara.icpolarity = TIMER_IC_POLARITY_RISING;
+            timer_icinitpara.icselection = TIMER_IC_SELECTION_DIRECTTI;
+            timer_icinitpara.icprescaler = TIMER_IC_PSC_DIV1;
+            timer_icinitpara.icfilter = 0x0;
+
+            timer_input_capture_config(config_.timer, TIMER_CH_0, &timer_icinitpara);
+            timer_auto_reload_shadow_enable(config_.timer);
+
+            break;
+        /* CH1 configuration in PWM mode1 */
+        case TimerMode::Pwm:
+            timer_oc_parameter_struct timer_ocintpara;
+            timer_ocintpara.ocpolarity = TIMER_OC_POLARITY_HIGH;
+            timer_ocintpara.outputstate = TIMER_CCX_ENABLE;
+            timer_ocintpara.ocnpolarity = TIMER_OCN_POLARITY_HIGH;
+            timer_ocintpara.outputnstate = TIMER_CCXN_DISABLE;
+            timer_ocintpara.ocidlestate = TIMER_OC_IDLE_STATE_LOW;
+            timer_ocintpara.ocnidlestate = TIMER_OCN_IDLE_STATE_LOW;
+
+            timer_channel_output_config(config_.timer, TIMER_CH_1, &timer_ocintpara);
+            timer_channel_output_pulse_value_config(config_.timer, TIMER_CH_1, config_.outputVal);
+            timer_channel_output_mode_config(config_.timer, TIMER_CH_1, TIMER_OC_MODE_PWM0);
+            timer_channel_output_shadow_config(config_.timer, TIMER_CH_1, TIMER_OC_SHADOW_DISABLE);
+
+            /* auto-reload preload enable */
+            timer_auto_reload_shadow_enable(config_.timer);
+
+            break;
+        }
+
         setOpened(true);
         return true;
     }
@@ -124,6 +160,13 @@ bool Timer::ioctl(uint32_t cmd, void *pValue)
         if (pValue != nullptr)
         {
             config_.period = *(static_cast<uint32_t *>(pValue));
+            return true;
+        }
+        break;
+    case kSetOutputVal:
+        if (pValue != nullptr)
+        {
+            config_.outputVal = *(static_cast<uint32_t *>(pValue));
             return true;
         }
         break;
