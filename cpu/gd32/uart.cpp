@@ -213,15 +213,18 @@ bool Uart::ioctl(uint32_t cmd, void* pValue)
         break;
 
     case kFlushInput:
+        config_.rxQueue->clear();
         return true;
 
-    case kFlushOutput:
-        if (pValue != nullptr) {
-            while (RESET == usart_flag_get(config_.uart, USART_FLAG_TBE));
-            return true;
+    case kFlushOutput: {
+        bool empty = false;
+        while (!empty) {
+            __disable_irq();
+            empty = config_.txQueue->empty();
+            __enable_irq();
         }
-        break;
-
+        return true;
+    }
     default:
         break;
     }
