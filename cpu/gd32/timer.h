@@ -14,9 +14,10 @@ namespace gd32 {
 /// @brief Timer configuration data structure
 struct TimerConfig {
     int32_t timer;
+    uint16_t channel;
     uint16_t prescaler;
     uint32_t period;
-    uint32_t outputVal = 0;
+    uint32_t outputVal;
     TimerMode mode;
     GpioConfig pin;
 };
@@ -36,10 +37,20 @@ public:
     void stop() override;
 
     uint32_t captured() override;
+    uint32_t capturedFreq();
+
+    static void irqHandler(Timer* timer);
 
 private:
     uint32_t captured_ = 0;
     TimerConfig config_;
+    uint32_t ch_flag_;
+    /// @brief capture mode parameters
+    uint32_t ccnumber = 0;
+    uint32_t readvalue1 = 0;
+    uint32_t readvalue2 = 0;
+    uint32_t count = 0;
+    uint32_t freq = 0;
 };
 
 }; // namespace gd32
