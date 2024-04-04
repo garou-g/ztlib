@@ -1,7 +1,7 @@
 /*******************************************************************************
- * @file    basedrv.hpp
+ * @file    basedrv.h
  * @author  doctorbelka (avdbor.junior@mail.ru)
- * @brief   Header file of abstract peripheral driver.
+ * @brief   Header file of base peripheral driver.
  ******************************************************************************/
 
 #pragma once
@@ -16,7 +16,7 @@ enum class DrvResult {
 };
 
 /**
- * @brief Abstract peripheral driver
+ * @brief Abstract base peripheral driver
  */
 class BaseDrv {
 public:

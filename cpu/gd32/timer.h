@@ -1,7 +1,7 @@
 /*******************************************************************************
  * @file    timer.h
- * @author  doctorbelka avdbor.junior@mail.ru
- * @brief   Header file of timer.
+ * @author  doctorbelka (avdbor.junior@mail.ru)
+ * @brief   Header file of GD32 timer.
  ******************************************************************************/
 
 #pragma once
@@ -17,7 +17,7 @@ struct TimerConfig {
     uint16_t channel;
     uint16_t prescaler;
     uint32_t period;
-    uint32_t outputVal;
+    uint32_t pwmValue;
     TimerMode mode;
     GpioConfig pin;
 };
@@ -36,21 +36,15 @@ public:
     void start() override;
     void stop() override;
 
-    uint32_t captured() override;
-    uint32_t capturedFreq();
+    uint32_t captured() const override;
+    uint32_t counter() const override;
 
     static void irqHandler(Timer* timer);
 
 private:
-    uint32_t captured_ = 0;
     TimerConfig config_;
-    uint32_t ch_flag_;
-    /// @brief capture mode parameters
-    uint32_t ccnumber = 0;
-    uint32_t readvalue1 = 0;
-    uint32_t readvalue2 = 0;
-    uint32_t count = 0;
-    uint32_t freq = 0;
+    uint32_t irqFlag_ = 0;
+    uint32_t captured_ = 0;
 };
 
 }; // namespace gd32

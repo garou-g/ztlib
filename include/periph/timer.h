@@ -1,6 +1,6 @@
 /*******************************************************************************
  * @file    timer.h
- * @author  doctorbelka avdbor.junior@mail.ru
+ * @author  doctorbelka (avdbor.junior@mail.ru)
  * @brief   Header file of timer.
  ******************************************************************************/
 
@@ -8,28 +8,107 @@
 
 #include "basedrv.h"
 
-/// @brief Timer mode
-enum TimerMode {
+#include "etl/delegate.h"
+
+/// @brief Timer modes enumeration
+enum class TimerMode {
     General,
     Capture,
-    Pwm
+    Pwm,
 };
 
 /// @brief Timer peripheral driver
 class Timer : public BaseDrv {
 public:
+    /**
+     * @brief Basic timer commands
+     */
     enum IoctlCmd {
         kSetPrescale,   // Sets timer prescale
         kSetPeriod,     // Sets repetition value
-        kSetOutputVal   // Sets output value in PWM mode
+        kSetPwmVal,     // Sets output value for PWM mode
+        kSetGeneralCb,  // Sets timer basic callback
+        kSetCaptureCb,  // Sets timer capture callback
     };
 
-    /// @brief Start timer
+    /**
+     * @brief Starts timer counting
+     */
     virtual void start() = 0;
-    /// @brief Stop timer
+
+    /**
+     * @brief Stops timer counting
+     */
     virtual void stop() = 0;
 
-    virtual uint32_t captured() = 0;
+    /**
+     * @brief Returns last captured value
+     *
+     * @return uint32_t captured value
+     */
+    virtual uint32_t captured() const = 0;
+
+    /**
+     * @brief Returns current timer counter value
+     *
+     * @return uint32_t timer counter
+     */
+    virtual uint32_t counter() const = 0;
+
+    /**
+     * @brief Callback function for timer counting IRQ
+     */
+    using GeneralDelegate = etl::delegate<void(void)>;
+
+    /**
+     * @brief Callback function for timer capture IRQ
+     */
+    using CaptureDelegate = etl::delegate<void(uint32_t)>;
+
+    /**
+     * @brief Sets the callback for counting IRQ
+     *
+     * @param generalCb callback delegate
+     */
+    void setGeneralDelegate(const GeneralDelegate& generalCb)
+    {
+        generalCb_ = generalCb;
+    }
+
+    /**
+     * @brief Sets the callback for capture IRQ
+     *
+     * @param captureCb callback delegate
+     */
+    void setCaptureDelegate(const CaptureDelegate& captureCb)
+    {
+        captureCb_ = captureCb;
+    }
+
+protected:
+    /**
+     * @brief Returns reference on the callback for counting IRQ
+     *
+     * @return GeneralDelegate& callback delegate
+     */
+    GeneralDelegate& generalCb()
+    {
+        return generalCb_;
+    }
+
+    /**
+     * @brief Returns reference on the callback for capture IRQ
+     *
+     * @return CaptureDelegate& callback delegate
+     */
+    CaptureDelegate& captureCb()
+    {
+        return captureCb_;
+    }
+
+private:
+    GeneralDelegate generalCb_;
+    CaptureDelegate captureCb_;
 };
 
 /***************************** END OF FILE ************************************/
