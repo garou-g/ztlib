@@ -9,7 +9,7 @@
 #include <cstdint>
 
 void reverse(char* buf);
-void itoa(uint32_t value, char* buf);
-void ftoa(float value, char* buf);
+uint32_t itoa(uint32_t value, char* buf);
+uint32_t ftoa(float value, char* buf);
 
 /***************************** END OF FILE ************************************/

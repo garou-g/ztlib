@@ -27,8 +27,9 @@ void reverse(char* buf)
  *
  * @param value integer value
  * @param buf chars buffer
+ * @return uint32_t string size
  */
-void itoa(uint32_t value, char* buf)
+uint32_t itoa(uint32_t value, char* buf)
 {
     int i = 0;
     do {
@@ -36,6 +37,7 @@ void itoa(uint32_t value, char* buf)
     } while ((value /= 10) > 0);
     buf[i] = '\0';
     reverse(buf);
+    return i;
 }
 
 /**
@@ -43,19 +45,18 @@ void itoa(uint32_t value, char* buf)
  *
  * @param value float value
  * @param buf chars buffer
+ * @return uint32_t string size
  */
-void ftoa(float value, char* buf)
+uint32_t ftoa(float value, char* buf)
 {
     // Extract integer part
     int ipart = static_cast<int>(value);
-    itoa(ipart, buf);
-    int pos = 0;
-    while (buf[pos++] != '\0');
-    buf[pos-1] = '.';
+    int pos = itoa(ipart, buf);
+    buf[pos++] = '.';
 
     // Extract first fraction digit
     int fpart = static_cast<int>((value - static_cast<float>(ipart)) * 10);
-    itoa(fpart, &buf[pos]);
+    return itoa(fpart, &buf[pos]) + pos;
 }
 
 /***************************** END OF FILE ************************************/
