@@ -41,7 +41,6 @@ void Debug::setDriver(SerialDrv* drv)
  */
 void Debug::enable()
 {
-    assert(drv_ != nullptr);
     enabled_ = true;
 }
 
@@ -50,7 +49,6 @@ void Debug::enable()
  */
 void Debug::disable()
 {
-    assert(drv_ != nullptr);
     enabled_ = false;
 }
 
