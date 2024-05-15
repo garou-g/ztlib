@@ -8,8 +8,13 @@
 
 #include <cstdint>
 
+namespace utils {
+
 void reverse(char* buf);
 uint32_t itoa(uint32_t value, char* buf);
 uint32_t ftoa(float value, char* buf);
+int32_t atoi(const char* buf);
+
+}; // namespace utils
 
 /***************************** END OF FILE ************************************/

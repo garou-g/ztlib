@@ -8,6 +8,8 @@
 
 #include <cstring>
 
+namespace utils {
+
 /**
  * @brief Reverses chars buffer data
  *
@@ -58,5 +60,35 @@ uint32_t ftoa(float value, char* buf)
     int fpart = static_cast<int>((value - static_cast<float>(ipart)) * 10);
     return itoa(fpart, &buf[pos]) + pos;
 }
+
+/**
+ * @brief Converts string in decimal format to integer value
+ *
+ * @param buf chars buffer
+ * @return uint32_t result integer
+ */
+int32_t atoi(const char* buf)
+{
+    // Skip whitespaces
+    int32_t i = 0;
+    while (buf[i] == ' ') {
+        ++i;
+    }
+
+    // Check sign
+    int32_t sign = 1;
+    if (buf[i] == '-' || buf[i] == '+') {
+        sign = 1 - 2 * (buf[i++] == '-');
+    }
+
+    // Calculate number
+    int32_t base = 0;
+    while (buf[i] >= '0' && buf[i] <= '9') {
+        base = 10 * base + (buf[i++] - '0');
+    }
+    return base * sign;
+}
+
+}; // namespace utils
 
 /***************************** END OF FILE ************************************/
