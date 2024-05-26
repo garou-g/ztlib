@@ -11,8 +11,9 @@
 #include <stdint.h>
 
 enum class SysFreqSrc {
-    External,
     Internal,
+    External,
+    ExternalBypass,
 };
 
 /**
