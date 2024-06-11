@@ -11,24 +11,23 @@
 
 namespace gd32 {
 
-static Uart* uartInstances[8] = { nullptr };
+static P_Uart* uartInstances[8] = { nullptr };
 
 static bool checkConfig(const gd32::UartConfig* config)
 {
     assert(config != nullptr);
 
-    return config->txQueue != nullptr && config->rxQueue != nullptr
-        && (config->uart == USART0 || config->uart == USART1
+    return config->uart == USART0 || config->uart == USART1
         || config->uart == USART2
         || config->uart == UART3 || config->uart == UART4
 #if defined(GD32F4XX_H)
         || config->uart == USART5
         || config->uart == UART6 || config->uart == UART7
 #endif
-        );
+        ;
 }
 
-static void setHandler(uint32_t port, Uart* arg)
+static void setHandler(uint32_t port, P_Uart* arg)
 {
     switch (port) {
     case USART0: uartInstances[0] = arg; break;
@@ -99,7 +98,13 @@ static void setIrq(uint32_t port, bool enable)
     }
 }
 
-bool Uart::setConfig(const void* drvConfig)
+P_Uart::P_Uart(IUartQueue& tx, IUartQueue& rx)
+    : txQueue_(tx)
+    , rxQueue_(rx)
+{
+}
+
+bool P_Uart::setConfig(const void* drvConfig)
 {
     if (isOpen())
         return false;
@@ -112,7 +117,7 @@ bool Uart::setConfig(const void* drvConfig)
     return true;
 }
 
-bool Uart::open()
+bool P_Uart::open()
 {
     if (isOpen())
         return false;
@@ -138,7 +143,7 @@ bool Uart::open()
     return true;
 }
 
-void Uart::close()
+void P_Uart::close()
 {
     if (isOpen()) {
         setIrq(config_.uart, false);
@@ -150,7 +155,7 @@ void Uart::close()
     }
 }
 
-int32_t Uart::write_(const void* buf, uint32_t len)
+int32_t P_Uart::write_(const void* buf, uint32_t len)
 {
     assert(buf != nullptr);
 
@@ -160,23 +165,23 @@ int32_t Uart::write_(const void* buf, uint32_t len)
     // Fill transmit queue
     __disable_irq();
     const uint8_t *data = static_cast<const uint8_t*>(buf);
-    const uint32_t available = config_.txQueue->available();
+    const uint32_t available = txQueue_.available();
     const uint32_t size = available < len ? available : len;
     for (uint32_t i = 0; i < size; ++i) {
-        config_.txQueue->push(data[i]);
+        txQueue_.push(data[i]);
     }
 
     // Start transmission if it is idle
     if (SET == usart_flag_get(config_.uart, USART_FLAG_TBE)) {
-        usart_data_transmit(config_.uart, config_.txQueue->front());
-        config_.txQueue->pop();
+        usart_data_transmit(config_.uart, txQueue_.front());
+        txQueue_.pop();
         usart_interrupt_enable(config_.uart, USART_INT_TBE);
     }
     __enable_irq();
     return size;
 }
 
-int32_t Uart::read_(void* buf, uint32_t len)
+int32_t P_Uart::read_(void* buf, uint32_t len)
 {
     assert(buf != nullptr);
 
@@ -186,17 +191,17 @@ int32_t Uart::read_(void* buf, uint32_t len)
     // Fill receive buffer from queue
     __disable_irq();
     uint8_t *data = static_cast<uint8_t*>(buf);
-    const uint32_t currSize = config_.rxQueue->size();
+    const uint32_t currSize = rxQueue_.size();
     const uint32_t size = currSize < len ? currSize : len;
     for (uint32_t i = 0; i < size; ++i) {
-        data[i] = config_.rxQueue->front();
-        config_.rxQueue->pop();
+        data[i] = rxQueue_.front();
+        rxQueue_.pop();
     }
     __enable_irq();
     return size;
 }
 
-bool Uart::ioctl(uint32_t cmd, void* pValue)
+bool P_Uart::ioctl(uint32_t cmd, void* pValue)
 {
     if (!isOpen())
         return false;
@@ -213,14 +218,14 @@ bool Uart::ioctl(uint32_t cmd, void* pValue)
         break;
 
     case kFlushInput:
-        config_.rxQueue->clear();
+        rxQueue_.clear();
         return true;
 
     case kFlushOutput: {
         bool empty = false;
         while (!empty) {
             __disable_irq();
-            empty = config_.txQueue->empty();
+            empty = txQueue_.empty();
             __enable_irq();
         }
         return true;
@@ -232,7 +237,7 @@ bool Uart::ioctl(uint32_t cmd, void* pValue)
     return false;
 }
 
-void Uart::irqHandler(Uart* uart)
+void P_Uart::irqHandler(P_Uart* uart)
 {
     // Check instance pointer
     if (!uart)
@@ -240,62 +245,62 @@ void Uart::irqHandler(Uart* uart)
 
     // Receive data
     if (RESET != usart_interrupt_flag_get(uart->config_.uart, USART_INT_FLAG_RBNE)) {
-        if (!uart->config_.rxQueue->full()) {
-            uart->config_.rxQueue->push(usart_data_receive(uart->config_.uart));
+        if (!uart->rxQueue_.full()) {
+            uart->rxQueue_.push(usart_data_receive(uart->config_.uart));
         }
     }
 
     // Transmit data
     if (RESET != usart_interrupt_flag_get(uart->config_.uart, USART_INT_FLAG_TBE)) {
-        if (uart->config_.txQueue->empty()) {
+        if (uart->txQueue_.empty()) {
             usart_interrupt_disable(uart->config_.uart, USART_INT_TBE);
         } else {
-            usart_data_transmit(uart->config_.uart, uart->config_.txQueue->front());
-            uart->config_.txQueue->pop();
+            usart_data_transmit(uart->config_.uart, uart->txQueue_.front());
+            uart->txQueue_.pop();
         }
     }
 }
 
 extern "C" void USART0_IRQHandler(void)
 {
-    Uart::irqHandler(uartInstances[0]);
+    P_Uart::irqHandler(uartInstances[0]);
 }
 
 extern "C" void USART1_IRQHandler(void)
 {
-    Uart::irqHandler(uartInstances[1]);
+    P_Uart::irqHandler(uartInstances[1]);
 }
 
 extern "C" void USART2_IRQHandler(void)
 {
-    Uart::irqHandler(uartInstances[2]);
+    P_Uart::irqHandler(uartInstances[2]);
 }
 
 extern "C" void UART3_IRQHandler(void)
 {
-    Uart::irqHandler(uartInstances[3]);
+    P_Uart::irqHandler(uartInstances[3]);
 }
 
 extern "C" void UART4_IRQHandler(void)
 {
-    Uart::irqHandler(uartInstances[4]);
+    P_Uart::irqHandler(uartInstances[4]);
 }
 
 #if defined(GD32F4XX_H)
 
 extern "C" void USART5_IRQHandler(void)
 {
-    Uart::irqHandler(uartInstances[5]);
+    P_Uart::irqHandler(uartInstances[5]);
 }
 
 extern "C" void UART6_IRQHandler(void)
 {
-    Uart::irqHandler(uartInstances[6]);
+    P_Uart::irqHandler(uartInstances[6]);
 }
 
 extern "C" void UART7_IRQHandler(void)
 {
-    Uart::irqHandler(uartInstances[7]);
+    P_Uart::irqHandler(uartInstances[7]);
 }
 
 #endif
