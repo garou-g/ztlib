@@ -16,7 +16,12 @@ static bool checkConfig(const gd32::SpiConfig* config)
     return config->spi == SPI0 || config->spi == SPI1 || config->spi == SPI2;
 }
 
-bool Spi::setConfig(const void* drvConfig)
+P_Spi::P_Spi(ISpiQueue& rx)
+    : rxQueue_(rx)
+{
+}
+
+bool P_Spi::setConfig(const void* drvConfig)
 {
     if (isOpen())
         return false;
@@ -29,7 +34,7 @@ bool Spi::setConfig(const void* drvConfig)
     return true;
 }
 
-bool Spi::open()
+bool P_Spi::open()
 {
     if (isOpen())
         return false;
@@ -100,7 +105,7 @@ bool Spi::open()
     return true;
 }
 
-void Spi::close()
+void P_Spi::close()
 {
     if (isOpen()) {
         spi_disable(config_.spi);
@@ -112,7 +117,7 @@ void Spi::close()
     }
 }
 
-int32_t Spi::write_(const void* buf, uint32_t len)
+int32_t P_Spi::write_(const void* buf, uint32_t len)
 {
     assert(buf != nullptr);
 
@@ -123,46 +128,75 @@ int32_t Spi::write_(const void* buf, uint32_t len)
     const uint16_t* halfwords = static_cast<const uint16_t*>(buf);
     const uint32_t* words = static_cast<const uint32_t*>(buf);
     const int32_t reg = getReg();
-    const int32_t addr = getAddr();
 
-    for (uint32_t i = 0; i < len; ++i) {
-        if (cs_)
-            cs_->reset();
+    // Set chip select
+    if (cs_)
+        cs_->reset();
 
+    // Send register or command if needed
+    if (reg >= 0) {
         if (config_.frame == SpiFrame::Frame32Bit) {
-            spi_i2s_data_transmit(config_.spi, (words[i] >> 16) & 0xFFFF);
-            while (RESET == spi_i2s_flag_get(config_.spi, SPI_FLAG_TBE));
-            spi_i2s_data_transmit(config_.spi, words[i] & 0xFFFF);
-        } else if (config_.frame == SpiFrame::Frame16Bit) {
-            spi_i2s_data_transmit(config_.spi, halfwords[i]);
+            readWrite(reg >> 16, false);
+            readWrite(reg, false);
         } else {
-            spi_i2s_data_transmit(config_.spi, bytes[i]);
+            readWrite(reg, false);
         }
         while (SET == spi_i2s_flag_get(config_.spi, SPI_FLAG_TRANS));
-
-        if (cs_)
-            cs_->set();
     }
+
+    // Send and receive data
+    for (uint32_t i = 0; i < len; ++i) {
+        if (config_.frame == SpiFrame::Frame32Bit) {
+            readWrite(words[i] >> 16);
+            readWrite(words[i]);
+        } else if (config_.frame == SpiFrame::Frame16Bit) {
+            readWrite(halfwords[i]);
+        } else {
+            readWrite(bytes[i]);
+        }
+        while (SET == spi_i2s_flag_get(config_.spi, SPI_FLAG_TRANS));
+    }
+
+    // Reset chip select
+    if (cs_)
+        cs_->set();
 
     return len;
 }
 
-int32_t Spi::read_(void* buf, uint32_t len)
+int32_t P_Spi::read_(void* buf, uint32_t len)
 {
     assert(buf != nullptr);
 
     if (!isOpen() || len == 0)
         return -1;
 
-    const uint8_t* bytes = static_cast<const uint8_t*>(buf);
-    const int32_t reg = getReg();
-    const int32_t addr = getAddr();
+    // Get pointers to data variants
+    uint8_t* bytes = static_cast<uint8_t*>(buf);
+    uint16_t* halfwords = static_cast<uint16_t*>(buf);
+    uint32_t* words = static_cast<uint32_t*>(buf);
 
-    // TODO:
-    return len;
+    // Check sizes
+    const uint32_t currSize = rxQueue_.size();
+    const uint32_t size = currSize < len ? currSize : len;
+
+    // Fill data from queue buffer
+    for (uint32_t i = 0; i < size; ++i) {
+        if (config_.frame == SpiFrame::Frame8Bit) {
+            bytes[i] = rxQueue_.front();
+        } else if (config_.frame == SpiFrame::Frame16Bit) {
+            halfwords[i] = rxQueue_.front();
+        } else {
+            const uint16_t high = rxQueue_.front();
+            rxQueue_.pop();
+            words[i] = (high << 16) | (rxQueue_.front() & 0xFFFF);
+        }
+        rxQueue_.pop();
+    }
+    return size;
 }
 
-bool Spi::ioctl(uint32_t cmd, void* pValue)
+bool P_Spi::ioctl(uint32_t cmd, void* pValue)
 {
     if (!isOpen())
         return false;
@@ -179,6 +213,20 @@ bool Spi::ioctl(uint32_t cmd, void* pValue)
     }
 
     return false;
+}
+
+void P_Spi::readWrite(uint16_t data, bool save)
+{
+    spi_i2s_data_transmit(config_.spi, data);
+    if (config_.miso.port != 0) {
+        while (RESET == spi_i2s_flag_get(config_.spi, SPI_FLAG_RBNE));
+        const uint16_t word = spi_i2s_data_receive(config_.spi);
+        if (save && !rxQueue_.full()) {
+            rxQueue_.push(word);
+        }
+    } else {
+        while (RESET == spi_i2s_flag_get(config_.spi, SPI_FLAG_TBE));
+    }
 }
 
 }; // namespace gd32
