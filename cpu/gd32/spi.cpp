@@ -208,6 +208,9 @@ bool P_Spi::ioctl(uint32_t cmd, void* pValue)
             return true;
         }
         break;
+    case kFlushInput:
+        rxQueue_.clear();
+        return true;
     default:
         break;
     }
