@@ -15,6 +15,29 @@
 #include "driver/rtc_io.h"
 
 /**
+ * @brief Sets system frequency with chosen frequency in Hz and source
+ *      (Not support for ESP32 now)
+ *
+ * @param freq frequency in Hz
+ * @param freqSrc frequency source
+ * @return true if frequency updated otherwise false
+ */
+bool System::setFrequency(uint32_t freq, SysFreqSrc freqSrc)
+{
+    return false;
+}
+
+/**
+ * @brief Returns current system frequency
+ *
+ * @return uint32_t frequency in Hz
+ */
+uint32_t System::frequency() const
+{
+    return CONFIG_ESP32_DEFAULT_CPU_FREQ_MHZ * 1000000;
+}
+
+/**
  * @brief Constructor platform initialization
  *
  */

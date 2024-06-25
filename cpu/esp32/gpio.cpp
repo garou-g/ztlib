@@ -10,37 +10,53 @@
 
 #include <cassert>
 
-bool Gpio::open(const void* drvConfig)
+namespace esp32 {
+
+static bool checkConfig(const GpioConfig* config)
+{
+    assert(config != nullptr);
+
+    return GPIO_IS_VALID_OUTPUT_GPIO(config->pin);
+}
+
+bool Gpio::setConfig(const void* drvConfig)
 {
     if (isOpen())
         return false;
 
-    assert(drvConfig != nullptr);
     const GpioConfig* config = static_cast<const GpioConfig*>(drvConfig);
-    if (!GPIO_IS_VALID_OUTPUT_GPIO(config->pin))
+    if (!checkConfig(config)) {
+        return false;
+    }
+    config_ = *config;
+    return true;
+}
+
+bool Gpio::open()
+{
+    if (isOpen())
         return false;
 
-    port_ = 0;
-    pin_ = config->pin;
-    inverse_ = config->inverse;
+    if (!checkConfig(&config_)) {
+        return false;
+    }
 
-    const gpio_num_t pin = static_cast<gpio_num_t>(pin_);
-    gpio_pad_select_gpio(pin_);
+    const gpio_num_t pin = static_cast<gpio_num_t>(config_.pin);
+    gpio_pad_select_gpio(config_.pin);
     gpio_set_direction(pin, GPIO_MODE_OUTPUT);
-    gpio_set_level(pin, inverse_ ? 1: 0);
+    gpio_set_level(pin, 0);
     gpio_hold_en(pin);
+    setOpened(true);
     return true;
 }
 
 void Gpio::close()
 {
     if (isOpen()) {
-        const gpio_num_t pin = static_cast<gpio_num_t>(pin_);
+        const gpio_num_t pin = static_cast<gpio_num_t>(config_.pin);
         gpio_hold_dis(pin);
         gpio_reset_pin(pin);
-        port_ = -1;
-        pin_ = -1;
-        inverse_ = false;
+        setOpened(false);
     }
 }
 
@@ -48,9 +64,9 @@ void Gpio::set()
 {
     if (!isOpen())
         return;
-    const gpio_num_t pin = static_cast<gpio_num_t>(pin_);
+    const gpio_num_t pin = static_cast<gpio_num_t>(config_.pin);
     gpio_hold_dis(pin);
-    gpio_set_level(pin, inverse_ ? 0: 1);
+    gpio_set_level(pin, 1);
     gpio_hold_en(pin);
 }
 
@@ -58,9 +74,9 @@ void Gpio::reset()
 {
     if (!isOpen())
         return;
-    const gpio_num_t pin = static_cast<gpio_num_t>(pin_);
+    const gpio_num_t pin = static_cast<gpio_num_t>(config_.pin);
     gpio_hold_dis(pin);
-    gpio_set_level(pin, inverse_ ? 1: 0);
+    gpio_set_level(pin, 0);
     gpio_hold_en(pin);
 }
 
@@ -69,14 +85,15 @@ bool Gpio::get() const
     if (!isOpen())
         return false;
 
-    const gpio_num_t pin = static_cast<gpio_num_t>(pin_);
-    const bool res = gpio_get_level(pin) == 1;
-    return inverse_ ? !res : res;
+    const gpio_num_t pin = static_cast<gpio_num_t>(config_.pin);
+    return gpio_get_level(pin) == 1;
 }
 
 bool Gpio::ioctl(uint32_t cmd, void* pValue)
 {
     return true;
 }
+
+}; // namespace gd32
 
 /***************************** END OF FILE ************************************/

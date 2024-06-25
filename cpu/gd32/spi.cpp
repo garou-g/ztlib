@@ -112,7 +112,6 @@ void P_Spi::close()
         deinitGpioPeriph(&config_.clk);
         deinitGpioPeriph(&config_.mosi);
         deinitGpioPeriph(&config_.miso);
-        cs_ = nullptr;
         setOpened(false);
     }
 }

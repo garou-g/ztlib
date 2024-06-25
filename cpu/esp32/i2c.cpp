@@ -4,51 +4,58 @@
  * @brief   ESP32 I2C bus driver.
  ******************************************************************************/
 
-#include "i2c.h"
+#include "esp32/i2c.h"
 
 #include "driver/i2c.h"
 
 #include <cassert>
 
-struct I2cConfig {
-    int32_t i2c;
-    I2cMode mode;
-    uint32_t speed;
-    int32_t scl;
-    int32_t sda;
-    bool sclPullup;
-    bool sdaPullup;
-};
+namespace esp32 {
 
 /// I2C driver operation timeout in milliseconds
 static constexpr uint32_t timeoutMs = pdMS_TO_TICKS(100);
 
-bool I2c::open(const void* drvConfig)
+static bool checkConfig(const esp32::I2cConfig* config)
+{
+    assert(config != nullptr);
+
+    return config->i2c >= 0 && config->i2c < SOC_I2C_NUM;
+}
+
+bool I2c::setConfig(const void* drvConfig)
 {
     if (isOpen())
         return false;
 
-    assert(drvConfig != nullptr);
-    const I2cConfig* config = static_cast<const I2cConfig*>(drvConfig);
-    if (config->i2c < 0 || config->i2c >= SOC_I2C_NUM)
+    const esp32::I2cConfig* config = static_cast<const esp32::I2cConfig*>(drvConfig);
+    if (!checkConfig(config)) {
+        return false;
+    }
+    config_ = *config;
+    return true;
+}
+
+bool I2c::open()
+{
+    if (isOpen())
         return false;
 
-    i2c_ = config->i2c;
-    scl_ = config->scl;
-    sda_ = config->sda;
+    if (!checkConfig(&config_)) {
+        return false;
+    }
 
     const i2c_config_t i2cConfig = {
         .mode = I2C_MODE_MASTER,
-        .sda_io_num = sda_,
-        .scl_io_num = scl_,
-        .sda_pullup_en = config->sdaPullup ? GPIO_PULLUP_ENABLE : GPIO_PULLUP_DISABLE,
-        .scl_pullup_en = config->sclPullup ? GPIO_PULLUP_ENABLE : GPIO_PULLUP_DISABLE,
-        .master = { config->speed },
+        .sda_io_num = config_.sda,
+        .scl_io_num = config_.scl,
+        .sda_pullup_en = config_.sdaPullup ? GPIO_PULLUP_ENABLE : GPIO_PULLUP_DISABLE,
+        .scl_pullup_en = config_.sclPullup ? GPIO_PULLUP_ENABLE : GPIO_PULLUP_DISABLE,
+        .master = { config_.speed },
         .clk_flags = I2C_SCLK_SRC_FLAG_FOR_NOMAL,
     };
-    i2c_param_config(i2c_, &i2cConfig);
-    i2c_set_timeout(i2c_, 0xFFFFF);
-    i2c_driver_install(i2c_, I2C_MODE_MASTER, 0, 0, 0);
+    i2c_param_config(config_.i2c, &i2cConfig);
+    i2c_set_timeout(config_.i2c, 0xFFFFF);
+    i2c_driver_install(config_.i2c, I2C_MODE_MASTER, 0, 0, 0);
     setOpened(true);
 
     return true;
@@ -57,14 +64,14 @@ bool I2c::open(const void* drvConfig)
 void I2c::close()
 {
     if (isOpen()) {
-        i2c_driver_delete(i2c_);
-        gpio_reset_pin(static_cast<gpio_num_t>(scl_));
-        gpio_reset_pin(static_cast<gpio_num_t>(sda_));
-        gpio_pullup_dis(static_cast<gpio_num_t>(scl_));
-        gpio_pullup_dis(static_cast<gpio_num_t>(sda_));
+        i2c_driver_delete(config_.i2c);
+        const gpio_num_t scl = static_cast<gpio_num_t>(config_.scl);
+        const gpio_num_t sda = static_cast<gpio_num_t>(config_.sda);
+        gpio_reset_pin(scl);
+        gpio_reset_pin(sda);
+        gpio_pullup_dis(scl);
+        gpio_pullup_dis(sda);
         setOpened(false);
-        i2c_ = -1;
-        scl_ = sda_ = -1;
     }
 }
 
@@ -88,7 +95,7 @@ int32_t I2c::write_(const void* buf, uint32_t len)
     if (len != 0)
         i2c_master_write(cmd, bytes, len, true);
     i2c_master_stop(cmd);
-    esp_err_t ret = i2c_master_cmd_begin(i2c_, cmd, timeoutMs);
+    esp_err_t ret = i2c_master_cmd_begin(config_.i2c, cmd, timeoutMs);
     i2c_cmd_link_delete(cmd);
 
     return ret == ESP_OK ? len : -1;
@@ -120,7 +127,7 @@ int32_t I2c::read_(void* buf, uint32_t len)
         i2c_master_read_byte(cmd, &bytes[len - 1], I2C_MASTER_NACK);
     }
     i2c_master_stop(cmd);
-    esp_err_t ret = i2c_master_cmd_begin(i2c_, cmd, timeoutMs);
+    esp_err_t ret = i2c_master_cmd_begin(config_.i2c, cmd, timeoutMs);
     i2c_cmd_link_delete(cmd);
 
     return ret == ESP_OK ? len : -1;
@@ -138,11 +145,17 @@ bool I2c::ioctl(uint32_t cmd, void* pValue)
             return true;
         }
         break;
+    case kSetSpeed:
+        if (pValue != nullptr) {
+            return true;
+        }
     default:
         break;
     }
 
     return false;
 }
+
+}; // namespace esp32
 
 /***************************** END OF FILE ************************************/

@@ -151,7 +151,6 @@ void P_Uart::close()
         usart_disable(config_.uart);
         usart_deinit(config_.uart);
         setOpened(false);
-        config_.uart = 0;
     }
 }
 
