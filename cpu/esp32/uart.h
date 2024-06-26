@@ -13,7 +13,7 @@ namespace esp32 {
 /// @brief UART configuration data structure
 struct UartConfig {
     int32_t uart;
-    uint32_t baudrate;
+    int32_t baudrate;
     int32_t tx;
     int32_t rx;
 };
