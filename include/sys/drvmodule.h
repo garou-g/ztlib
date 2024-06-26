@@ -36,7 +36,7 @@ public:
      * @param stack task stack size
      * @param prior task priority
      */
-    DrvModule::DrvModule(const char* name, uint32_t stack, UBaseType_t prior)
+    DrvModule(const char* name, uint32_t stack, UBaseType_t prior)
         : Module(name, stack, prior)
         , drv_(nullptr) {
             setAvailability(false);

@@ -50,7 +50,7 @@ bool I2c::open()
         .scl_io_num = config_.scl,
         .sda_pullup_en = config_.sdaPullup ? GPIO_PULLUP_ENABLE : GPIO_PULLUP_DISABLE,
         .scl_pullup_en = config_.sclPullup ? GPIO_PULLUP_ENABLE : GPIO_PULLUP_DISABLE,
-        .master = { config_.speed },
+        .master = { static_cast<uint32_t>(config_.speed) },
         .clk_flags = I2C_SCLK_SRC_FLAG_FOR_NOMAL,
     };
     i2c_param_config(config_.i2c, &i2cConfig);
