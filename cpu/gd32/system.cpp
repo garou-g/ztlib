@@ -379,7 +379,8 @@ void System::restart()
  */
 void System::goToSleep() const
 {
-    // Not realizied
+    pmu_wakeup_pin_enable();
+    pmu_to_standbymode();
 }
 
 /**
