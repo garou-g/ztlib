@@ -22,7 +22,8 @@ public:
      *      until driver instance is set
      */
     DrvModule()
-    : drv_(nullptr) {
+        : drv_(nullptr)
+    {
         setAvailability(false);
     }
 
@@ -38,23 +39,39 @@ public:
      */
     DrvModule(const char* name, uint32_t stack, UBaseType_t prior)
         : Module(name, stack, prior)
-        , drv_(nullptr) {
-            setAvailability(false);
-        }
+        , drv_(nullptr)
+    {
+        setAvailability(false);
+    }
 #endif
+
+    /// @brief Default destructor
     virtual ~DrvModule() = default;
 
-    void setDriver(Drv* drvInst) {
-        drv_ = drvInst;
+    /**
+     * @brief Sets the driver instance
+     *
+     * @param drv driver instance. Can be null to make module unavailable
+     */
+    void setDriver(Drv* drv)
+    {
+        drv_ = drv;
         setAvailability(drv_ != nullptr);
     }
 
 protected:
-    Drv* drv() const {
+    /**
+     * @brief Returns driver instance pointer
+     *
+     * @return Drv* driver instance pointer
+     */
+    Drv* drv() const
+    {
         return drv_;
     }
 
 private:
+    /// @brief Driver instance pointer. Can be nullptr
     Drv* drv_;
 };
 
