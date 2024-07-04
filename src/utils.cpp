@@ -89,6 +89,47 @@ int32_t atoi(const char* buf)
     return base * sign;
 }
 
+/**
+ * @brief Converts string in decimal format to float value
+ *
+ * @param buf chars buffer
+ * @return float result float
+ */
+float atof(const char* buf)
+{
+    // Skip whitespaces
+    int32_t i = 0;
+    while (buf[i] == ' ') {
+        ++i;
+    }
+
+    // Check sign
+    float sign = 1.0f;
+    if (buf[i] == '-') {
+        sign = -1.0f;
+        ++i;
+    }
+
+    // Calculate number
+    float ipart = 0.0f;
+    while (buf[i] >= '0' && buf[i] <= '9') {
+        ipart = 10.0f * ipart + (buf[i++] - '0');
+    }
+
+    float fpart = 0.0f;
+    if (buf[i] == '.' || buf[i] == ',') {
+        ++i;
+        float div = 1.0f;
+        while (buf[i] >= '0' && buf[i] <= '9') {
+            fpart = 10.0f * fpart + (buf[i++] - '0');
+            div *= 10.0f;
+        }
+        fpart /= div;
+    }
+
+    return sign * (ipart + fpart);
+}
+
 }; // namespace utils
 
 /***************************** END OF FILE ************************************/
