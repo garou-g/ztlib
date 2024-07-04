@@ -92,9 +92,10 @@ static void setIrq(uint32_t port, bool enable)
     }
 
     if (enable) {
-        nvic_irq_enable(irqType, 0, 0);
+        NVIC_SetPriority(irqType, 7);
+        NVIC_EnableIRQ(irqType);
     } else {
-        nvic_irq_disable(irqType);
+        NVIC_DisableIRQ(irqType);
     }
 }
 
