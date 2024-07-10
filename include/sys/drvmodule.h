@@ -1,7 +1,7 @@
 /*******************************************************************************
  * @file    drvmodule.h
  * @author  garou (xgaroux@gmail.com)
- * @brief   Header file of base module with driver instance class.
+ * @brief   Header file of base module with driver instance.
  ******************************************************************************/
 
 #pragma once
@@ -71,7 +71,7 @@ protected:
     }
 
 private:
-    /// @brief Driver instance pointer. Can be nullptr
+    /// @brief Driver instance pointer
     Drv* drv_;
 };
 
