@@ -18,7 +18,7 @@ template<typename Drv>
 class DrvClass {
 public:
     /// @brief Construct a new DrvClass object with only driver initialization
-    DrvClass() = default
+    DrvClass() = default;
 
     /// @brief Default destructor
     virtual ~DrvClass() = default;
