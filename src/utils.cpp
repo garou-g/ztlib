@@ -59,18 +59,24 @@ uint32_t itoa(int32_t value, char* buf)
  *
  * @param value float value
  * @param buf chars buffer
+ * @param precision digits after point
  * @return uint32_t string size
  */
-uint32_t ftoa(float value, char* buf)
+uint32_t ftoa(float value, char* buf, uint8_t precision)
 {
     // Extract integer part
-    int ipart = static_cast<int>(value);
-    int pos = itoa(ipart, buf);
+    int32_t ipart = static_cast<int32_t>(value);
+    int32_t pos = itoa(ipart, buf);
     buf[pos++] = '.';
 
-    // Extract first fraction digit
-    int fpart = static_cast<int>((value - static_cast<float>(ipart)) * 10);
-    return itoa(fpart, &buf[pos]) + pos;
+    // Extract fraction digits
+    float fpart = value - static_cast<float>(ipart);
+    for (uint8_t i = 0; i < precision; ++i) {
+        fpart *= 10;
+        buf[pos++] = static_cast<int32_t>(fpart) % 10 + '0';
+    }
+    buf[pos] = '\0';
+    return pos;
 }
 
 /**

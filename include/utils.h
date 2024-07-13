@@ -12,7 +12,7 @@ namespace utils {
 
 void reverse(char* buf);
 uint32_t itoa(int32_t value, char* buf);
-uint32_t ftoa(float value, char* buf);
+uint32_t ftoa(float value, char* buf, uint8_t precision = 1);
 int32_t atoi(const char* buf);
 float atof(const char* buf);
 
