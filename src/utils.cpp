@@ -31,12 +31,24 @@ void reverse(char* buf)
  * @param buf chars buffer
  * @return uint32_t string size
  */
-uint32_t itoa(uint32_t value, char* buf)
+uint32_t itoa(int32_t value, char* buf)
 {
+    // Check value sign
+    bool negative = false;
+    if (value < 0) {
+        negative = true;
+        value = -value;
+    }
+
+    // Fill string
     int i = 0;
     do {
         buf[i++] = value % 10 + '0';
     } while ((value /= 10) > 0);
+
+    // Append minus if needed
+    if (negative)
+        buf[i++] = '-';
     buf[i] = '\0';
     reverse(buf);
     return i;
