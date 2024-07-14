@@ -7,6 +7,7 @@
 #include "utils.h"
 
 #include <cstring>
+#include <cmath>
 
 namespace utils {
 
@@ -65,12 +66,18 @@ uint32_t itoa(int32_t value, char* buf)
 uint32_t ftoa(float value, char* buf, uint8_t precision)
 {
     // Extract integer part
+    int32_t pos = 0;
     int32_t ipart = static_cast<int32_t>(value);
-    int32_t pos = itoa(ipart, buf);
+    if (ipart == 0 && value < 0.0f) {
+        buf[pos++] = '-';
+        buf[pos++] = '0';
+    } else {
+        pos = itoa(ipart, &buf[pos]);
+    }
     buf[pos++] = '.';
 
     // Extract fraction digits
-    float fpart = value - static_cast<float>(ipart);
+    float fpart = fabsf(value - static_cast<float>(ipart));
     for (uint8_t i = 0; i < precision; ++i) {
         fpart *= 10;
         buf[pos++] = static_cast<int32_t>(fpart) % 10 + '0';
