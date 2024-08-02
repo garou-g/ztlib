@@ -9,11 +9,15 @@
 #include "periph/can.h"
 #include "gd32/gd32_types.h"
 
+#include "etl/queue.h"
+
 namespace gd32 {
 
 struct CanConfig {
     int32_t can;
     uint32_t baudrate;
+    uint32_t filterId;
+    uint32_t filterMask;
     GpioConfig tx;
     GpioConfig rx;
 };
@@ -21,6 +25,8 @@ struct CanConfig {
 /// @brief GD32 CAN bus peripheral driver
 class Can : public ::Can {
 public:
+    using CanQueue = etl::queue<CanMsg, 16, etl::memory_model::MEMORY_MODEL_MEDIUM>;
+
     Can() = default;
 
     bool setConfig(const void* drvConfig) override;
@@ -29,11 +35,14 @@ public:
 
     bool ioctl(uint32_t cmd, void* pValue) override;
 
-private:
-    int32_t write_(const void* buf, uint32_t len) override;
-    int32_t read_(void* buf, uint32_t len) override;
+    int32_t write(const CanMsg& msg) override;
+    int32_t read(CanMsg& msg) override;
 
+    static void irqHandler(Can* can, uint8_t fifo);
+
+private:
     CanConfig config_;
+    CanQueue rxQueue_;
 };
 
 }; // namespace gd32
