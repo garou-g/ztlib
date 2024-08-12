@@ -15,7 +15,7 @@ namespace gd32 {
 
 struct CanConfig {
     int32_t can;
-    uint32_t baudrate;
+    CanBaud baudrate;
     uint32_t filterId;
     uint32_t filterMask;
     GpioConfig tx;

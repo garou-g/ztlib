@@ -100,9 +100,36 @@ bool Can::open()
     canParam.trans_fifo_order = DISABLE;
     canParam.working_mode = CAN_NORMAL_MODE;
     canParam.resync_jump_width = CAN_BT_SJW_1TQ;
-    canParam.time_segment_1 = CAN_BT_BS1_13TQ;
-    canParam.time_segment_2 = CAN_BT_BS2_2TQ;
-    canParam.prescaler = 21; // 42 MHz APB1 and 125 kBit/s // TODO: 250 kbit
+
+    // For APB1 frequency 42 MHz
+    switch (config_.baudrate) {
+    case CanBaud::Baud50k:
+        canParam.time_segment_1 = CAN_BT_BS1_12TQ;
+        canParam.time_segment_2 = CAN_BT_BS2_2TQ;
+        canParam.prescaler = 56;
+        break;
+    case CanBaud::Baud125k:
+        canParam.time_segment_1 = CAN_BT_BS1_13TQ;
+        canParam.time_segment_2 = CAN_BT_BS2_2TQ;
+        canParam.prescaler = 21;
+        break;
+    case CanBaud::Baud250k:
+        canParam.time_segment_1 = CAN_BT_BS1_11TQ;
+        canParam.time_segment_2 = CAN_BT_BS2_2TQ;
+        canParam.prescaler = 12;
+        break;
+    case CanBaud::Baud500k:
+        canParam.time_segment_1 = CAN_BT_BS1_11TQ;
+        canParam.time_segment_2 = CAN_BT_BS2_2TQ;
+        canParam.prescaler = 6;
+        break;
+    case CanBaud::Baud1M:
+        canParam.time_segment_1 = CAN_BT_BS1_11TQ;
+        canParam.time_segment_2 = CAN_BT_BS2_2TQ;
+        canParam.prescaler = 3;
+    default:
+        break;
+    }
 
     can_deinit(config_.can);
     can_init(config_.can, &canParam);

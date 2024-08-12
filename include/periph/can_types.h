@@ -8,6 +8,14 @@
 
 #include <cstdint>
 
+enum class CanBaud {
+    Baud50k,
+    Baud125k,
+    Baud250k,
+    Baud500k,
+    Baud1M,
+};
+
 #define CAN_DATA_MAX_SIZE 8U
 
 struct CanMsg {
