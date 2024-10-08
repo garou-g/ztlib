@@ -379,6 +379,10 @@ void System::restart()
  */
 void System::goToSleep() const
 {
+    // Disable low power debug for prevent hanging after debug session
+    dbg_low_power_disable(DBG_LOW_POWER_SLEEP | DBG_LOW_POWER_DEEPSLEEP |
+        DBG_LOW_POWER_STANDBY);
+
     pmu_wakeup_pin_enable();
     pmu_to_standbymode();
 }
