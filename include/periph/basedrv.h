@@ -6,14 +6,7 @@
 
 #pragma once
 
-#include <stdint.h>
-
-/// @brief Driver operations result enumeration
-enum class DrvResult {
-    Finished,
-    InProgress,
-    Error,
-};
+#include "types.h"
 
 /**
  * @brief Abstract base peripheral driver
