@@ -27,6 +27,11 @@ public:
     Time(int32_t ms);
     Time(int32_t h, int32_t s, int32_t ms);
 
+    bool isPast() const;
+
+    void setTimeout(uint32_t ms);
+    void setTimeout(const Time& delay);
+
     bool isZero() const;
 
     int32_t toSec() const;

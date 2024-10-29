@@ -121,6 +121,36 @@ Time::Time(int32_t h, int32_t s, int32_t ms)
 }
 
 /**
+ * @brief Compares current time with end time mark.
+ *
+ * @return true if current time exceeds end time otherwise false
+ */
+bool Time::isPast() const
+{
+    return Time::now() > *this;
+}
+
+/**
+ * @brief Sets time value to now with chosen delay added
+ *
+ * @param ms delay to add in milliseconds
+ */
+void Time::setTimeout(uint32_t ms)
+{
+    *this = Time::now() + ms;
+}
+
+/**
+ * @brief Sets time value to now with chosen delay added
+ *
+ * @param delay delay to add
+ */
+void Time::setTimeout(const Time& delay)
+{
+    *this = Time::now() + delay;
+}
+
+/**
  * @brief Checks if current object is zero Time - other words all
  *      fields is equal to zero
  *
