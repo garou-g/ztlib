@@ -133,17 +133,17 @@ bool Can::open()
 
     can_deinit(config_.can);
     can_init(config_.can, &canParam);
-    can_interrupt_enable(config_.can, CAN_INT_RFNE0 | CAN_INT_RFNE1);
+    can_interrupt_enable(config_.can, CAN_INT_RFNE0);
 
     can_filter_parameter_struct canFilter;
     can_struct_para_init(CAN_FILTER_STRUCT, &canFilter);
     canFilter.filter_number = 0;
     canFilter.filter_mode = CAN_FILTERMODE_MASK;
     canFilter.filter_bits = CAN_FILTERBITS_32BIT;
-    canFilter.filter_list_high = config_.filterId >> 16;
-    canFilter.filter_list_low = config_.filterId;
-    canFilter.filter_mask_high = config_.filterMask >> 16;
-    canFilter.filter_mask_low = config_.filterMask;
+    canFilter.filter_list_high = config_.filterId >> 13;
+    canFilter.filter_list_low = config_.filterId << 3;
+    canFilter.filter_mask_high = config_.filterMask >> 13;
+    canFilter.filter_mask_low = config_.filterMask << 3;
     canFilter.filter_fifo_number = CAN_FIFO0;
     canFilter.filter_enable = ENABLE;
     can_filter_init(&canFilter);
@@ -243,17 +243,22 @@ void Can::irqHandler(Can* can, uint8_t fifo)
 
     CanMsg msg;
     can_receive_message_struct canMsg;
-    can_message_receive(can->config_.can, fifo, &canMsg);
-    if (canMsg.rx_ff == CAN_FF_STANDARD) {
-        msg.id = canMsg.rx_sfid;
-    } else {
-        msg.id = canMsg.rx_efid;
+
+    // Get messages count in FIFO and read it all
+    const uint8_t count = can_receive_message_length_get(can->config_.can, fifo);
+    for (uint8_t i = 0; i < count; ++i) {
+        can_message_receive(can->config_.can, fifo, &canMsg);
+        if (canMsg.rx_ff == CAN_FF_STANDARD) {
+            msg.id = canMsg.rx_sfid;
+        } else {
+            msg.id = canMsg.rx_efid;
+        }
+        msg.size = canMsg.rx_dlen;
+        for (uint8_t i = 0; i < msg.size; ++i) {
+            msg.data[i] = canMsg.rx_data[i];
+        }
+        can->rxQueue_.push(msg);
     }
-    msg.size = canMsg.rx_dlen;
-    for (uint8_t i = 0; i < msg.size; ++i) {
-        msg.data[i] = canMsg.rx_data[i];
-    }
-    can->rxQueue_.push(msg);
 }
 
 extern "C" void CAN0_RX0_IRQHandler(void)
