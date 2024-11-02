@@ -97,9 +97,12 @@ void Version::getHardwareVersion(Hardware& hw)
 
 /**
  * @brief Reads firmware version and fills structure
- *      Using this format:
- *      [major1].[major2].[minor1].[minor2]-[commits ahead]-[commit hash]-[dirty]
- *      Example: 2.0.11.0-3-gebb41ea-dirty
+ *      Using format from https://semver.org:
+ *      [major].[minor].[patch]
+ *      Source data can contain additional information from git:
+ *      [major].[minor].[patch (commits ahead)]-[commit hash]-[dirty]
+ *
+ *      Example: 0.3-2-g58a0619-dirty
  *
  * @param fw reference for structure with FW versions
  * @param fwStr reference for string with FW versions, can be null
@@ -107,17 +110,21 @@ void Version::getHardwareVersion(Hardware& hw)
 void Version::getFirmwareVersion(Firmware& fw, char* fwStr)
 {
     FwString fwString = getFwValue();
-    int j = 0;
-    fw = { 0, 0, 0, 0 };
+    fw = { 0, 0, 0 };
 
-    for (int i = 0; i < 4; ++i) {
+    int j = 0;
+    for (int i = 0; i < 3; ++i) {
         int value = 0;
         int k = 0;
         char buf[FW_SIZE] = { 0 };
         for (; j < FW_SIZE; ++j) {
-            // Delimiter symbols is . - and zero
+            // Replace - symbol
+            if (fwString.data[j] == '-') {
+                fwString.data[j] = '.';
+            }
+
+            // Delimiter symbols is . and zero
             if (fwString.data[j] == '.'
-                || fwString.data[j] == '-'
                 || fwString.data[j] == '\0') {
                 buf[k] = '\0';
                 value = atoi(buf);
@@ -137,13 +144,11 @@ void Version::getFirmwareVersion(Firmware& fw, char* fwStr)
             }
         }
         if (i == 0)
-            fw.major1 = value;
+            fw.major = value;
         else if (i == 1)
-            fw.major2 = value;
-        else if (i == 2)
-            fw.minor1 = value;
+            fw.minor = value;
         else
-            fw.minor2 = value;
+            fw.patch = value;
     }
 
     // Copy actual part of version in result buffer if present

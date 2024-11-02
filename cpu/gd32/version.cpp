@@ -30,7 +30,7 @@ Version::FwString Version::getFwValue()
 #if defined(VERSION_NUMBER)
         .data = VERSION_NUMBER
 #else
-        .data = "0.0.0.0"
+        .data = "0.0.0"
 #endif
     };
     return fw;

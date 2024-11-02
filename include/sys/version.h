@@ -27,10 +27,9 @@ public:
 
     // Firmware version structure with two major digits and two minor
     typedef struct {
-        uint8_t major1;
-        uint8_t major2;
-        uint8_t minor1;
-        uint8_t minor2;
+        uint8_t major;
+        uint8_t minor;
+        uint8_t patch;
     } Firmware;
 
     Version();
