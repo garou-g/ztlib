@@ -11,6 +11,8 @@
 
 #include <sys/time.h>
 
+extern uint32_t SystemCoreClock;
+
 RETAIN_NOINIT_ATTR static uint32_t sysTime;
 
 /**
