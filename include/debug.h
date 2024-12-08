@@ -7,6 +7,7 @@
 #pragma once
 
 #include "periph/serialdrv.h"
+#include "periph/gpio.h"
 
 /// @brief Callback for received debug data
 typedef void (* DebugCallback)(const uint8_t* buf, uint32_t len);
@@ -16,6 +17,7 @@ class Debug {
 public:
     static void init(DebugCallback debugCb = nullptr);
     static void setDriver(SerialDrv* drv);
+    static void setTestPin(Gpio* testPin);
 
     static void enable();
     static void disable();
@@ -23,6 +25,9 @@ public:
 
     static void print(const char* buf);
     static void print(const char* buf, uint32_t len);
+
+    static void onTestPin();
+    static void offTestPin();
 
     static void dispatcher();
 
@@ -32,6 +37,7 @@ private:
     static bool enabled_;
     static DebugCallback cb_;
     static SerialDrv* drv_;
+    static Gpio* testPin_;
 
     Debug() = delete;
 };

@@ -12,6 +12,7 @@
 RETAIN_NOINIT_ATTR bool Debug::enabled_;
 DebugCallback Debug::cb_ = nullptr;
 SerialDrv* Debug::drv_ = nullptr;
+Gpio* Debug::testPin_ = nullptr;
 
 /**
  * @brief Inits debug module and sets callback if it exists
@@ -34,6 +35,17 @@ void Debug::setDriver(SerialDrv* drv)
 {
     assert(drv != nullptr);
     drv_ = drv;
+}
+
+/**
+ * @brief Sets test pin instance
+ *
+ * @param testPin test pin gpio
+ */
+void Debug::setTestPin(Gpio* testPin)
+{
+    assert(testPin != nullptr);
+    testPin_ = testPin;
 }
 
 /**
@@ -92,6 +104,26 @@ void Debug::print(const char* buf, uint32_t len)
 
     assert(drv_ != nullptr);
     drv_->write(buf, len);
+}
+
+/**
+ * @brief Sets test pin to high
+ */
+void Debug::onTestPin()
+{
+    if (!testPin_ || !enabled_)
+        return;
+    testPin_->set();
+}
+
+/**
+ * @brief Sets test pin to low
+ */
+void Debug::offTestPin()
+{
+    if (!testPin_ || !enabled_)
+        return;
+    testPin_->reset();
 }
 
 /**
