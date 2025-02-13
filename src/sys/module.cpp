@@ -62,6 +62,23 @@ void Module::taskInit(const char* name, uint32_t stack, UBaseType_t prior)
     if (xHandle_ == NULL)
         xTaskCreate(task, name, stack, this, prior, &xHandle_);
 }
+
+#if defined(ESP_PLATFORM)
+/**
+ * @brief FreeRTOS and ESP32 ONLY. Internal task initialization function for later
+ *      task start and pinned to CPU core
+ *
+ * @param name human readable task name
+ * @param stack task stack size
+ * @param prior task priority
+ * @param coreId core id for task
+ */
+void Module::taskInit(const char* name, uint32_t stack, UBaseType_t prior, uint32_t coreId)
+{
+    if (xHandle_ == NULL)
+        xTaskCreatePinnedToCore(task, name, stack, this, prior, &xHandle_, coreId);
+}
+#endif
 #endif
 
 /**

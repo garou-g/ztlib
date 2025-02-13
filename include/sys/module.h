@@ -25,6 +25,9 @@ public:
 #if defined(FREERTOS_USED)
     Module(const char* name, uint32_t stack, UBaseType_t prior);
     void taskInit(const char* name, uint32_t stack, UBaseType_t prior);
+#if defined(ESP_PLATFORM)
+    void taskInit(const char* name, uint32_t stack, UBaseType_t prior, uint32_t coreId);
+#endif
 
     static const UBaseType_t kDefaultPrior;
 #endif
