@@ -14,7 +14,7 @@
 #endif
 
 /// @brief Callback for received debug data
-typedef void (* DebugCallback)(const uint8_t* buf, uint32_t len);
+typedef void (* DebugCallback)(const char* buf, uint32_t len);
 
 /// @brief Serial data debug module
 class Debug {
@@ -40,7 +40,7 @@ private:
 
     static bool enabled_;
     static uint32_t bufPos_;
-    static uint8_t buf_[kMsgSize];
+    static char buf_[kMsgSize];
     static DebugCallback cb_;
     static SerialDrv* drv_;
     static Gpio* testPin_;

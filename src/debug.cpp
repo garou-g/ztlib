@@ -11,7 +11,7 @@
 
 RETAIN_NOINIT_ATTR bool Debug::enabled_;
 uint32_t Debug::bufPos_ = 0;
-uint8_t Debug::buf_[kMsgSize] = {};
+char Debug::buf_[kMsgSize] = {};
 DebugCallback Debug::cb_ = nullptr;
 SerialDrv* Debug::drv_ = nullptr;
 Gpio* Debug::testPin_ = nullptr;
@@ -142,7 +142,7 @@ void Debug::dispatcher()
 
     // Process only if callback exists
     if (cb_) {
-        uint8_t tmp[kMsgSize];
+        char tmp[kMsgSize];
         const int readed = drv_->read(tmp, kMsgSize);
 
         // If data was readed - check end of line or just add to internal buf
@@ -150,7 +150,7 @@ void Debug::dispatcher()
             bool eol = false;
             for (uint32_t i = 0; i < readed; ++i) {
                 if (tmp[i] == '\n') {
-                    // len += i;
+                    buf_[bufPos_++] = '\0';
                     eol = true;
                     break;
                 } else {
