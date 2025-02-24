@@ -10,6 +10,8 @@
 #include <cassert>
 
 RETAIN_NOINIT_ATTR bool Debug::enabled_;
+uint32_t Debug::bufPos_ = 0;
+uint8_t Debug::buf_[kMsgSize] = {};
 DebugCallback Debug::cb_ = nullptr;
 SerialDrv* Debug::drv_ = nullptr;
 Gpio* Debug::testPin_ = nullptr;
@@ -23,6 +25,8 @@ void Debug::init(DebugCallback debugCb)
 {
     // Driver can be set before or after init or even not set
     enabled_ = true;
+    bufPos_ = 0;
+    buf_[bufPos_] = '\0';
     cb_ = debugCb;
 }
 
@@ -135,10 +139,34 @@ void Debug::dispatcher()
         return;
 
     assert(drv_ != nullptr);
-    uint8_t buf[kMsgSize];
-    const int readed = drv_->read(buf, kMsgSize);
-    if (readed > 0 && cb_) {
-        cb_(buf, readed);
+
+    // Process only if callback exists
+    if (cb_) {
+        uint8_t tmp[kMsgSize];
+        const int readed = drv_->read(tmp, kMsgSize);
+
+        // If data was readed - check end of line or just add to internal buf
+        if (readed > 0) {
+            bool eol = false;
+            for (uint32_t i = 0; i < readed; ++i) {
+                if (tmp[i] == '\n') {
+                    // len += i;
+                    eol = true;
+                    break;
+                } else {
+                    buf_[bufPos_++] = tmp[i];
+                    if (bufPos_ >= kMsgSize) {
+                        bufPos_ = 0;
+                    }
+                }
+            }
+
+            // End of line found - proccess callback
+            if (eol) {
+                cb_(buf_, bufPos_);
+                bufPos_ = 0;
+            }
+        }
     }
 }
 
