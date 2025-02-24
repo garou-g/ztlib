@@ -1,7 +1,7 @@
 #######################################################################
 # The Embedded Template Library (https://www.etlcpp.com/)
 #######################################################################
-cmake_minimum_required(VERSION 3.5.0)
+cmake_minimum_required(VERSION 3.30)
 
 function(determine_version_with_file VER_FILE_NAME)
     file(READ ${VER_FILE_NAME} ETL_VERSION_RAW)
