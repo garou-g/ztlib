@@ -6,6 +6,7 @@
 
 #include "debug.h"
 #include "attr.h"
+#include "crc.h"
 
 #include <cassert>
 
@@ -108,6 +109,114 @@ void Debug::print(const char* buf, uint32_t len)
 
     assert(drv_ != nullptr);
     drv_->write(buf, len);
+}
+
+void Debug::out(uint8_t cmd, int8_t value)
+{
+    if (!enabled_)
+        return;
+
+    assert(drv_ != nullptr);
+    const uint8_t len = sizeof(cmd) + sizeof(value);
+    uint8_t* pValue = (uint8_t*)&value;
+    uint8_t buf[] = {
+        kMsgFlag1,
+        kMsgFlag2,
+        len,
+        cmd,
+        pValue[0],
+        0,
+    };
+    buf[sizeof(buf) - 1] = crc8(&buf[3], len);
+    drv_->write(buf, sizeof(buf));
+}
+
+void Debug::out(uint8_t cmd, int16_t value)
+{
+    if (!enabled_)
+        return;
+
+    assert(drv_ != nullptr);
+    const uint8_t len = sizeof(cmd) + sizeof(value);
+    uint8_t* pValue = (uint8_t*)&value;
+    uint8_t buf[] = {
+        kMsgFlag1,
+        kMsgFlag2,
+        len,
+        cmd,
+        pValue[0],
+        pValue[1],
+        0,
+    };
+    buf[sizeof(buf) - 1] = crc8(&buf[3], len);
+    drv_->write(buf, sizeof(buf));
+}
+
+void Debug::out(uint8_t cmd, int32_t value)
+{
+    if (!enabled_)
+        return;
+
+    assert(drv_ != nullptr);
+    const uint8_t len = sizeof(cmd) + sizeof(value);
+    uint8_t* pValue = (uint8_t*)&value;
+    uint8_t buf[] = {
+        kMsgFlag1,
+        kMsgFlag2,
+        len,
+        cmd,
+        pValue[0],
+        pValue[1],
+        pValue[2],
+        pValue[3],
+        0,
+    };
+    buf[sizeof(buf) - 1] = crc8(&buf[3], len);
+    drv_->write(buf, sizeof(buf));
+}
+
+void Debug::out(uint8_t cmd, float value)
+{
+    if (!enabled_)
+        return;
+
+    assert(drv_ != nullptr);
+    const uint8_t len = sizeof(cmd) + sizeof(value);
+    uint8_t* pValue = (uint8_t*)&value;
+    uint8_t buf[] = {
+        kMsgFlag1,
+        kMsgFlag2,
+        len,
+        pValue[0],
+        pValue[1],
+        pValue[2],
+        pValue[3],
+        0,
+    };
+    buf[sizeof(buf) - 1] = crc8(&buf[3], len);
+    drv_->write(buf, sizeof(buf));
+}
+
+void Debug::out(uint8_t cmd, const char* str)
+{
+    if (!enabled_)
+        return;
+
+    assert(drv_ != nullptr);
+    uint32_t len = 0;
+    while (str[len] != 0)
+        ++len;
+
+    uint8_t buf[5 + len];
+    buf[0] = kMsgFlag1;
+    buf[1] = kMsgFlag2;
+    buf[2] = len + sizeof(cmd);
+    buf[3] = cmd;
+    for (uint32_t i = 0; i < len; ++i) {
+        buf[4 + i] = str[i];
+    }
+    buf[sizeof(buf) - 1] = crc8(&buf[3], len + sizeof(cmd));
+    drv_->write(buf, sizeof(buf));
 }
 
 /**

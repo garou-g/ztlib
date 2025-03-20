@@ -30,6 +30,12 @@ public:
     static void print(const char* buf);
     static void print(const char* buf, uint32_t len);
 
+    static void out(uint8_t cmd, int8_t value);
+    static void out(uint8_t cmd, int16_t value);
+    static void out(uint8_t cmd, int32_t value);
+    static void out(uint8_t cmd, float value);
+    static void out(uint8_t cmd, const char* str);
+
     static void onTestPin();
     static void offTestPin();
 
@@ -37,6 +43,8 @@ public:
 
 private:
     static constexpr int kMsgSize = DEBUG_BUFFER_SIZE;
+    static constexpr uint8_t kMsgFlag1 = 0x17;
+    static constexpr uint8_t kMsgFlag2 = 0xAA;
 
     static bool enabled_;
     static uint32_t bufPos_;
