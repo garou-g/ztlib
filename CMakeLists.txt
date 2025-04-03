@@ -41,6 +41,9 @@ if(${ZT_CPU_PLATFORM} STREQUAL GD32)
     list(APPEND ${PROJECT_NAME}_DEFINES -DGD32_PLATFORM)
 
     # Add HAL components if defined
+    if(ADC IN_LIST ZT_HAL)
+        list(APPEND ${PROJECT_NAME}_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/cpu/gd32/adc.cpp)
+    endif()
     if(CAN IN_LIST ZT_HAL)
         list(APPEND ${PROJECT_NAME}_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/cpu/gd32/can.cpp)
     endif()
