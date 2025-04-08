@@ -220,6 +220,25 @@ void Debug::out(uint8_t cmd, const char* str)
     drv_->write(buf, sizeof(buf));
 }
 
+void Debug::out(uint8_t cmd, const uint8_t* value, uint32_t len)
+{
+    if (!enabled_)
+        return;
+
+    assert(drv_ != nullptr);
+
+    uint8_t buf[5 + len];
+    buf[0] = kMsgFlag1;
+    buf[1] = kMsgFlag2;
+    buf[2] = len + sizeof(cmd);
+    buf[3] = cmd;
+    for (uint32_t i = 0; i < len; ++i) {
+        buf[4 + i] = value[i];
+    }
+    buf[sizeof(buf) - 1] = crc8(&buf[3], len + sizeof(cmd));
+    drv_->write(buf, sizeof(buf));
+}
+
 /**
  * @brief Sets test pin to high
  */

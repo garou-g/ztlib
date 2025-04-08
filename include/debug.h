@@ -35,6 +35,7 @@ public:
     static void out(uint8_t cmd, int32_t value);
     static void out(uint8_t cmd, float value);
     static void out(uint8_t cmd, const char* str);
+    static void out(uint8_t cmd, const uint8_t* value, uint32_t len);
 
     static void onTestPin();
     static void offTestPin();
