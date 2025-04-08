@@ -144,8 +144,8 @@ void Debug::out(uint8_t cmd, int16_t value)
         kMsgFlag2,
         len,
         cmd,
-        pValue[0],
         pValue[1],
+        pValue[0],
         0,
     };
     buf[sizeof(buf) - 1] = crc8(&buf[3], len);
@@ -165,10 +165,10 @@ void Debug::out(uint8_t cmd, int32_t value)
         kMsgFlag2,
         len,
         cmd,
-        pValue[0],
-        pValue[1],
-        pValue[2],
         pValue[3],
+        pValue[2],
+        pValue[1],
+        pValue[0],
         0,
     };
     buf[sizeof(buf) - 1] = crc8(&buf[3], len);
@@ -187,10 +187,11 @@ void Debug::out(uint8_t cmd, float value)
         kMsgFlag1,
         kMsgFlag2,
         len,
-        pValue[0],
-        pValue[1],
-        pValue[2],
+        cmd,
         pValue[3],
+        pValue[2],
+        pValue[1],
+        pValue[0],
         0,
     };
     buf[sizeof(buf) - 1] = crc8(&buf[3], len);
