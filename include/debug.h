@@ -6,6 +6,11 @@
 
 #pragma once
 
+// Check debug messages protocol header and include it if exists
+#if __has_include("debug_msg.h")
+#include "debug_msg.h"
+#endif
+
 #include "periph/serialdrv.h"
 #include "periph/gpio.h"
 
@@ -36,6 +41,8 @@ public:
     static void out(uint8_t cmd, float value);
     static void out(uint8_t cmd, const char* str);
     static void out(uint8_t cmd, const uint8_t* value, uint32_t len);
+
+    static void outVersion();
 
     static void onTestPin();
     static void offTestPin();

@@ -7,8 +7,13 @@
 #include "debug.h"
 #include "attr.h"
 #include "crc.h"
+#include "system.h"
 
 #include <cassert>
+
+#if !defined(DEVICE_VERSION)
+#define DEVICE_VERSION 0x01
+#endif
 
 RETAIN_NOINIT_ATTR bool Debug::enabled_;
 uint32_t Debug::bufPos_ = 0;
@@ -111,6 +116,12 @@ void Debug::print(const char* buf, uint32_t len)
     drv_->write(buf, len);
 }
 
+/**
+ * @brief Sends debug data with chosen command and byte value
+ *
+ * @param cmd command
+ * @param value signed byte
+ */
 void Debug::out(uint8_t cmd, int8_t value)
 {
     if (!enabled_)
@@ -131,6 +142,12 @@ void Debug::out(uint8_t cmd, int8_t value)
     drv_->write(buf, sizeof(buf));
 }
 
+/**
+ * @brief Sends debug data with chosen command and short value
+ *
+ * @param cmd command
+ * @param value signed short
+ */
 void Debug::out(uint8_t cmd, int16_t value)
 {
     if (!enabled_)
@@ -152,6 +169,12 @@ void Debug::out(uint8_t cmd, int16_t value)
     drv_->write(buf, sizeof(buf));
 }
 
+/**
+ * @brief Sends debug data with chosen command and integer value
+ *
+ * @param cmd command
+ * @param value signed int
+ */
 void Debug::out(uint8_t cmd, int32_t value)
 {
     if (!enabled_)
@@ -175,6 +198,12 @@ void Debug::out(uint8_t cmd, int32_t value)
     drv_->write(buf, sizeof(buf));
 }
 
+/**
+ * @brief Sends debug data with chosen command and float value
+ *
+ * @param cmd command
+ * @param value float
+ */
 void Debug::out(uint8_t cmd, float value)
 {
     if (!enabled_)
@@ -198,6 +227,12 @@ void Debug::out(uint8_t cmd, float value)
     drv_->write(buf, sizeof(buf));
 }
 
+/**
+ * @brief Sends debug data with chosen command and string data
+ *
+ * @param cmd command
+ * @param value zero-terminated string
+ */
 void Debug::out(uint8_t cmd, const char* str)
 {
     if (!enabled_)
@@ -220,6 +255,13 @@ void Debug::out(uint8_t cmd, const char* str)
     drv_->write(buf, sizeof(buf));
 }
 
+/**
+ * @brief Sends debug data with chosen command and byte buffer data
+ *
+ * @param cmd command
+ * @param value data buffer
+ * @param len buffer length
+ */
 void Debug::out(uint8_t cmd, const uint8_t* value, uint32_t len)
 {
     if (!enabled_)
@@ -237,6 +279,22 @@ void Debug::out(uint8_t cmd, const uint8_t* value, uint32_t len)
     }
     buf[sizeof(buf) - 1] = crc8(&buf[3], len + sizeof(cmd));
     drv_->write(buf, sizeof(buf));
+}
+
+/**
+ * @brief Sends device and firmware versions debug data
+ */
+void Debug::outVersion()
+{
+    auto& hw = System::getInstance().hardwareVersion();
+    uint8_t buf[5];
+    buf[0] = hw.major1;
+    buf[1] = hw.minor1;
+    auto& fw = System::getInstance().firmwareVersion();
+    buf[2] = fw.major;
+    buf[3] = fw.minor;
+    buf[4] = fw.patch;
+    Debug::out(DEVICE_VERSION, buf, sizeof(buf));
 }
 
 /**
