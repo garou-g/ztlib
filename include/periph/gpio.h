@@ -8,10 +8,18 @@
 
 #include "basedrv.h"
 
+enum class GpioDir {
+    Disabled,
+    Input,
+    Output,
+    InputOutput,
+};
+
 /// @brief Basic gpio driver config structure
 struct GpioConfig {
     int32_t port;
     int32_t pin;
+    GpioDir dir;
 };
 
 /// @brief Abstract gpio driver
