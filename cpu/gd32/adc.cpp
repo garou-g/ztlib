@@ -10,6 +10,16 @@
 
 namespace gd32 {
 
+struct AdcConfState {
+    uint32_t adc;
+    bool configured;
+    uint8_t count;
+};
+
+#define ADC_COUNT 3
+
+static AdcConfState adcInstances[ADC_COUNT] = { };
+
 static bool checkConfig(const gd32::AdcConfig* config)
 {
     assert(config != nullptr);
@@ -46,37 +56,99 @@ static void initAdcPeriph(const gd32::AdcConfig* config)
     if (config->adc == 0)
         return;
 
-    enableClock(config->adc);
-
-#if defined(GD32F4XX_H)
-    adc_clock_config(static_cast<uint32_t>(config->prescaler));
-    adc_deinit();
-    adc_resolution_config(config->adc, config->resolution);
-    switch (config->mode) {
-    case AdcMode::OneShoot:
-        adc_sync_mode_config(ADC_SYNC_MODE_INDEPENDENT);
-        adc_special_function_config(config->adc, ADC_CONTINUOUS_MODE, DISABLE);
-        adc_special_function_config(config->adc, ADC_SCAN_MODE, DISABLE);
-        adc_data_alignment_config(config->adc, ADC_DATAALIGN_RIGHT);
-
-        adc_channel_length_config(config->adc, ADC_ROUTINE_CHANNEL, 1);
-        adc_routine_channel_config(config->adc, 0, config->channel, config->sampleTime);
-
-        adc_external_trigger_source_config(config->adc, ADC_ROUTINE_CHANNEL, ADC_EXTTRIG_ROUTINE_T0_CH0);
-        adc_external_trigger_config(config->adc, ADC_ROUTINE_CHANNEL, EXTERNAL_TRIGGER_DISABLE);
-        break;
-
-    case AdcMode::Continuous:
-        break;
-
-    default:
-        break;
+    // Find existing configuration
+    AdcConfState* adcState = nullptr;
+    for (int i = 0; i < ADC_COUNT; ++i) {
+        if (adcInstances[i].adc == config->adc) {
+            adcState = &adcInstances[i];
+        }
     }
-    adc_enable(config->adc);
-    adc_calibration_enable(config->adc);
-    for (volatile int i = 0; i < 1000; ++i)
-        ; // wait for calibration to finish
-#endif
+
+    // If not found already configured - take first empty
+    if (!adcState) {
+        for (int i = 0; i < ADC_COUNT; ++i) {
+            if (adcInstances[i].adc == 0) {
+                adcState = &adcInstances[i];
+                break;
+            }
+        }
+        adcState->adc = config->adc;
+        adcState->configured = false;
+        adcState->count = 1;
+    }
+
+    // Configure ADC itself
+    if (!adcState->configured) {
+        adcState->configured = true;
+        enableClock(config->adc);
+
+        #if defined(GD32F4XX_H)
+            adc_clock_config(static_cast<uint32_t>(config->prescaler));
+            adc_deinit();
+            adc_resolution_config(config->adc, config->resolution);
+            switch (config->mode) {
+            case AdcMode::OneShoot:
+                adc_sync_mode_config(ADC_SYNC_MODE_INDEPENDENT);
+                adc_special_function_config(config->adc, ADC_CONTINUOUS_MODE, DISABLE);
+                adc_special_function_config(config->adc, ADC_SCAN_MODE, DISABLE);
+                adc_data_alignment_config(config->adc, ADC_DATAALIGN_RIGHT);
+
+                adc_external_trigger_source_config(config->adc, ADC_ROUTINE_CHANNEL, ADC_EXTTRIG_ROUTINE_T0_CH0);
+                adc_external_trigger_config(config->adc, ADC_ROUTINE_CHANNEL, EXTERNAL_TRIGGER_DISABLE);
+                break;
+
+            case AdcMode::Continuous:
+                break;
+
+            default:
+                break;
+            }
+            adc_enable(config->adc);
+            adc_calibration_enable(config->adc);
+            for (volatile int i = 0; i < 1000; ++i)
+                ; // wait for calibration to finish
+        #endif
+    }
+
+    // Configure selected channel
+    #if defined(GD32F4XX_H)
+    adc_channel_length_config(config->adc, ADC_ROUTINE_CHANNEL, 1);
+    adc_routine_channel_config(config->adc, 0, config->channel, config->sampleTime);
+    #endif
+}
+
+static void deinitAdcPeriph(const gd32::AdcConfig* config)
+{
+    if (config->adc == 0)
+        return;
+
+    // Find existing configuration
+    AdcConfState* adcState = nullptr;
+    for (int i = 0; i < ADC_COUNT; ++i) {
+        if (adcInstances[i].adc == config->adc) {
+            adcState = &adcInstances[i];
+        }
+    }
+
+    // Process if this ADC was configured before
+    if (adcState->configured) {
+        if (adcState->count > 0)
+            adcState->count--;
+
+        // Disable current channel
+        // TODO:
+
+        // Disable ADC if no other open channels
+        if (adcState->count == 0) {
+            // Release ADC instance
+            adcState->adc = 0;
+            adcState->configured = false;
+
+            // Deinit ADC
+            adc_disable(config->adc);
+            adc_deinit();
+        }
+    }
 }
 
 bool Adc::setConfig(const void* drvConfig)
@@ -110,14 +182,14 @@ void Adc::close()
         return;
 
     deinitGpioPeriph(&config_.gpioConfig);
-    adc_disable(config_.adc);
-    adc_deinit();
+    deinitAdcPeriph(&config_);
 
     setOpened(false);
 }
 
 void Adc::start()
 {
+    adc_routine_channel_config(config_.adc, 0, config_.channel, config_.sampleTime);
     adc_software_trigger_enable(config_.adc, ADC_ROUTINE_CHANNEL);
 }
 
