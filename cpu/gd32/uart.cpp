@@ -245,8 +245,9 @@ void P_Uart::irqHandler(P_Uart* uart)
 
     // Receive data
     if (RESET != usart_interrupt_flag_get(uart->config_.uart, USART_INT_FLAG_RBNE)) {
+        const uint8_t data = usart_data_receive(uart->config_.uart);
         if (!uart->rxQueue_.full()) {
-            uart->rxQueue_.push(usart_data_receive(uart->config_.uart));
+            uart->rxQueue_.push(data);
         }
     }
 
