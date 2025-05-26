@@ -65,6 +65,26 @@ public:
     }
 
     /**
+     * @brief Set the auto ack/nak sending after message reception
+     *
+     * @param state new state of auto ack/nak sending
+     */
+    void setAutoAck(bool state)
+    {
+        autoAck_ = state;
+    }
+
+    /**
+     * @brief Returns current state of auto ack/nak sending after message reception
+     *
+     * @return true if enabled, otherwise disabled
+     */
+    bool autoAck() const
+    {
+        return autoAck_;
+    }
+
+    /**
      * @brief Writes data with protocol additional data
      *
      * @param data user data buffer
@@ -208,11 +228,13 @@ public:
                 step |= (byte << 8);
                 if (step == crc16(msg_.data, msg_.length)) {
                     // Received success
-                    ack();
+                    if (autoAck_)
+                        ack();
                     deleg_.parse.call_if(msg_);
                 } else {
                     // CRC is wrong
-                    nak();
+                    if (autoAck_)
+                        nak();
                 }
 
                 // Message finished, reset timeout
@@ -245,6 +267,7 @@ private:
     Time receiveTimeout_ = 0;
     Msg msg_ = {};
     Delegates deleg_;
+    bool autoAck_ = true;
 };
 
 /***************************** END OF FILE ************************************/
