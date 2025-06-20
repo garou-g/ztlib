@@ -21,12 +21,17 @@ public:
     bool ioctl(uint32_t cmd, void* pValue) override;
 
     void start() override;
+    void stop() override;
     uint16_t value() override;
     bool isReady() override;
 
+    static void irqHandler();
+
 private:
     AdcConfig config_;
-    uint16_t value_;
+    uint16_t value_ = 0;
+    bool ready_ = false;
+    bool started_ = false;
 };
 
 }; // namespace gd32

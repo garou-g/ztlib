@@ -33,6 +33,7 @@ struct AdcConfig {
     AdcPrescaler prescaler;
 #endif
     AdcMode mode;
+    bool useIrq;
     GpioConfig gpioConfig;
 };
 
