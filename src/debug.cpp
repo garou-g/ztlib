@@ -288,8 +288,8 @@ void Debug::outVersion()
 {
     auto& hw = System::getInstance().hardwareVersion();
     uint8_t buf[5];
-    buf[0] = hw.major1;
-    buf[1] = hw.minor1;
+    buf[0] = hw.major;
+    buf[1] = hw.minor;
     auto& fw = System::getInstance().firmwareVersion();
     buf[2] = fw.major;
     buf[3] = fw.minor;

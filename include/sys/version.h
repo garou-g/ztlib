@@ -19,10 +19,8 @@ public:
 
     // Hardware version structure with two major digits and two minor
     typedef struct {
-        uint8_t major1;
-        uint8_t major2;
-        uint8_t minor1;
-        uint8_t minor2;
+        uint8_t major;
+        uint8_t minor;
     } Hardware;
 
     // Firmware version structure with two major digits and two minor
@@ -39,16 +37,11 @@ public:
     void getFirmwareVersion(Firmware& fw, char* fwStr = nullptr);
 
 private:
-    struct HwVolt {
-        int major;
-        int minor;
-    };
-
     struct FwString {
         char data[FW_SIZE];
     };
 
-    HwVolt getHwValue();
+    Hardware getHwValue();
     FwString getFwValue();
 };
 

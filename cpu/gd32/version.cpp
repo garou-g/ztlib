@@ -7,16 +7,13 @@
 #include "version.h"
 
 /**
- * @brief Read HW version voltages and return it
+ * @brief Read HW version and return it
  *
- * @return Version::HwVolt structure with HW voltages
+ * @return Version::Hardware structure
  */
-Version::HwVolt Version::getHwValue()
+__attribute__((weak)) Version::Hardware Version::getHwValue()
 {
-    HwVolt hw;
-    hw.major = 0;
-    hw.minor = 0;
-    return hw;
+    return { 0, 0 };
 }
 
 /**
