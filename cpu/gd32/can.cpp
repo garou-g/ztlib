@@ -37,7 +37,9 @@ static void enableClock(uint32_t port)
     rcu_periph_enum portClk;
     switch (port) {
     case CAN0: portClk = RCU_CAN0; break;
+#if defined(GD32F4XX_H) || defined(GD32F10X_CL) || defined(GD32F30X_CL)
     case CAN1: portClk = RCU_CAN1; break;
+#endif
     default: return;
     }
     rcu_periph_clock_enable(portClk);
@@ -47,8 +49,14 @@ static void setIrq(uint32_t port, bool enable)
 {
     IRQn_Type irqType, irqType2;
     switch (port) {
+#if defined(GD32F4XX_H) || defined(GD32F10X_CL) || defined(GD32F30X_CL)
     case CAN0: irqType = CAN0_RX0_IRQn; irqType2 = CAN0_RX1_IRQn; break;
+#else
+    case CAN0: irqType = USBD_LP_CAN0_RX0_IRQn; irqType2 = CAN0_RX1_IRQn; break;
+#endif
+#if defined(GD32F4XX_H) || defined(GD32F10X_CL) || defined(GD32F30X_CL)
     case CAN1: irqType = CAN1_RX0_IRQn; irqType2 = CAN1_RX1_IRQn; break;
+#endif
     default: return;
     }
 
