@@ -231,7 +231,7 @@ bool Can::ioctl(uint32_t cmd, void* pValue)
         return false;
 
     switch (static_cast<IoctlCmd>(cmd)) {
-    case kSetBaudrate:
+    case kSetSpeed:
         if (pValue != nullptr) {
             return true;
         }

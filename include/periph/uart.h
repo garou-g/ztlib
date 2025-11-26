@@ -11,11 +11,7 @@
 /// @brief UART peripheral driver
 class Uart : public SerialDrv {
 public:
-    enum IoctlCmd {
-        kSetBaudrate,   // Sets UART baudrate
-        kFlushInput,
-        kFlushOutput,   // Blocks until output will be empty or timeout comes
-    };
+
 };
 
 /***************************** END OF FILE ************************************/

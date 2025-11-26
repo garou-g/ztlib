@@ -117,6 +117,15 @@ void Debug::print(const char* buf, uint32_t len)
 }
 
 /**
+ * @brief Flushes output and blocks until sends all data
+ *      Performs if interface support such, otherwise return immediately
+ */
+void Debug::flush()
+{
+    drv_->ioctl(SerialDrv::kFlushOutput, nullptr);
+}
+
+/**
  * @brief Sends debug data with chosen command and byte value
  *
  * @param cmd command

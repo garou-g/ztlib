@@ -13,8 +13,7 @@
 class Spi : public SerialDrv {
 public:
     enum IoctlCmd {
-        kSetCs,
-        kFlushInput,
+        kSetCs = SerialDrv::kCmdCount,
     };
 };
 

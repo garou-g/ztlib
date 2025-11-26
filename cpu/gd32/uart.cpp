@@ -207,7 +207,7 @@ bool P_Uart::ioctl(uint32_t cmd, void* pValue)
         return false;
 
     switch (static_cast<IoctlCmd>(cmd)) {
-    case kSetBaudrate:
+    case kSetSpeed:
         if (pValue != nullptr) {
             int32_t newBaud = *static_cast<int32_t*>(pValue);
             if (newBaud > 0) {

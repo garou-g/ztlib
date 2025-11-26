@@ -13,8 +13,7 @@
 class I2c : public SerialDrv {
 public:
     enum IoctlCmd {
-        kSetAddress,    // Sets I2C device address for all next transmissions
-        kSetSpeed,      // Sets I2C speed
+        kSetAddress = SerialDrv::kCmdCount,    // Sets I2C device address for all next transmissions
     };
 };
 

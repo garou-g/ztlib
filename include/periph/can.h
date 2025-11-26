@@ -13,8 +13,7 @@
 class Can : public SerialDrv {
 public:
     enum IoctlCmd {
-        kSetBaudrate,   // Sets CAN baudrate
-        kSetFilterId,
+        kSetFilterId = SerialDrv::kCmdCount,
         kSetMaskId,
     };
 

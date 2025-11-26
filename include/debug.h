@@ -34,6 +34,7 @@ public:
 
     static void print(const char* buf);
     static void print(const char* buf, uint32_t len);
+    static void flush();
 
     static void out(uint8_t cmd, int8_t value);
     static void out(uint8_t cmd, int16_t value);

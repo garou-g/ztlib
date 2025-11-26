@@ -18,6 +18,13 @@
  */
 class SerialDrv : public BaseDrv {
 public:
+    enum IoctlCmd {
+        kFlushInput,
+        kFlushOutput,   // Blocks until output will be empty or timeout comes
+        kSetSpeed,      // Sets interface speed
+        kCmdCount,
+    };
+
     /**
      * @brief Default constructor. Almost empty
      */
