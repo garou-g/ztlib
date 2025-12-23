@@ -37,6 +37,7 @@ public:
     void stop() override;
 
     uint32_t captured() const override;
+    void setCounter(uint32_t counter) override;
     uint32_t counter() const override;
 
     static void irqHandler(Timer* timer);

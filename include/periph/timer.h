@@ -14,6 +14,7 @@
 enum class TimerMode {
     General,
     Capture,
+    GeneralAndCapture,
     Pwm,
 };
 
@@ -47,6 +48,13 @@ public:
      * @return uint32_t captured value
      */
     virtual uint32_t captured() const = 0;
+
+    /**
+     * @brief Sets current timer counter value
+     *
+     * @param counter timer counter
+     */
+    virtual void setCounter(uint32_t counter) = 0;
 
     /**
      * @brief Returns current timer counter value

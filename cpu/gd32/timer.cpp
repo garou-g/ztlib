@@ -107,7 +107,7 @@ static void enableClock(uint32_t timer)
  */
 static void setIrq(const gd32::TimerConfig& config, bool state)
 {
-    IRQn_Type irqType;
+    IRQn_Type irqType, irqType2;
     switch (config.timer) {
 #if defined(GD32F30X_HD) || defined(GD32F30X_XD) || defined(GD32F30X_CL)
     case TIMER0:
@@ -115,6 +115,9 @@ static void setIrq(const gd32::TimerConfig& config, bool state)
             irqType = TIMER0_UP_IRQn;
         } else if (config.mode == TimerMode::Capture) {
             irqType = TIMER0_Channel_IRQn;
+        } else if (config.mode == TimerMode::GeneralAndCapture) {
+            irqType = TIMER0_UP_IRQn;
+            irqType2 = TIMER0_Channel_IRQn;
         } else {
             return;
         }
@@ -130,6 +133,9 @@ static void setIrq(const gd32::TimerConfig& config, bool state)
             irqType = TIMER7_UP_IRQn;
         } else if (config.mode == TimerMode::Capture) {
             irqType = TIMER7_Channel_IRQn;
+        } else if (config.mode == TimerMode::GeneralAndCapture) {
+            irqType = TIMER7_UP_IRQn;
+            irqType2 = TIMER7_Channel_IRQn;
         } else {
             return;
         }
@@ -148,8 +154,12 @@ static void setIrq(const gd32::TimerConfig& config, bool state)
 
     if (state) {
         nvic_irq_enable(irqType, 0, 0); // Timer IRQ has highest priority
+        if (config.mode == TimerMode::GeneralAndCapture)
+            nvic_irq_enable(irqType2, 0, 0);
     } else {
         nvic_irq_disable(irqType);
+        if (config.mode == TimerMode::GeneralAndCapture)
+            nvic_irq_disable(irqType2);
     }
 }
 
@@ -199,11 +209,10 @@ bool Timer::open()
 
     switch (config_.mode) {
     case TimerMode::General:
-        irqFlag_ = TIMER_INT_FLAG_UP;
-        timer_interrupt_enable(config_.timer, irqFlag_);
         break;
 
     case TimerMode::Capture:
+    case TimerMode::GeneralAndCapture:
         timer_ic_parameter_struct timer_icinitpara;
         timer_icinitpara.icpolarity = TIMER_IC_POLARITY_RISING;
         timer_icinitpara.icselection = TIMER_IC_SELECTION_DIRECTTI;
@@ -218,7 +227,6 @@ bool Timer::open()
         case TIMER_CH_2: irqFlag_ = TIMER_INT_FLAG_CH2; break;
         case TIMER_CH_3: irqFlag_ = TIMER_INT_FLAG_CH3; break;
         }
-        timer_interrupt_enable(config_.timer, irqFlag_);
         break;
 
     case TimerMode::Pwm:
@@ -265,6 +273,15 @@ void Timer::start()
 {
     if (!isOpen())
         return;
+
+    if (config_.mode == TimerMode::General
+        || config_.mode == TimerMode::GeneralAndCapture) {
+        timer_interrupt_enable(config_.timer, TIMER_INT_FLAG_UP);
+    }
+    if (config_.mode == TimerMode::Capture
+        || config_.mode == TimerMode::GeneralAndCapture) {
+        timer_interrupt_enable(config_.timer, irqFlag_);
+    }
     timer_enable(config_.timer);
 }
 
@@ -275,6 +292,15 @@ void Timer::stop()
 {
     if (!isOpen())
         return;
+
+    if (config_.mode == TimerMode::General
+        || config_.mode == TimerMode::GeneralAndCapture) {
+        timer_interrupt_disable(config_.timer, TIMER_INT_FLAG_UP);
+    }
+    if (config_.mode == TimerMode::Capture
+        || config_.mode == TimerMode::GeneralAndCapture) {
+        timer_interrupt_disable(config_.timer, irqFlag_);
+    }
     timer_disable(config_.timer);
 }
 
@@ -286,6 +312,16 @@ void Timer::stop()
 uint32_t Timer::captured() const
 {
     return captured_;
+}
+
+/**
+ * @brief Sets current timer counter value
+ *
+ * @param counter timer counter
+ */
+void Timer::setCounter(uint32_t counter)
+{
+    timer_counter_value_config(config_.timer, counter);
 }
 
 /**
@@ -345,12 +381,18 @@ void Timer::irqHandler(Timer* timer)
         return;
 
     // Check chosen interrupt flag
+    if (timer_interrupt_flag_get(timer->config_.timer, TIMER_INT_FLAG_UP) == SET) {
+        timer_interrupt_flag_clear(timer->config_.timer, TIMER_INT_FLAG_UP);
+        if (timer->config_.mode == TimerMode::General
+            || timer->config_.mode == TimerMode::GeneralAndCapture) {
+            timer->generalCb().call_if();
+        }
+    }
+
     if (timer_interrupt_flag_get(timer->config_.timer, timer->irqFlag_) == SET) {
         timer_interrupt_flag_clear(timer->config_.timer, timer->irqFlag_);
-
-        if (timer->config_.mode == TimerMode::General) {
-            timer->generalCb().call_if();
-        } else if (timer->config_.mode == TimerMode::Capture) {
+        if (timer->config_.mode == TimerMode::Capture
+            || timer->config_.mode == TimerMode::GeneralAndCapture) {
             timer->captured_ = timer_channel_capture_value_register_read(
                 timer->config_.timer, timer->config_.channel) + 1;
             timer->captureCb().call_if(timer->captured_);
