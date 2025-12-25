@@ -47,7 +47,6 @@ SOFTWARE.
 #include "functional.h"
 #include "static_assert.h"
 #include "placement_new.h"
-#include "algorithm.h"
 #include "initializer_list.h"
 
 #include <stddef.h>
@@ -280,6 +279,7 @@ namespace etl
     //*********************************************************************
     reference operator [](size_t i)
     {
+      ETL_ASSERT_CHECK_INDEX_OPERATOR(i < size(), ETL_ERROR(vector_out_of_bounds));
       return p_buffer[i];
     }
 
@@ -290,6 +290,7 @@ namespace etl
     //*********************************************************************
     const_reference operator [](size_t i) const
     {
+      ETL_ASSERT_CHECK_INDEX_OPERATOR(i < size(), ETL_ERROR(vector_out_of_bounds));
       return p_buffer[i];
     }
 
@@ -323,6 +324,7 @@ namespace etl
     //*********************************************************************
     reference front()
     {
+      ETL_ASSERT_CHECK_EXTRA(size() > 0, ETL_ERROR(vector_out_of_bounds));
       return *p_buffer;
     }
 
@@ -332,6 +334,7 @@ namespace etl
     //*********************************************************************
     const_reference front() const
     {
+      ETL_ASSERT_CHECK_EXTRA(size() > 0, ETL_ERROR(vector_out_of_bounds));
       return *p_buffer;
     }
 
@@ -341,6 +344,7 @@ namespace etl
     //*********************************************************************
     reference back()
     {
+      ETL_ASSERT_CHECK_EXTRA(size() > 0, ETL_ERROR(vector_out_of_bounds));
       return *(p_end - 1);
     }
 
@@ -350,6 +354,7 @@ namespace etl
     //*********************************************************************
     const_reference back() const
     {
+      ETL_ASSERT_CHECK_EXTRA(size() > 0, ETL_ERROR(vector_out_of_bounds));
       return *(p_end - 1);
     }
 
@@ -434,9 +439,8 @@ namespace etl
     //*********************************************************************
     void push_back(const_reference value)
     {
-#if defined(ETL_CHECK_PUSH_POP)
-      ETL_ASSERT_OR_RETURN(size() != CAPACITY, ETL_ERROR(vector_full));
-#endif
+      ETL_ASSERT_CHECK_PUSH_POP_OR_RETURN(size() != CAPACITY, ETL_ERROR(vector_full));
+
       create_back(value);
     }
 
@@ -448,9 +452,8 @@ namespace etl
     //*********************************************************************
     void push_back(rvalue_reference value)
     {
-#if defined(ETL_CHECK_PUSH_POP)
-      ETL_ASSERT_OR_RETURN(size() != CAPACITY, ETL_ERROR(vector_full));
-#endif
+      ETL_ASSERT_CHECK_PUSH_POP_OR_RETURN(size() != CAPACITY, ETL_ERROR(vector_full));
+
       create_back(etl::move(value));
     }
 #endif
@@ -464,9 +467,8 @@ namespace etl
     template <typename ... Args>
     reference emplace_back(Args && ... args)
     {
-#if defined(ETL_CHECK_PUSH_POP)
-      ETL_ASSERT(size() != CAPACITY, ETL_ERROR(vector_full));
-#endif
+      ETL_ASSERT_CHECK_PUSH_POP(size() != CAPACITY, ETL_ERROR(vector_full));
+
       ::new (p_end) T(etl::forward<Args>(args)...);
       ++p_end;
       ETL_INCREMENT_DEBUG_COUNT;
@@ -480,9 +482,8 @@ namespace etl
     //*********************************************************************
     reference emplace_back()
     {
-#if defined(ETL_CHECK_PUSH_POP)
-      ETL_ASSERT(size() != CAPACITY, ETL_ERROR(vector_full));
-#endif
+      ETL_ASSERT_CHECK_PUSH_POP(size() != CAPACITY, ETL_ERROR(vector_full));
+
       ::new (p_end) T();
       ++p_end;
       ETL_INCREMENT_DEBUG_COUNT;
@@ -497,9 +498,8 @@ namespace etl
     template <typename T1>
     reference emplace_back(const T1& value1)
     {
-#if defined(ETL_CHECK_PUSH_POP)
-      ETL_ASSERT(size() != CAPACITY, ETL_ERROR(vector_full));
-#endif
+      ETL_ASSERT_CHECK_PUSH_POP(size() != CAPACITY, ETL_ERROR(vector_full));
+
       ::new (p_end) T(value1);
       ++p_end;
       ETL_INCREMENT_DEBUG_COUNT;
@@ -514,9 +514,8 @@ namespace etl
     template <typename T1, typename T2>
     reference emplace_back(const T1& value1, const T2& value2)
     {
-#if defined(ETL_CHECK_PUSH_POP)
-      ETL_ASSERT(size() != CAPACITY, ETL_ERROR(vector_full));
-#endif
+      ETL_ASSERT_CHECK_PUSH_POP(size() != CAPACITY, ETL_ERROR(vector_full));
+
       ::new (p_end) T(value1, value2);
       ++p_end;
       ETL_INCREMENT_DEBUG_COUNT;
@@ -531,9 +530,8 @@ namespace etl
     template <typename T1, typename T2, typename T3>
     reference emplace_back(const T1& value1, const T2& value2, const T3& value3)
     {
-#if defined(ETL_CHECK_PUSH_POP)
-      ETL_ASSERT(size() != CAPACITY, ETL_ERROR(vector_full));
-#endif
+      ETL_ASSERT_CHECK_PUSH_POP(size() != CAPACITY, ETL_ERROR(vector_full));
+
       ::new (p_end) T(value1, value2, value3);
       ++p_end;
       ETL_INCREMENT_DEBUG_COUNT;
@@ -548,9 +546,8 @@ namespace etl
     template <typename T1, typename T2, typename T3, typename T4>
     reference emplace_back(const T1& value1, const T2& value2, const T3& value3, const T4& value4)
     {
-#if defined(ETL_CHECK_PUSH_POP)
-      ETL_ASSERT(size() != CAPACITY, ETL_ERROR(vector_full));
-#endif
+      ETL_ASSERT_CHECK_PUSH_POP(size() != CAPACITY, ETL_ERROR(vector_full));
+
       ::new (p_end) T(value1, value2, value3, value4);
       ++p_end;
       ETL_INCREMENT_DEBUG_COUNT;
@@ -561,12 +558,12 @@ namespace etl
     //*************************************************************************
     /// Removes an element from the end of the vector.
     /// Does nothing if the vector is empty.
+    /// If asserts or exceptions are enabled, emits vector_empty if the vector is empty.
     //*************************************************************************
     void pop_back()
     {
-#if defined(ETL_CHECK_PUSH_POP)
-      ETL_ASSERT_OR_RETURN(size() > 0, ETL_ERROR(vector_empty));
-#endif
+      ETL_ASSERT_CHECK_PUSH_POP_OR_RETURN(size() > 0, ETL_ERROR(vector_empty));
+
       destroy_back();
     }
 
@@ -579,6 +576,7 @@ namespace etl
     iterator insert(const_iterator position, const_reference value)
     {
       ETL_ASSERT(size() != CAPACITY, ETL_ERROR(vector_full));
+      ETL_ASSERT_CHECK_EXTRA(cbegin() <= position && position <= cend(), ETL_ERROR(vector_out_of_bounds));
 
       iterator position_ = to_iterator(position);
 
@@ -606,6 +604,7 @@ namespace etl
     iterator insert(const_iterator position, rvalue_reference value)
     {
       ETL_ASSERT(size() != CAPACITY, ETL_ERROR(vector_full));
+      ETL_ASSERT_CHECK_EXTRA(cbegin() <= position && position <= cend(), ETL_ERROR(vector_out_of_bounds));
 
       iterator position_ = to_iterator(position);
 
@@ -632,6 +631,7 @@ namespace etl
     iterator emplace(const_iterator position, Args && ... args)
     {
       ETL_ASSERT(!full(), ETL_ERROR(vector_full));
+      ETL_ASSERT_CHECK_EXTRA(cbegin() <= position && position <= cend(), ETL_ERROR(vector_out_of_bounds));
 
       iterator position_ = to_iterator(position);
 
@@ -659,6 +659,7 @@ namespace etl
     iterator emplace(const_iterator position, const T1& value1)
     {
       ETL_ASSERT(!full(), ETL_ERROR(vector_full));
+      ETL_ASSERT_CHECK_EXTRA(cbegin() <= position && position <= cend(), ETL_ERROR(vector_out_of_bounds));
 
       iterator position_ = to_iterator(position);
 
@@ -686,6 +687,7 @@ namespace etl
     iterator emplace(const_iterator position, const T1& value1, const T2& value2)
     {
       ETL_ASSERT(!full(), ETL_ERROR(vector_full));
+      ETL_ASSERT_CHECK_EXTRA(cbegin() <= position && position <= cend(), ETL_ERROR(vector_out_of_bounds));
 
       iterator position_ = to_iterator(position);
 
@@ -713,6 +715,7 @@ namespace etl
     iterator emplace(const_iterator position, const T1& value1, const T2& value2, const T3& value3)
     {
       ETL_ASSERT(!full(), ETL_ERROR(vector_full));
+      ETL_ASSERT_CHECK_EXTRA(cbegin() <= position && position <= cend(), ETL_ERROR(vector_out_of_bounds));
 
       iterator position_ = to_iterator(position);
 
@@ -740,6 +743,7 @@ namespace etl
     iterator emplace(const_iterator position, const T1& value1, const T2& value2, const T3& value3, const T4& value4)
     {
       ETL_ASSERT(!full(), ETL_ERROR(vector_full));
+      ETL_ASSERT_CHECK_EXTRA(cbegin() <= position && position <= cend(), ETL_ERROR(vector_out_of_bounds));
 
       iterator position_ = to_iterator(position);
 
@@ -774,6 +778,7 @@ namespace etl
     void insert(const_iterator position, size_t n, parameter_t value)
     {
       ETL_ASSERT_OR_RETURN((size() + n) <= CAPACITY, ETL_ERROR(vector_full));
+      ETL_ASSERT_CHECK_EXTRA(cbegin() <= position && position <= cend(), ETL_ERROR(vector_out_of_bounds));
 
       iterator position_ = to_iterator(position);
 
@@ -813,8 +818,8 @@ namespace etl
       etl::uninitialized_fill_n(p_end, construct_new_n, value);
       ETL_ADD_DEBUG_COUNT(construct_new_n);
 
-        // Copy new.
-        etl::fill_n(p_buffer + insert_begin, copy_new_n, value);
+      // Copy new.
+      etl::fill_n(p_buffer + insert_begin, copy_new_n, value);
 
       p_end += n;
     }
@@ -833,6 +838,7 @@ namespace etl
       size_t count = etl::distance(first, last);
 
       ETL_ASSERT_OR_RETURN((size() + count) <= CAPACITY, ETL_ERROR(vector_full));
+      ETL_ASSERT_CHECK_EXTRA(cbegin() <= position && position <= cend(), ETL_ERROR(vector_out_of_bounds));
 
       size_t insert_n = count;
       size_t insert_begin = etl::distance(cbegin(), position);
@@ -883,6 +889,8 @@ namespace etl
     //*********************************************************************
     iterator erase(iterator i_element)
     {
+      ETL_ASSERT_CHECK_EXTRA(cbegin() <= i_element && i_element < cend(), ETL_ERROR(vector_out_of_bounds));
+
       etl::move(i_element + 1, end(), i_element);
       destroy_back();
 
@@ -896,6 +904,8 @@ namespace etl
     //*********************************************************************
     iterator erase(const_iterator i_element)
     {
+      ETL_ASSERT_CHECK_EXTRA(cbegin() <= i_element && i_element < cend(), ETL_ERROR(vector_out_of_bounds));
+
       iterator i_element_ = to_iterator(i_element);
 
       etl::move(i_element_ + 1, end(), i_element_);
@@ -914,6 +924,8 @@ namespace etl
     //*********************************************************************
     iterator erase(const_iterator first, const_iterator last)
     {
+      ETL_ASSERT_CHECK_EXTRA(cbegin() <= first && first <= last && last <= cend(), ETL_ERROR(vector_out_of_bounds));
+
       iterator first_ = to_iterator(first);
       iterator last_  = to_iterator(last);
 
@@ -1031,8 +1043,15 @@ namespace etl
     //*********************************************************************
     void initialise()
     {
-      etl::destroy(p_buffer, p_end);
-      ETL_SUBTRACT_DEBUG_COUNT(int32_t(etl::distance(p_buffer, p_end)));
+      if ETL_IF_CONSTEXPR(etl::is_trivially_destructible<T>::value)
+      {
+        ETL_RESET_DEBUG_COUNT;
+      }
+      else
+      {
+        etl::destroy(p_buffer, p_end);
+        ETL_SUBTRACT_DEBUG_COUNT(int32_t(etl::distance(p_buffer, p_end)));
+      }
 
       p_end = p_buffer;
     }

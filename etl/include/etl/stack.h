@@ -253,9 +253,8 @@ namespace etl
     //*************************************************************************
     void push(const_reference value)
     {
-#if defined(ETL_CHECK_PUSH_POP)
-      ETL_ASSERT(!full(), ETL_ERROR(stack_full));
-#endif
+      ETL_ASSERT_CHECK_PUSH_POP_OR_RETURN(!full(), ETL_ERROR(stack_full));
+
       base_t::add_in();
       ::new (&p_buffer[top_index]) T(value);
     }
@@ -268,9 +267,8 @@ namespace etl
     //*************************************************************************
     void push(rvalue_reference value)
     {
-#if defined(ETL_CHECK_PUSH_POP)
-      ETL_ASSERT(!full(), ETL_ERROR(stack_full));
-#endif
+      ETL_ASSERT_CHECK_PUSH_POP_OR_RETURN(!full(), ETL_ERROR(stack_full));
+
       base_t::add_in();
       ::new (&p_buffer[top_index]) T(etl::move(value));
     }
@@ -283,13 +281,14 @@ namespace etl
     ///\param value The value to push to the stack.
     //*************************************************************************
     template <typename ... Args>
-    void emplace(Args && ... args)
+    reference emplace(Args && ... args)
     {
-#if defined(ETL_CHECK_PUSH_POP)
-      ETL_ASSERT(!full(), ETL_ERROR(stack_full));
-#endif
+      ETL_ASSERT_CHECK_PUSH_POP(!full(), ETL_ERROR(stack_full));
+
       base_t::add_in();
       ::new (&p_buffer[top_index]) T(etl::forward<Args>(args)...);
+
+      return p_buffer[top_index];
     }
 #else
     //*************************************************************************
@@ -297,13 +296,14 @@ namespace etl
     /// If asserts or exceptions are enabled, throws an etl::stack_full if the stack is already full.
     ///\param value The value to push to the stack.
     //*************************************************************************
-    void emplace()
+    reference emplace()
     {
-#if defined(ETL_CHECK_PUSH_POP)
-      ETL_ASSERT(!full(), ETL_ERROR(stack_full));
-#endif
+      ETL_ASSERT_CHECK_PUSH_POP(!full(), ETL_ERROR(stack_full));
+
       base_t::add_in();
       ::new (&p_buffer[top_index]) T();
+
+      return p_buffer[top_index];
     }
 
     //*************************************************************************
@@ -312,13 +312,14 @@ namespace etl
     ///\param value The value to push to the stack.
     //*************************************************************************
     template <typename T1>
-    void emplace(const T1& value1)
+    reference emplace(const T1& value1)
     {
-#if defined(ETL_CHECK_PUSH_POP)
-      ETL_ASSERT(!full(), ETL_ERROR(stack_full));
-#endif
+      ETL_ASSERT_CHECK_PUSH_POP(!full(), ETL_ERROR(stack_full));
+
       base_t::add_in();
       ::new (&p_buffer[top_index]) T(value1);
+
+      return p_buffer[top_index];
     }
 
     //*************************************************************************
@@ -327,13 +328,14 @@ namespace etl
     ///\param value The value to push to the stack.
     //*************************************************************************
     template <typename T1, typename T2>
-    void emplace(const T1& value1, const T2& value2)
+    reference emplace(const T1& value1, const T2& value2)
     {
-#if defined(ETL_CHECK_PUSH_POP)
-      ETL_ASSERT(!full(), ETL_ERROR(stack_full));
-#endif
+      ETL_ASSERT_CHECK_PUSH_POP(!full(), ETL_ERROR(stack_full));
+
       base_t::add_in();
       ::new (&p_buffer[top_index]) T(value1, value2);
+
+      return p_buffer[top_index];
     }
 
     //*************************************************************************
@@ -342,13 +344,14 @@ namespace etl
     ///\param value The value to push to the stack.
     //*************************************************************************
     template <typename T1, typename T2, typename T3>
-    void emplace(const T1& value1, const T2& value2, const T3& value3)
+    reference emplace(const T1& value1, const T2& value2, const T3& value3)
     {
-#if defined(ETL_CHECK_PUSH_POP)
-      ETL_ASSERT(!full(), ETL_ERROR(stack_full));
-#endif
+      ETL_ASSERT_CHECK_PUSH_POP(!full(), ETL_ERROR(stack_full));
+
       base_t::add_in();
       ::new (&p_buffer[top_index]) T(value1, value2, value3);
+
+      return p_buffer[top_index];
     }
 
     //*************************************************************************
@@ -357,13 +360,14 @@ namespace etl
     ///\param value The value to push to the stack.
     //*************************************************************************
     template <typename T1, typename T2, typename T3, typename T4>
-    void emplace(const T1& value1, const T2& value2, const T3& value3, const T4& value4)
+    reference emplace(const T1& value1, const T2& value2, const T3& value3, const T4& value4)
     {
-#if defined(ETL_CHECK_PUSH_POP)
-      ETL_ASSERT(!full(), ETL_ERROR(stack_full));
-#endif
+      ETL_ASSERT_CHECK_PUSH_POP(!full(), ETL_ERROR(stack_full));
+
       base_t::add_in();
       ::new (&p_buffer[top_index]) T(value1, value2, value3, value4);
+
+      return p_buffer[top_index];
     }
 #endif
 
@@ -400,9 +404,8 @@ namespace etl
     //*************************************************************************
     void pop()
     {
-#if defined(ETL_CHECK_PUSH_POP)
-      ETL_ASSERT_OR_RETURN(!empty(), ETL_ERROR(stack_empty));
-#endif
+      ETL_ASSERT_CHECK_PUSH_POP_OR_RETURN(!empty(), ETL_ERROR(stack_empty));
+
       p_buffer[top_index].~T();
       base_t::del_out();
     }

@@ -28,15 +28,32 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ******************************************************************************/
 
-#ifndef ETL_GDC_INCLUDED
-#define ETL_GDC_INCLUDED
+#ifndef ETL_GCD_INCLUDED
+#define ETL_GCD_INCLUDED
 
+#include "platform.h"
 #include "type_traits.h"
 #include "absolute.h"
 #include "static_assert.h"
 
 namespace etl
 {
+  //***************************************************************************
+  // Greatest Common Divisor.
+  // Compile time.
+  //***************************************************************************
+  template <intmax_t Value1, intmax_t Value2>
+  struct gcd_const
+  {
+    static ETL_CONSTANT intmax_t value = gcd_const<Value2, Value1 % Value2>::value;
+  };
+
+  template <intmax_t Value1>
+  struct gcd_const<Value1, 0>
+  {
+    static ETL_CONSTANT intmax_t value = Value1;
+  };
+
   //***************************************************************************
   // Greatest Common Divisor.
   // For unsigned types.

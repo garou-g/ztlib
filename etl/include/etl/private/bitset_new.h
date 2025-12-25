@@ -141,7 +141,7 @@ namespace etl
   public:
 
     bitset_overflow(string_type file_name_, numeric_type line_number_)
-      : bitset_exception(ETL_ERROR_TEXT("bitset:overflow", ETL_BITSET_FILE_ID"C"), file_name_, line_number_)
+      : bitset_exception(ETL_ERROR_TEXT("bitset:overflow", ETL_BITSET_FILE_ID"B"), file_name_, line_number_)
     {
     }
   };
@@ -155,7 +155,7 @@ namespace etl
   public:
 
     bitset_invalid_buffer(string_type file_name_, numeric_type line_number_)
-      : bitset_exception(ETL_ERROR_TEXT("bitset:invalid buffer", ETL_BITSET_FILE_ID"D"), file_name_, line_number_)
+      : bitset_exception(ETL_ERROR_TEXT("bitset:invalid buffer", ETL_BITSET_FILE_ID"C"), file_name_, line_number_)
     {
     }
   };
@@ -171,6 +171,7 @@ namespace etl
       typedef TElement        element_type;
       typedef TElement*       pointer;
       typedef const TElement* const_pointer;
+      typedef size_t          size_type;
 
       static ETL_CONSTANT size_t   npos              = etl::integral_limits<size_t>::max;
       static ETL_CONSTANT size_t   Bits_Per_Element  = etl::integral_limits<TElement>::bits;
@@ -1937,6 +1938,8 @@ namespace etl
     typedef typename etl::private_bitset::bitset_common<Active_Bits, TElement>::span_type       span_type;
     typedef typename etl::private_bitset::bitset_common<Active_Bits, TElement>::const_span_type const_span_type;
 
+    
+
     using etl::private_bitset::bitset_common<Active_Bits, TElement>::Bits_Per_Element;
     using etl::private_bitset::bitset_common<Active_Bits, TElement>::All_Set_Element;
     using etl::private_bitset::bitset_common<Active_Bits, TElement>::All_Clear_Element;
@@ -2826,6 +2829,8 @@ namespace etl
   {
   public:
 
+    typedef size_t size_type;
+
     typedef etl::private_bitset::bitset_common<0U, unsigned char>::element_type    element_type;
     typedef etl::private_bitset::bitset_common<0U, unsigned char>::span_type       span_type;
     typedef etl::private_bitset::bitset_common<0U, unsigned char>::const_span_type const_span_type;
@@ -2849,6 +2854,8 @@ namespace etl
   public:
 
     ETL_STATIC_ASSERT(etl::is_unsigned<TElement>::value, "The element type must be unsigned");
+
+    typedef size_t size_type;
 
     typedef typename etl::private_bitset::bitset_common<Active_Bits, TElement>::element_type    element_type;
     typedef typename etl::private_bitset::bitset_common<Active_Bits, TElement>::span_type       span_type;

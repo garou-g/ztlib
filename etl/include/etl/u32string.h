@@ -46,7 +46,7 @@ namespace etl
   {
     inline namespace string_literals
     {
-      constexpr etl::u32string_view operator ""_sv(const char32_t* str, size_t length) noexcept
+      inline constexpr etl::u32string_view operator ""_sv(const char32_t* str, size_t length) ETL_NOEXCEPT
       {
         return etl::u32string_view{ str, length };
       }
@@ -89,6 +89,7 @@ namespace etl
     u32string(const etl::u32string<MAX_SIZE_>& other)
       : iu32string(reinterpret_cast<value_type*>(&buffer), MAX_SIZE)
     {
+      this->initialise();
       this->assign(other);
     }
 
@@ -99,6 +100,7 @@ namespace etl
     u32string(const etl::iu32string& other)
       : iu32string(reinterpret_cast<value_type*>(&buffer), MAX_SIZE)
     {
+      this->initialise();
       this->assign(other);
     }
 
@@ -113,6 +115,7 @@ namespace etl
     {
       ETL_ASSERT(position < other.size(), ETL_ERROR(string_out_of_bounds));
 
+      this->initialise();
       this->assign(other, position, length);
     }
 
@@ -123,7 +126,8 @@ namespace etl
     ETL_EXPLICIT_STRING_FROM_CHAR u32string(const value_type* text)
       : iu32string(reinterpret_cast<value_type*>(&buffer), MAX_SIZE)
     {
-      this->assign(text, text + etl::char_traits<value_type>::length(text));
+      this->initialise();
+      this->assign(text);
     }
 
     //*************************************************************************
@@ -134,6 +138,7 @@ namespace etl
     u32string(const value_type* text, size_type count)
       : iu32string(reinterpret_cast<value_type*>(&buffer), MAX_SIZE)
     {
+      this->initialise();
       this->assign(text, text + count);
     }
 
@@ -159,6 +164,7 @@ namespace etl
     u32string(TIterator first, TIterator last, typename etl::enable_if<!etl::is_integral<TIterator>::value, int>::type = 0)
       : iu32string(reinterpret_cast<value_type*>(&buffer), MAX_SIZE)
     {
+      this->initialise();
       this->assign(first, last);
     }
 
@@ -169,6 +175,7 @@ namespace etl
     u32string(std::initializer_list<value_type> init)
       : iu32string(reinterpret_cast<value_type*>(&buffer), MAX_SIZE)
     {
+      this->initialise();
       this->assign(init.begin(), init.end());
     }
 #endif
@@ -180,6 +187,7 @@ namespace etl
     explicit u32string(const etl::u32string_view& view)
       : iu32string(reinterpret_cast<value_type*>(&buffer), MAX_SIZE)
     {
+      this->initialise();
       this->assign(view.begin(), view.end());
     }
 
@@ -228,6 +236,16 @@ namespace etl
     }
 
     //*************************************************************************
+    /// Assignment operator.
+    //*************************************************************************
+    u32string& operator = (const etl::u32string_view& view)
+    {
+      this->assign(view);
+
+      return *this;
+    }
+
+    //*************************************************************************
     /// Fix the internal pointers after a low level memory copy.
     //*************************************************************************
 #if ETL_HAS_ISTRING_REPAIR
@@ -245,8 +263,8 @@ namespace etl
   };
 
   //***************************************************************************
-  /// A u32string implementation that uses a fixed size external buffer.
-  ///\ingroup u32string
+  /// A string implementation that uses a fixed size external buffer.
+  ///\ingroup string
   //***************************************************************************
   class u32string_ext : public iu32string
   {
@@ -256,6 +274,7 @@ namespace etl
     typedef iu32string interface_type;
 
     typedef iu32string::value_type value_type;
+    typedef iu32string::size_type size_type;
 
     //*************************************************************************
     /// Constructor.
@@ -273,7 +292,15 @@ namespace etl
     u32string_ext(const etl::u32string_ext& other, value_type* buffer, size_type buffer_size)
       : iu32string(buffer, buffer_size - 1U)
     {
-      this->assign(other);
+      if (this->is_within_buffer(other.data()))
+      {
+        this->current_size = other.size();
+      }
+      else
+      {
+        this->initialise();
+        this->assign(other);
+      }
     }
 
     //*************************************************************************
@@ -283,7 +310,15 @@ namespace etl
     u32string_ext(const etl::iu32string& other, value_type* buffer, size_type buffer_size)
       : iu32string(buffer, buffer_size - 1U)
     {
-      this->assign(other);
+      if (this->is_within_buffer(other.data()))
+      {
+        this->current_size = other.size();
+      }
+      else
+      {
+        this->initialise();
+        this->assign(other);
+      }
     }
 
     //*************************************************************************
@@ -297,24 +332,53 @@ namespace etl
     {
       ETL_ASSERT(position < other.size(), ETL_ERROR(string_out_of_bounds));
 
-      this->assign(other, position, length);
+      if (this->is_within_buffer(other.data()))
+      {
+        this->current_size = other.size();
+      }
+      else
+      {
+        this->initialise();
+        this->assign(other, position, length);
+      }
     }
 
     //*************************************************************************
     /// Constructor, from null terminated text.
     ///\param text The initial text of the u32string_ext.
     //*************************************************************************
-    ETL_EXPLICIT_STRING_FROM_CHAR u32string_ext(const value_type* text, value_type* buffer, size_type buffer_size)
+    template <typename TPointer>
+    u32string_ext(TPointer text, value_type* buffer, size_type buffer_size,
+                  typename etl::enable_if<etl::is_same<const value_type*, TPointer>::value, int>::type* = ETL_NULLPTR)
       : iu32string(buffer, buffer_size - 1U)
     {
-      // Is the initial text at the same address as the buffer?
-      if (text == buffer)
+      if (this->is_within_buffer(text))
       {
-        this->current_size = etl::strlen(buffer);;
+        this->current_size = etl::strlen(buffer);
       }
       else
       {
+        this->initialise();
         this->assign(text, text + etl::strlen(text));
+      }
+    }
+
+    //*************************************************************************
+    /// Constructor, from null terminated literal text.
+    ///\param text The initial text of the u32string_ext.
+    //*************************************************************************
+    template <size_t Size>
+    u32string_ext(const value_type (&literal)[Size], value_type* buffer, size_type buffer_size)
+      : iu32string(buffer, buffer_size - 1U)
+    {
+      if (this->is_within_buffer(literal))
+      {
+        this->current_size = etl::strlen(literal);
+      }
+      else
+      {
+        this->initialise();
+        this->assign(literal);
       }
     }
 
@@ -326,7 +390,15 @@ namespace etl
     u32string_ext(const value_type* text, size_type count, value_type* buffer, size_type buffer_size)
       : iu32string(buffer, buffer_size - 1U)
     {
-      this->assign(text, text + count);
+      if (this->is_within_buffer(text))
+      {
+        this->current_size = count;
+      }
+      else
+      {
+        this->initialise();
+        this->assign(text, text + count);
+      }
     }
 
     //*************************************************************************
@@ -342,6 +414,24 @@ namespace etl
     }
 
     //*************************************************************************
+    /// From u32string_view.
+    ///\param view The u32string_view.
+    //*************************************************************************
+    explicit u32string_ext(const etl::u32string_view& view, value_type* buffer, size_type buffer_size)
+      : iu32string(buffer, buffer_size - 1U)
+    {
+      if (this->is_within_buffer(view.data()))
+      {
+        this->current_size = view.size();
+      }
+      else
+      {
+        this->initialise();
+        this->assign(view.begin(), view.end());
+      }
+    }
+
+    //*************************************************************************
     /// Constructor, from an iterator range.
     ///\tparam TIterator The iterator type.
     ///\param first The iterator to the first element.
@@ -351,7 +441,15 @@ namespace etl
     u32string_ext(TIterator first, TIterator last, value_type* buffer, size_type buffer_size, typename etl::enable_if<!etl::is_integral<TIterator>::value, int>::type = 0)
       : iu32string(buffer, buffer_size - 1U)
     {
-      this->assign(first, last);
+      if (this->is_within_buffer(reinterpret_cast<const_iterator>(etl::addressof(*first))))
+      {
+        this->current_size = etl::distance(first, last);
+      }
+      else
+      {
+        this->initialise();
+        this->assign(first, last);
+      }     
     }
 
 #if ETL_HAS_INITIALIZER_LIST
@@ -361,19 +459,10 @@ namespace etl
     u32string_ext(std::initializer_list<value_type> init, value_type* buffer, size_type buffer_size)
       : iu32string(buffer, buffer_size - 1U)
     {
+      this->initialise();
       this->assign(init.begin(), init.end());
     }
 #endif
-
-    //*************************************************************************
-    /// From u32string_view.
-    ///\param view The u32string_view.
-    //*************************************************************************
-    explicit u32string_ext(const etl::u32string_view& view, value_type* buffer, size_type buffer_size)
-      : iu32string(buffer, buffer_size - 1U)
-    {
-      this->assign(view.begin(), view.end());
-    }
 
     //*************************************************************************
     /// Assignment operator.
@@ -387,7 +476,6 @@ namespace etl
 
       return *this;
     }
-
 
     //*************************************************************************
     /// Assignment operator.
@@ -408,6 +496,16 @@ namespace etl
     u32string_ext& operator = (const value_type* text)
     {
       this->assign(text);
+
+      return *this;
+    }
+
+    //*************************************************************************
+    /// Assignment operator.
+    //*************************************************************************
+    u32string_ext& operator = (const etl::u32string_view& view)
+    {
+      this->assign(view);
 
       return *this;
     }

@@ -53,6 +53,8 @@ namespace etl
 
     typedef etl::delegate<void(void)> callback_type;
 
+    typedef etl::delegate<void(etl::timer::id::type)> event_callback_type;
+
     //*******************************************
     /// Register a timer.
     //*******************************************
@@ -62,12 +64,12 @@ namespace etl
     {
         etl::timer::id::type id = etl::timer::id::NO_TIMER;
         
-        bool is_space = (number_of_registered_timers < MAX_TIMERS);
+        bool is_space = (number_of_registered_timers < Max_Timers);
 
         if (is_space)
         {
           // Search for the free space.
-          for (uint_least8_t i = 0U; i < MAX_TIMERS; ++i)
+          for (uint_least8_t i = 0U; i < Max_Timers; ++i)
             {
               timer_data& timer = timer_array[i];
                
@@ -102,6 +104,7 @@ namespace etl
           {
             ++process_semaphore;
             active_list.remove(timer.id, false);
+            remove_callback.call_if(timer.id);
             --process_semaphore;
           }
 
@@ -141,7 +144,7 @@ namespace etl
       active_list.clear();
       --process_semaphore;
 
-      for (uint8_t i = 0U; i < MAX_TIMERS; ++i)
+      for (uint8_t i = 0U; i < Max_Timers; ++i)
       {
         ::new (&timer_array[i]) timer_data();
       }
@@ -173,6 +176,7 @@ namespace etl
               count -= timer.delta;
 
               active_list.remove(timer.id, true);
+              remove_callback.call_if(timer.id);
 
               if (timer.callback.is_valid())
               {
@@ -185,6 +189,7 @@ namespace etl
                 // Reinsert the timer.
                 timer.delta = timer.period;
                 active_list.insert(timer.id);
+                insert_callback.call_if(timer.id);
               }
 
               has_active = !active_list.empty();
@@ -226,10 +231,12 @@ namespace etl
             if (timer.is_active())
             {
               active_list.remove(timer.id, false);
+              remove_callback.call_if(timer.id);
             }
 
             timer.delta = immediate_ ? 0U : timer.period;
             active_list.insert(timer.id);
+            insert_callback.call_if(timer.id);
             --process_semaphore;
 
             result = true;
@@ -259,6 +266,7 @@ namespace etl
           {
             ++process_semaphore;
             active_list.remove(timer.id, false);
+            remove_callback.call_if(timer.id);
             --process_semaphore;
           }
 
@@ -355,6 +363,34 @@ namespace etl
       return result;
     }
 
+    //*******************************************
+    /// Set a callback when a timer is inserted on list
+    //*******************************************
+    void set_insert_callback(event_callback_type insert_)
+    {
+      insert_callback = insert_;
+    }
+
+    //*******************************************
+    /// Set a callback when a timer is removed from list
+    //*******************************************
+    void set_remove_callback(event_callback_type remove_)
+    {
+      remove_callback = remove_;
+    }
+
+    //*******************************************
+    void clear_insert_callback()
+    {
+      insert_callback.clear();
+    }
+
+    //*******************************************
+    void clear_remove_callback()
+    {
+      remove_callback.clear();
+    }
+
   protected:
 
     //*************************************************************************
@@ -424,13 +460,13 @@ namespace etl
     //*******************************************
     /// Constructor.
     //*******************************************
-    icallback_timer_atomic(timer_data* const timer_array_, const uint_least8_t  MAX_TIMERS_)
+    icallback_timer_atomic(timer_data* const timer_array_, const uint_least8_t  Max_Timers_)
       : timer_array(timer_array_)
       , active_list(timer_array_)
       , enabled(false)
       , process_semaphore(0U)
       , number_of_registered_timers(0U)
-      , MAX_TIMERS(MAX_TIMERS_)
+      , Max_Timers(Max_Timers_)
     {
     }
 
@@ -441,7 +477,7 @@ namespace etl
     //*******************************************
     bool is_valid_timer_id(etl::timer::id::type id_) const
     {
-      return (id_ < MAX_TIMERS);
+      return (id_ < Max_Timers);
     }
 
     //*************************************************************************
@@ -638,32 +674,35 @@ namespace etl
     mutable TSemaphore process_semaphore;
     uint_least8_t number_of_registered_timers;
 
+    event_callback_type insert_callback;
+    event_callback_type remove_callback;
+
   public:
 
-    const uint_least8_t MAX_TIMERS;
+    const uint_least8_t Max_Timers;
   };
 
   //***************************************************************************
   /// The callback timer
   //***************************************************************************
-  template <uint_least8_t MAX_TIMERS_, typename TSemaphore>
+  template <uint_least8_t Max_Timers_, typename TSemaphore>
   class callback_timer_atomic : public etl::icallback_timer_atomic<TSemaphore>
   {
   public:
 
-    ETL_STATIC_ASSERT(MAX_TIMERS_ <= 254U, "No more than 254 timers are allowed");
+    ETL_STATIC_ASSERT(Max_Timers_ <= 254U, "No more than 254 timers are allowed");
 
     //*******************************************
     /// Constructor.
     //*******************************************
     callback_timer_atomic()
-      : icallback_timer_atomic<TSemaphore>(timer_array, MAX_TIMERS_)
+      : icallback_timer_atomic<TSemaphore>(timer_array, Max_Timers_)
     {
     }
 
   private:
 
-    typename etl::icallback_timer_atomic<TSemaphore>::timer_data timer_array[MAX_TIMERS_];
+    typename etl::icallback_timer_atomic<TSemaphore>::timer_data timer_array[Max_Timers_];
   };
 }
 

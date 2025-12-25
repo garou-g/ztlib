@@ -39,6 +39,7 @@ SOFTWARE.
 #include "timer.h"
 #include "atomic.h"
 #include "algorithm.h"
+#include "delegate.h"
 
 #include <stdint.h>
 
@@ -53,6 +54,8 @@ namespace etl
   class imessage_timer_atomic
   {
   public:
+
+    typedef etl::delegate<void(etl::timer::id::type)> event_callback_type;
 
     //*******************************************
     /// Register a timer.
@@ -109,6 +112,7 @@ namespace etl
           {
             ++process_semaphore;
             active_list.remove(timer.id, true);
+            remove_callback.call_if(timer.id);
             --process_semaphore;
           }
 
@@ -180,6 +184,7 @@ namespace etl
               count -= timer.delta;
 
               active_list.remove(timer.id, true);
+              remove_callback.call_if(timer.id);
 
               if (timer.p_router != ETL_NULLPTR)
               {
@@ -190,6 +195,7 @@ namespace etl
               {
                 timer.delta = timer.period;
                 active_list.insert(timer.id);
+                insert_callback.call_if(timer.id);
               }
 
               has_active = !active_list.empty();
@@ -231,10 +237,12 @@ namespace etl
             if (timer.is_active())
             {
               active_list.remove(timer.id, false);
+              remove_callback.call_if(timer.id);
             }
 
             timer.delta = immediate_ ? 0U : timer.period;
             active_list.insert(timer.id);
+            insert_callback.call_if(timer.id);
             --process_semaphore;
 
             result = true;
@@ -264,6 +272,7 @@ namespace etl
           {
             ++process_semaphore;
             active_list.remove(timer.id, false);
+            remove_callback.call_if(timer.id);
             --process_semaphore;
           }
 
@@ -330,6 +339,34 @@ namespace etl
       --process_semaphore;
 
       return delta;
+    }
+
+    //*******************************************
+    /// Set a callback when a timer is inserted on list
+    //*******************************************
+    void set_insert_callback(event_callback_type insert_)
+    {
+      insert_callback = insert_;
+    }
+
+    //*******************************************
+    /// Set a callback when a timer is removed from list
+    //*******************************************
+    void set_remove_callback(event_callback_type remove_)
+    {
+      remove_callback = remove_;
+    }
+
+    //*******************************************
+    void clear_insert_callback()
+    {
+      insert_callback.clear();
+    }
+
+    //*******************************************
+    void clear_remove_callback()
+    {
+      remove_callback.clear();
     }
 
   protected:
@@ -407,13 +444,13 @@ namespace etl
     //*******************************************
     /// Constructor.
     //*******************************************
-    imessage_timer_atomic(timer_data* const timer_array_, const uint_least8_t  MAX_TIMERS_)
+    imessage_timer_atomic(timer_data* const timer_array_, const uint_least8_t  Max_Timers)
       : timer_array(timer_array_)
       , active_list(timer_array_)
       , enabled(false)
       , process_semaphore(0U)
       , registered_timers(0U)
-      , MAX_TIMERS(MAX_TIMERS_)
+      , MAX_TIMERS(Max_Timers)
     {
     }
 
@@ -620,6 +657,9 @@ namespace etl
     mutable TSemaphore process_semaphore;
     uint_least8_t registered_timers;
 
+    event_callback_type insert_callback;
+    event_callback_type remove_callback;
+
   public:
 
     const uint_least8_t MAX_TIMERS;
@@ -628,24 +668,24 @@ namespace etl
   //***************************************************************************
   /// The message timer
   //***************************************************************************
-  template <uint_least8_t MAX_TIMERS_, typename TSemaphore>
+  template <uint_least8_t Max_Timers, typename TSemaphore>
   class message_timer_atomic : public etl::imessage_timer_atomic<TSemaphore>
   {
   public:
 
-    ETL_STATIC_ASSERT(MAX_TIMERS_ <= 254, "No more than 254 timers are allowed");
+    ETL_STATIC_ASSERT(Max_Timers <= 254, "No more than 254 timers are allowed");
 
     //*******************************************
     /// Constructor.
     //*******************************************
     message_timer_atomic()
-      : imessage_timer_atomic<TSemaphore>(timer_array, MAX_TIMERS_)
+      : imessage_timer_atomic<TSemaphore>(timer_array, Max_Timers)
     {
     }
 
   private:
 
-    typename etl::imessage_timer_atomic<TSemaphore>::timer_data timer_array[MAX_TIMERS_];
+    typename etl::imessage_timer_atomic<TSemaphore>::timer_data timer_array[Max_Timers];
   };
 }
 

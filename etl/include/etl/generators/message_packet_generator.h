@@ -50,12 +50,12 @@ cog.outl("//********************************************************************
 // To generate to header file, run this at the command line.
 // Note: You will need Python and COG installed.
 //
-// python -m cogapp -d -e -omessage_packet.h -DHandlers=<n> message_packet_generator.h
+// cog -d -e -omessage_packet.h -DHandlers=<n> message_packet_generator.h
 // Where <n> is the number of messages to support.
 //
 // e.g.
 // To generate handlers for up to 16 messages...
-// python -m cogapp -d -e -omessage_packet.h -DHandlers=16 message_packet_generator.h
+// cog -d -e -omessage_packet.h -DHandlers=16 message_packet_generator.h
 //
 // See generate.bat
 //***************************************************************************
@@ -64,8 +64,6 @@ cog.outl("//********************************************************************
 #define ETL_MESSAGE_PACKET_INCLUDED
 
 #include "platform.h"
-
-#if ETL_HAS_VIRTUAL_MESSAGES
 
 #include "message.h"
 #include "error_handler.h"
@@ -298,10 +296,38 @@ namespace etl
       {
         etl::imessage* pmsg = static_cast<etl::imessage*>(data);
 
+#if ETL_HAS_VIRTUAL_MESSAGES
         pmsg->~imessage();
+#else
+        delete_message(pmsg);
+#endif
       }
     }
 #include "private/diagnostic_pop.h"
+
+#if !ETL_HAS_VIRTUAL_MESSAGES
+    //********************************************
+    void delete_message(etl::imessage* pmsg)
+    {
+      (delete_message_type<TMessageTypes>(pmsg) || ...);
+    }
+
+    //********************************************
+    template <typename TType>
+    bool delete_message_type(etl::imessage* pmsg)
+    {
+      if (TType::ID == pmsg->get_message_id())
+      {
+        TType* p = static_cast<TType*>(pmsg);
+        p->~TType();
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    }
+#endif
 
     //********************************************
     void add_new_message(const etl::imessage& msg)
@@ -671,11 +697,27 @@ namespace etl
     cog.outl("    {")
     cog.outl("      etl::imessage* pmsg = static_cast<etl::imessage*>(data);")
     cog.outl("")
+    cog.outl("#if ETL_HAS_VIRTUAL_MESSAGES")
     cog.outl("      pmsg->~imessage();")
+    cog.outl("#else")
+    cog.outl("      delete_message(pmsg);")
+    cog.outl("#endif")
     cog.outl("    }")
     cog.outl("  }")
     cog.outl("  #include \"private/diagnostic_pop.h\"")
     cog.outl("")
+    cog.outl("  //********************************************")
+    cog.outl("  void delete_message(etl::imessage* pmsg)")
+    cog.outl("  {")
+    cog.outl("    switch (pmsg->get_message_id())")
+    cog.outl("    {")
+    for n in range(1, int(Handlers) + 1):
+        cog.out("      case T%d::ID: static_cast<const T%d" %(n, n))
+        cog.outl("*>(pmsg)->~T%d(); break;" % n)
+    cog.outl("      default: ETL_ASSERT_FAIL(ETL_ERROR(unhandled_message_exception)); break;")
+    cog.outl("    }")
+    cog.outl("  }")
+    cog.outl("")      
     cog.outl("  //********************************************")
     cog.outl("  void add_new_message(const etl::imessage& msg)")
     cog.outl("  {")
@@ -686,7 +728,7 @@ namespace etl
     cog.outl("    {")
     for n in range(1, int(Handlers) + 1):
         cog.outl("      case T%d::ID: ::new (p) T%d(static_cast<const T%d&>(msg)); break;" %(n, n, n))
-    cog.outl("      default: ETL_ASSERT(false, ETL_ERROR(unhandled_message_exception)); break;")
+    cog.outl("      default: ETL_ASSERT_FAIL(ETL_ERROR(unhandled_message_exception)); break;")
     cog.outl("    }")
     cog.outl("  }")
     cog.outl("")
@@ -701,7 +743,7 @@ namespace etl
     cog.outl("    {")
     for n in range(1, int(Handlers) + 1):
         cog.outl("      case T%d::ID: ::new (p) T%d(static_cast<T%d&&>(msg)); break;" %(n, n, n))
-    cog.outl("      default: ETL_ASSERT(false, ETL_ERROR(unhandled_message_exception)); break;")
+    cog.outl("      default: ETL_ASSERT_FAIL(ETL_ERROR(unhandled_message_exception)); break;")
     cog.outl("    }")
     cog.outl("  }")
     cog.outl("#endif")
@@ -959,11 +1001,28 @@ namespace etl
         cog.outl("    {")
         cog.outl("      etl::imessage* pmsg = static_cast<etl::imessage*>(data);")
         cog.outl("")
+        cog.outl("")
+        cog.outl("#if ETL_HAS_VIRTUAL_MESSAGES")
         cog.outl("      pmsg->~imessage();")
+        cog.outl("#else")
+        cog.outl("      delete_message(pmsg);")
+        cog.outl("#endif")
         cog.outl("    }")
         cog.outl("  }")
         cog.outl("  #include \"private/diagnostic_pop.h\"")
         cog.outl("")
+        cog.outl("  //********************************************")
+        cog.outl("  void delete_message(etl::imessage* pmsg)")
+        cog.outl("  {")
+        cog.outl("    switch (pmsg->get_message_id())")
+        cog.outl("    {")
+        for t in range(1, n + 1):
+            cog.out("      case T%d::ID: static_cast<const T%d" %(t, t))
+            cog.outl("*>(pmsg)->~T%d(); break;" % t)
+        cog.outl("      default: ETL_ASSERT_FAIL(ETL_ERROR(unhandled_message_exception)); break;")
+        cog.outl("    }")
+        cog.outl("  }")
+        cog.outl("") 
         cog.outl("  //********************************************")
         cog.outl("  void add_new_message(const etl::imessage& msg)")
         cog.outl("  {")
@@ -974,7 +1033,7 @@ namespace etl
         cog.outl("    {")
         for t in range(1, n + 1):
             cog.outl("      case T%d::ID: ::new (p) T%d(static_cast<const T%d&>(msg)); break;" %(t, t, t))
-        cog.outl("      default: break;")
+        cog.outl("      default: ETL_ASSERT_FAIL(ETL_ERROR(unhandled_message_exception)); break;")
         cog.outl("    }")
         cog.outl("  }")
         cog.outl("")
@@ -1001,8 +1060,5 @@ namespace etl
   /*[[[end]]]*/
 #endif
 }
-#else
-  #error "etl::message_packet is not compatible with non-virtual etl::imessage"
-#endif
 
 #endif

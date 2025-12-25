@@ -39,9 +39,16 @@ SOFTWARE.
 #include "error_handler.h"
 #include "utility.h"
 #include "placement_new.h"
+#include "initializer_list.h"
 
 namespace etl
 {
+  //*****************************************************************************
+  // Forward declaration of etl::optional
+  //*****************************************************************************
+  template <typename T>
+  class optional;
+  
   //*****************************************************************************
   /// A null option type.
   ///\ingroup utilities
@@ -102,7 +109,7 @@ namespace etl
   //*****************************************************************************
   namespace private_optional
   {
-    template <typename T, bool IsDefaultConstructible = etl::is_integral<T>::value>
+    template <typename T, bool UseFundamentalPath = etl::is_fundamental<T>::value && !etl::is_const<T>::value>
     class optional_impl;
 
     //*****************************************************************************
@@ -114,6 +121,7 @@ namespace etl
     protected:
 
       typedef T value_type;
+      typedef optional_impl<T, false> this_type;
 
       //***************************************************************************
       /// Constructor.
@@ -159,7 +167,6 @@ namespace etl
           storage.construct(etl::move(other.value()));
         }
       }
-#endif
 
       //***************************************************************************
       /// Constructor from value type.
@@ -170,7 +177,6 @@ namespace etl
         storage.construct(value_);
       }
 
-#if ETL_USING_CPP11
       //***************************************************************************
       /// Constructor from value type.
       //***************************************************************************
@@ -179,6 +185,29 @@ namespace etl
       {
         storage.construct(etl::move(value_));
       }
+
+      //***************************************************************************
+      /// Constructor from variadic args.
+      //***************************************************************************
+      template <typename... TArgs>
+      ETL_CONSTEXPR20_STL
+        optional_impl(etl::in_place_t, TArgs&&... args)
+      {
+        storage.construct(etl::forward<TArgs>(args)...);
+      }
+
+#if ETL_HAS_INITIALIZER_LIST
+      //*******************************************
+      /// Construct from initializer_list and arguments.
+      //*******************************************
+      template <typename U, typename... TArgs >
+      ETL_CONSTEXPR20_STL optional_impl(etl::in_place_t,
+                                        std::initializer_list<U> ilist,
+                                        TArgs&&... args)
+      {
+        storage.construct(ilist, etl::forward<TArgs>(args)...);
+      }
+#endif
 #endif
 
       //***************************************************************************
@@ -280,7 +309,7 @@ namespace etl
       ETL_CONSTEXPR20_STL
       T* operator ->()
       {
-#if ETL_IS_DEBUG_BUILD && !(ETL_USING_CPP20 && ETL_USING_STL)
+#if ETL_IS_DEBUG_BUILD
         ETL_ASSERT(has_value(), ETL_ERROR(optional_invalid));
 #endif
 
@@ -293,7 +322,7 @@ namespace etl
       ETL_CONSTEXPR20_STL
       const T* operator ->() const
       {
-#if ETL_IS_DEBUG_BUILD && !(ETL_USING_CPP20 && ETL_USING_STL)
+#if ETL_IS_DEBUG_BUILD
         ETL_ASSERT(has_value(), ETL_ERROR(optional_invalid));
 #endif
 
@@ -306,7 +335,7 @@ namespace etl
       ETL_CONSTEXPR20_STL
       T& operator *() ETL_LVALUE_REF_QUALIFIER
       {
-#if ETL_IS_DEBUG_BUILD && !(ETL_USING_CPP20 && ETL_USING_STL)
+#if ETL_IS_DEBUG_BUILD
         ETL_ASSERT(has_value(), ETL_ERROR(optional_invalid));
 #endif
 
@@ -319,7 +348,7 @@ namespace etl
       ETL_CONSTEXPR20_STL
       const T& operator *() const ETL_LVALUE_REF_QUALIFIER
       {
-#if ETL_IS_DEBUG_BUILD && !(ETL_USING_CPP20 && ETL_USING_STL)
+#if ETL_IS_DEBUG_BUILD
         ETL_ASSERT(has_value(), ETL_ERROR(optional_invalid));
 #endif
 
@@ -333,7 +362,7 @@ namespace etl
       ETL_CONSTEXPR20_STL
       T&& operator *()&&
       {
-#if ETL_IS_DEBUG_BUILD && !(ETL_USING_CPP20 && ETL_USING_STL)
+#if ETL_IS_DEBUG_BUILD
         ETL_ASSERT(has_value(), ETL_ERROR(optional_invalid));
 #endif
 
@@ -346,7 +375,7 @@ namespace etl
       ETL_CONSTEXPR20_STL
       const T&& operator *() const&&
       {
-#if ETL_IS_DEBUG_BUILD && !(ETL_USING_CPP20 && ETL_USING_STL)
+#if ETL_IS_DEBUG_BUILD
         ETL_ASSERT(has_value(), ETL_ERROR(optional_invalid));
 #endif
 
@@ -442,7 +471,7 @@ namespace etl
       etl::enable_if_t<etl::is_convertible<U, T>::value, T>
         value_or(U&& default_value) const&
       {
-        return has_value() ? value() : etl::forward<T>(default_value);
+        return has_value() ? value() : static_cast<T>(etl::forward<U>(default_value));
       }
 
       //***************************************************************************
@@ -453,7 +482,7 @@ namespace etl
       etl::enable_if_t<etl::is_convertible<U, T>::value, T>
         value_or(U&& default_value)&&
       {
-        return has_value() ? etl::move(value()) : etl::forward<T>(default_value);
+        return has_value() ? etl::move(value()) : static_cast<T>(etl::forward<U>(default_value));
       }
 #endif
 
@@ -477,21 +506,54 @@ namespace etl
         storage.destroy();
       }
 
+      //*************************************************************************
+      ///
+      //*************************************************************************
+      ETL_CONSTEXPR20_STL
+      T& emplace(const optional_impl<T>& other)
+      {
+#if ETL_IS_DEBUG_BUILD
+        ETL_ASSERT(other.has_value(), ETL_ERROR(optional_invalid));
+#endif
+
+        storage.construct(other.value());
+
+        return storage.u.value;
+      }
+
 #if ETL_USING_CPP11  && ETL_NOT_USING_STLPORT && !defined(ETL_OPTIONAL_FORCE_CPP03_IMPLEMENTATION)
       //*************************************************************************
-      /// Emplaces a value.
-      ///\param args The arguments to construct with.
+      /// Emplaces a value from arbitrary constructor arguments.
+      /// Disabled (via SFINAE) if the first argument is an optional_impl (or a
+      /// derived type such as etl::optional<T>) so that the dedicated
+      /// emplace(const optional_impl&) overload is selected instead.
       //*************************************************************************
-      template <typename... TArgs>
+      template <typename U, 
+                typename... URest,
+                typename etl::enable_if<!etl::is_base_of<optional_impl,
+                                                         typename etl::remove_cv<typename etl::remove_reference<U>::type>::type>::value, int>::type = 0>
       ETL_CONSTEXPR20_STL
-      void emplace(TArgs&& ... args)
+      T& emplace(U&& first, URest&&... rest)
       {
-        storage.construct(etl::forward<TArgs>(args)...);
+        storage.construct(etl::forward<U>(first), etl::forward<URest>(rest)...);
+
+        return storage.u.value;
+      }
+
+      //*************************************************************************
+      /// Emplaces with zero arguments, i.e. default construct emplace.
+      //*************************************************************************
+      ETL_CONSTEXPR20_STL
+      T& emplace()
+      {
+        storage.construct();
+
+        return storage.u.value;
       }
 #else
       //*************************************************************************
       /// Emplaces a value.
-      /// 1 parameter.
+      /// 0 parameters.
       //*************************************************************************
       T& emplace()
       {
@@ -512,7 +574,9 @@ namespace etl
       /// 1 parameter.
       //*************************************************************************
       template <typename T1>
-      T& emplace(const T1& value1)
+      typename etl::enable_if<!etl::is_base_of<this_type,     typename etl::remove_cv<typename etl::remove_reference<T1>::type>::type>::value &&
+                              !etl::is_same<etl::optional<T>, typename etl::remove_cv<typename etl::remove_reference<T1>::type>::type>::value, T&>::type
+        emplace(const T1& value1)
       {
         if (has_value())
         {
@@ -593,6 +657,8 @@ namespace etl
       //*************************************
       struct storage_type
       {
+        typedef typename etl::remove_const<T>::type* pointer_type;
+
         //*******************************
         ETL_CONSTEXPR20_STL
         storage_type()
@@ -605,12 +671,9 @@ namespace etl
         ETL_CONSTEXPR20_STL
         void construct(const T& value_)
         {
-          if (valid)
-          {
-            etl::destroy_at(&u.value);
-          }
+          destroy();
 
-          etl::construct_at(&u.value, value_);
+          etl::construct_at(const_cast<pointer_type>(&u.value), value_);
           valid = true;
         }
 
@@ -619,12 +682,9 @@ namespace etl
         ETL_CONSTEXPR20_STL
         void construct(T&& value_)
         {
-          if (valid)
-          {
-            etl::destroy_at(&u.value);
-          }
+          destroy();
 
-          etl::construct_at(&u.value, etl::move(value_));
+          etl::construct_at(const_cast<pointer_type>(&u.value), etl::move(value_));
           valid = true;
         }
 
@@ -633,12 +693,9 @@ namespace etl
         ETL_CONSTEXPR20_STL
         void construct(TArgs&&... args)
         {
-          if (valid)
-          {
-            etl::destroy_at(&u.value);
-          }
+          destroy();
 
-          etl::construct_at(&u.value, etl::forward<TArgs>(args)...);
+          etl::construct_at(const_cast<pointer_type>(&u.value), etl::forward<TArgs>(args)...);
           valid = true;
         }
 #endif
@@ -649,7 +706,7 @@ namespace etl
         {
           if (valid)
           {
-            etl::destroy_at(&u.value);
+            etl::destroy_at(const_cast<pointer_type>(&u.value));
             valid = false;
           }
         }
@@ -687,6 +744,7 @@ namespace etl
     protected:
 
       typedef T value_type;
+      typedef optional_impl<T, true> this_type;
 
       //***************************************************************************
       /// Constructor.
@@ -732,7 +790,6 @@ namespace etl
           storage.construct(etl::move(other.value()));
         }
       }
-#endif
 
       //***************************************************************************
       /// Constructor from value type.
@@ -743,7 +800,6 @@ namespace etl
         storage.construct(value_);
       }
 
-#if ETL_USING_CPP11
       //***************************************************************************
       /// Constructor from value type.
       //***************************************************************************
@@ -752,6 +808,29 @@ namespace etl
       {
         storage.construct(etl::move(value_));
       }
+
+      //***************************************************************************
+      /// Constructor from variadic args.
+      //***************************************************************************
+      template <typename... TArgs>
+      ETL_CONSTEXPR14
+        optional_impl(etl::in_place_t, TArgs&&... args)
+      {
+        storage.construct(etl::forward<TArgs>(args)...);
+      }
+
+#if ETL_HAS_INITIALIZER_LIST
+      //*******************************************
+      /// Construct from initializer_list and arguments.
+      //*******************************************
+      template <typename U, typename... TArgs >
+      ETL_CONSTEXPR14 optional_impl(etl::in_place_t,
+                                    std::initializer_list<U> ilist,
+                                    TArgs&&... args)
+      {
+        storage.construct(ilist, etl::forward<TArgs>(args)...);
+      }
+#endif
 #endif
 
       //***************************************************************************
@@ -844,7 +923,7 @@ namespace etl
       ETL_CONSTEXPR14
       T* operator ->()
       {
-#if ETL_IS_DEBUG_BUILD && !(ETL_USING_CPP20 && ETL_USING_STL)
+#if ETL_IS_DEBUG_BUILD
         ETL_ASSERT(has_value(), ETL_ERROR(optional_invalid));
 #endif
 
@@ -857,7 +936,7 @@ namespace etl
       ETL_CONSTEXPR14
       const T* operator ->() const
       {
-#if ETL_IS_DEBUG_BUILD && !(ETL_USING_CPP20 && ETL_USING_STL)
+#if ETL_IS_DEBUG_BUILD
         ETL_ASSERT(has_value(), ETL_ERROR(optional_invalid));
 #endif
 
@@ -870,7 +949,7 @@ namespace etl
       ETL_CONSTEXPR14
       T& operator *() ETL_LVALUE_REF_QUALIFIER
       {
-#if ETL_IS_DEBUG_BUILD && !(ETL_USING_CPP20 && ETL_USING_STL)
+#if ETL_IS_DEBUG_BUILD
         ETL_ASSERT(has_value(), ETL_ERROR(optional_invalid));
 #endif
 
@@ -883,7 +962,7 @@ namespace etl
       ETL_CONSTEXPR14
       const T& operator *() const ETL_LVALUE_REF_QUALIFIER
       {
-#if ETL_IS_DEBUG_BUILD && !(ETL_USING_CPP20 && ETL_USING_STL)
+#if ETL_IS_DEBUG_BUILD
         ETL_ASSERT(has_value(), ETL_ERROR(optional_invalid));
 #endif
 
@@ -897,7 +976,7 @@ namespace etl
       ETL_CONSTEXPR14
       T&& operator *()&&
       {
-#if ETL_IS_DEBUG_BUILD && !(ETL_USING_CPP20 && ETL_USING_STL)
+#if ETL_IS_DEBUG_BUILD
         ETL_ASSERT(has_value(), ETL_ERROR(optional_invalid));
 #endif
 
@@ -910,7 +989,7 @@ namespace etl
       ETL_CONSTEXPR14
       const T&& operator *() const&&
       {
-#if ETL_IS_DEBUG_BUILD && !(ETL_USING_CPP20 && ETL_USING_STL)
+#if ETL_IS_DEBUG_BUILD
         ETL_ASSERT(has_value(), ETL_ERROR(optional_invalid));
 #endif
 
@@ -1006,7 +1085,7 @@ namespace etl
       etl::enable_if_t<etl::is_convertible<U, T>::value, T>
         value_or(U&& default_value) const&
       {
-        return has_value() ? value() : etl::forward<T>(default_value);
+        return has_value() ? value() : static_cast<T>(etl::forward<U>(default_value));
       }
 
       //***************************************************************************
@@ -1017,7 +1096,7 @@ namespace etl
       etl::enable_if_t<etl::is_convertible<U, T>::value, T>
         value_or(U&& default_value)&&
       {
-        return has_value() ? etl::move(value()) : etl::forward<T>(default_value);
+        return has_value() ? etl::move(value()) : static_cast<T>(etl::forward<U>(default_value));
       }
 #endif
 
@@ -1041,6 +1120,21 @@ namespace etl
         storage.destroy();
       }
 
+      //*************************************************************************
+      ///
+      //*************************************************************************
+      ETL_CONSTEXPR20_STL
+      T& emplace(const optional_impl<T>& other)
+      {
+#if ETL_IS_DEBUG_BUILD
+        ETL_ASSERT(other.has_value(), ETL_ERROR(optional_invalid));
+#endif
+
+        storage.construct(other.value());
+
+        return storage.u.value;
+      }
+
 #if ETL_USING_CPP11  && ETL_NOT_USING_STLPORT && !defined(ETL_OPTIONAL_FORCE_CPP03_IMPLEMENTATION)
       //*************************************************************************
       /// Emplaces a value.
@@ -1048,14 +1142,16 @@ namespace etl
       //*************************************************************************
       template <typename... TArgs>
       ETL_CONSTEXPR14
-      void emplace(TArgs&& ... args)
+      T& emplace(TArgs&& ... args)
       {
         storage.construct(etl::forward<TArgs>(args)...);
+
+        return storage.value;
       }
 #else
       //*************************************************************************
       /// Emplaces a value.
-      /// 1 parameter.
+      /// 0 parameters.
       //*************************************************************************
       T& emplace()
       {
@@ -1076,7 +1172,9 @@ namespace etl
       /// 1 parameter.
       //*************************************************************************
       template <typename T1>
-      T& emplace(const T1& value1)
+      typename etl::enable_if<!etl::is_base_of<this_type,     typename etl::remove_cv<typename etl::remove_reference<T1>::type>::type>::value &&
+                              !etl::is_same<etl::optional<T>, typename etl::remove_cv<typename etl::remove_reference<T1>::type>::type>::value, T&>::type
+        emplace(const T1& value1)
       {
         if (has_value())
         {
@@ -1205,11 +1303,11 @@ namespace etl
     };
   }
 
-#define ETL_OPTIONAL_ENABLE_CPP14     typename etl::enable_if< etl::is_pod<U>::value, int>::type = 0
-#define ETL_OPTIONAL_ENABLE_CPP20_STL typename etl::enable_if<!etl::is_pod<U>::value, int>::type = 0
+#define ETL_OPTIONAL_ENABLE_CPP14     typename etl::enable_if< etl::is_pod<typename etl::remove_cv<U>::type>::value, int>::type = 0
+#define ETL_OPTIONAL_ENABLE_CPP20_STL typename etl::enable_if<!etl::is_pod<typename etl::remove_cv<U>::type>::value, int>::type = 0
 
-#define ETL_OPTIONAL_ENABLE_CONSTEXPR_BOOL_RETURN_CPP14     ETL_CONSTEXPR14     typename etl::enable_if< etl::is_pod<T>::value, bool>::type
-#define ETL_OPTIONAL_ENABLE_CONSTEXPR_BOOL_RETURN_CPP20_STL ETL_CONSTEXPR20_STL typename etl::enable_if<!etl::is_pod<T>::value, bool>::type
+#define ETL_OPTIONAL_ENABLE_CONSTEXPR_BOOL_RETURN_CPP14     ETL_CONSTEXPR14 typename etl::enable_if< etl::is_pod<typename etl::remove_cv<T>::type>::value, bool>::type
+#define ETL_OPTIONAL_ENABLE_CONSTEXPR_BOOL_RETURN_CPP20_STL ETL_CONSTEXPR20_STL typename etl::enable_if<!etl::is_pod<typename etl::remove_cv<T>::type>::value, bool>::type
 
   //*****************************************************************************
   /// An optional type.
@@ -1391,6 +1489,54 @@ namespace etl
       : impl_t(etl::move(value_))
     {
     }
+#endif
+
+#if ETL_USING_CPP11
+    //***************************************************************************
+    /// Emplace construct from arguments.
+    //***************************************************************************
+    template <typename U = T, ETL_OPTIONAL_ENABLE_CPP14, typename... Args>
+    ETL_CONSTEXPR14
+    explicit optional(etl::in_place_t, Args&&... args)
+      : impl_t(etl::in_place_t{}, etl::forward<Args>(args)...)
+    {
+    }
+
+    //***************************************************************************
+    /// Emplace construct from arguments.
+    //***************************************************************************
+    template <typename U = T, ETL_OPTIONAL_ENABLE_CPP20_STL, typename... Args>
+    ETL_CONSTEXPR20_STL
+    explicit optional(etl::in_place_t, Args&&... args)
+      : impl_t(etl::in_place_t{}, etl::forward<Args>(args)...)
+    {
+    }
+
+#if ETL_HAS_INITIALIZER_LIST
+    //*******************************************
+    /// Construct from initializer_list and arguments.
+    //*******************************************
+    template <typename U = T, ETL_OPTIONAL_ENABLE_CPP14, typename... TArgs>
+    ETL_CONSTEXPR14 
+    explicit optional(etl::in_place_t,
+                      std::initializer_list<U> ilist,
+                      TArgs&&... args)
+      : impl_t(etl::in_place_t{}, ilist, etl::forward<TArgs>(args)...)
+    {
+    }
+
+    //*******************************************
+    /// Construct from initializer_list and arguments.
+    //*******************************************
+    template <typename U = T, ETL_OPTIONAL_ENABLE_CPP20_STL, typename... TArgs>
+    ETL_CONSTEXPR20_STL 
+    explicit optional(etl::in_place_t,
+                      std::initializer_list<U> ilist,
+                      TArgs&&... args)
+      : impl_t(etl::in_place_t{}, ilist, etl::forward<TArgs>(args)...)
+    {
+    }
+#endif
 #endif
 
 #if ETL_USING_CPP11
@@ -2172,7 +2318,7 @@ ETL_CONSTEXPR20_STL void swap(etl::optional<T>& lhs, etl::optional<T>& rhs)
 #undef ETL_OPTIONAL_ENABLE_CPP14
 #undef ETL_OPTIONAL_ENABLE_CPP20_STL
 
+#undef ETL_OPTIONAL_ENABLE_CONSTEXPR_BOOL_RETURN_CPP14
 #undef ETL_OPTIONAL_ENABLE_CONSTEXPR_BOOL_RETURN_CPP20_STL
-#undef ETL_OPTIONAL_ENABLE_COMSTEXPR_BOOL_RETURN_CPP20_STL
 
 #endif

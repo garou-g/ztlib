@@ -230,6 +230,7 @@ namespace etl
     //*********************************************************************
     reference operator [](size_t i)
     {
+      ETL_ASSERT_CHECK_INDEX_OPERATOR(i < size(), ETL_ERROR(vector_out_of_bounds));
       return p_buffer[i];
     }
 
@@ -240,6 +241,7 @@ namespace etl
     //*********************************************************************
     const_reference operator [](size_t i) const
     {
+      ETL_ASSERT_CHECK_INDEX_OPERATOR(i < size(), ETL_ERROR(vector_out_of_bounds));
       return p_buffer[i];
     }
 
@@ -273,6 +275,7 @@ namespace etl
     //*********************************************************************
     reference front()
     {
+      ETL_ASSERT_CHECK_EXTRA(size() > 0, ETL_ERROR(vector_out_of_bounds));
       return p_buffer[0];
     }
 
@@ -282,6 +285,7 @@ namespace etl
     //*********************************************************************
     const_reference front() const
     {
+      ETL_ASSERT_CHECK_EXTRA(size() > 0, ETL_ERROR(vector_out_of_bounds));
       return p_buffer[0];
     }
 
@@ -291,6 +295,7 @@ namespace etl
     //*********************************************************************
     reference back()
     {
+      ETL_ASSERT_CHECK_EXTRA(size() > 0, ETL_ERROR(vector_out_of_bounds));
       return *(p_end - 1);
     }
 
@@ -300,6 +305,7 @@ namespace etl
     //*********************************************************************
     const_reference back() const
     {
+      ETL_ASSERT_CHECK_EXTRA(size() > 0, ETL_ERROR(vector_out_of_bounds));
       return *(p_end - 1);
     }
 
@@ -367,7 +373,7 @@ namespace etl
       void** p_first = (void**)(first);
       void** p_last  = (void**)(last);
 
-      p_end = etl::copy(p_first, p_last, p_buffer);
+      p_end = etl::mem_move(p_first, p_last, p_buffer) + (p_last - p_first);
     }
 
     //*********************************************************************
@@ -400,9 +406,8 @@ namespace etl
     //*********************************************************************
     void push_back(value_type value)
     {
-#if defined(ETL_CHECK_PUSH_POP)
-      ETL_ASSERT_OR_RETURN(size() != CAPACITY, ETL_ERROR(vector_full));
-#endif
+      ETL_ASSERT_CHECK_PUSH_POP_OR_RETURN(size() != CAPACITY, ETL_ERROR(vector_full));
+
       *p_end++ = value;
     }
 
@@ -413,9 +418,8 @@ namespace etl
     //*********************************************************************
     void emplace_back(value_type value)
     {
-#if defined(ETL_CHECK_PUSH_POP)
-      ETL_ASSERT_OR_RETURN(size() != CAPACITY, ETL_ERROR(vector_full));
-#endif
+      ETL_ASSERT_CHECK_PUSH_POP_OR_RETURN(size() != CAPACITY, ETL_ERROR(vector_full));
+
       * p_end++ = value;
     }
 
@@ -425,9 +429,8 @@ namespace etl
     //*************************************************************************
     void pop_back()
     {
-#if defined(ETL_CHECK_PUSH_POP)
-      ETL_ASSERT_OR_RETURN(size() > 0, ETL_ERROR(vector_empty));
-#endif
+      ETL_ASSERT_CHECK_PUSH_POP_OR_RETURN(size() > 0, ETL_ERROR(vector_empty));
+
       --p_end;
     }
 
@@ -443,6 +446,7 @@ namespace etl
     iterator insert(const_iterator position, value_type value)
     {
       ETL_ASSERT(size() != CAPACITY, ETL_ERROR(vector_full));
+      ETL_ASSERT_CHECK_EXTRA(cbegin() <= position && position <= cend(), ETL_ERROR(vector_out_of_bounds));
 
       iterator position_ = to_iterator(position);
       
@@ -451,7 +455,7 @@ namespace etl
         if (position_ != end())
         {
           ++p_end;
-          etl::copy_backward(position_, end() - 1, end());
+          etl::mem_move(position_, end() - 1, position_ + 1);
           *position_ = value;
         }
         else
@@ -476,13 +480,14 @@ namespace etl
     iterator emplace(const_iterator position)
     {
       ETL_ASSERT(size() != CAPACITY, ETL_ERROR(vector_full));
+      ETL_ASSERT_CHECK_EXTRA(cbegin() <= position && position <= cend(), ETL_ERROR(vector_out_of_bounds));
 
       iterator position_ = to_iterator(position);
 
       if (position_ != end())
       {
         ++p_end;
-        etl::copy_backward(position_, end() - 1, end());
+        etl::mem_move(position_, end() - 1, position_ + 1);
         *position_ = ETL_NULLPTR;
       }
       else
@@ -506,13 +511,14 @@ namespace etl
     iterator emplace(const_iterator position, value_type value)
     {
       ETL_ASSERT(size() != CAPACITY, ETL_ERROR(vector_full));
+      ETL_ASSERT_CHECK_EXTRA(cbegin() <= position && position <= cend(), ETL_ERROR(vector_out_of_bounds));
 
       iterator position_ = to_iterator(position);
 
       if (position_ != end())
       {
         ++p_end;
-        etl::copy_backward(position_, end() - 1, end());
+        etl::mem_move(position_, end() - 1, position_ + 1);
         *position_ = value;
       }
       else
@@ -539,10 +545,11 @@ namespace etl
     void insert(const_iterator position, size_t n, value_type value)
     {
       ETL_ASSERT_OR_RETURN((size() + n) <= CAPACITY, ETL_ERROR(vector_full));
+      ETL_ASSERT_CHECK_EXTRA(cbegin() <= position && position <= cend(), ETL_ERROR(vector_out_of_bounds));
 
       iterator position_ = to_iterator(position);
 
-      etl::copy_backward(position_, p_end, p_end + n);
+      etl::mem_move(position_, p_end, position_ + n);
       etl::fill_n(position_, n, value);
 
       p_end += n;
@@ -554,22 +561,48 @@ namespace etl
     //*********************************************************************
     /// Inserts a range of values to the vector.
     /// If asserts or exceptions are enabled, emits vector_full if the vector does not have enough free space.
-    /// For fundamental and pointer types.
+    /// For non-pointer iterators.
     ///\param position The position to insert before.
     ///\param first    The first element to add.
     ///\param last     The last + 1 element to add.
     //*********************************************************************
     template <typename TIterator>
-    void insert(const_iterator position, TIterator first, TIterator last)
+    typename etl::enable_if<!etl::is_pointer<TIterator>::value, void>::type
+      insert(const_iterator position, TIterator first, TIterator last)
     {
       size_t count = etl::distance(first, last);
 
       iterator position_ = to_iterator(position);
 
       ETL_ASSERT_OR_RETURN((size() + count) <= CAPACITY, ETL_ERROR(vector_full));
+      ETL_ASSERT_CHECK_EXTRA(cbegin() <= position && position <= cend(), ETL_ERROR(vector_out_of_bounds));
 
-      etl::copy_backward(position_, p_end, p_end + count);
+      etl::mem_move(position_, p_end, position_ + count);
       etl::copy(first, last, position_);
+      p_end += count;
+    }
+
+    //*********************************************************************
+    /// Inserts a range of values to the vector.
+    /// If asserts or exceptions are enabled, emits vector_full if the vector does not have enough free space.
+    /// For pointer iterators.
+    ///\param position The position to insert before.
+    ///\param first    The first element to add.
+    ///\param last     The last + 1 element to add.
+    //*********************************************************************
+    template <typename TIterator>
+    typename etl::enable_if<etl::is_pointer<TIterator>::value, void>::type
+      insert(const_iterator position, TIterator first, TIterator last)
+    {
+      size_t count = etl::distance(first, last);
+
+      iterator position_ = to_iterator(position);
+
+      ETL_ASSERT_OR_RETURN((size() + count) <= CAPACITY, ETL_ERROR(vector_full));
+      ETL_ASSERT_CHECK_EXTRA(cbegin() <= position && position <= cend(), ETL_ERROR(vector_out_of_bounds));
+
+      etl::mem_move(position_, p_end, position_ + count);
+      etl::mem_move((void**)first, (void**)last, position_);
       p_end += count;
     }
 
@@ -580,7 +613,9 @@ namespace etl
     //*********************************************************************
     iterator erase(iterator i_element)
     {
-      etl::copy(i_element + 1, end(), i_element);
+      ETL_ASSERT_CHECK_EXTRA(cbegin() <= i_element && i_element < cend(), ETL_ERROR(vector_out_of_bounds));
+
+      etl::mem_move(i_element + 1, end(), i_element);
       --p_end;
 
       return i_element;
@@ -593,9 +628,11 @@ namespace etl
     //*********************************************************************
     iterator erase(const_iterator i_element)
     {
+      ETL_ASSERT_CHECK_EXTRA(cbegin() <= i_element && i_element < cend(), ETL_ERROR(vector_out_of_bounds));
+
       iterator i_element_ = to_iterator(i_element);
 
-      etl::copy(i_element_ + 1, end(), i_element_);
+      etl::mem_move(i_element_ + 1, end(), i_element_);
       --p_end;
 
       return i_element_;
@@ -611,10 +648,12 @@ namespace etl
     //*********************************************************************
     iterator erase(const_iterator first, const_iterator last)
     {
+      ETL_ASSERT_CHECK_EXTRA(cbegin() <= first && first <= last && last <= cend(), ETL_ERROR(vector_out_of_bounds));
+      
       iterator first_ = to_iterator(first);
       iterator last_  = to_iterator(last);
 
-      etl::copy(last_, end(), first_);
+      etl::mem_move(last_, end(), first_);
       size_t n_delete = static_cast<size_t>(etl::distance(first, last));
 
       // Just adjust the count.
@@ -632,7 +671,7 @@ namespace etl
       {
         this->initialise();
         this->resize(rhs.size());
-        etl::copy_n(rhs.data(), rhs.size(), this->data());
+        etl::mem_copy(rhs.data(), rhs.size(), this->data());
       }
 
       return *this;
@@ -648,7 +687,7 @@ namespace etl
       {
         this->initialise();
         this->resize(rhs.size());
-        etl::copy_n(rhs.data(), rhs.size(), this->data());
+        etl::mem_copy(rhs.data(), rhs.size(), this->data());
         rhs.initialise();
       }
 

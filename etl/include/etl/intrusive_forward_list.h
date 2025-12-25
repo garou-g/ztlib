@@ -206,9 +206,8 @@ namespace etl
     //*************************************************************************
     void pop_front()
     {
-#if defined(ETL_CHECK_PUSH_POP)
-      ETL_ASSERT_OR_RETURN(!empty(), ETL_ERROR(intrusive_forward_list_empty));
-#endif
+      ETL_ASSERT_CHECK_PUSH_POP_OR_RETURN(!empty(), ETL_ERROR(intrusive_forward_list_empty));
+
       disconnect_link_after(start);
     }
 
@@ -251,6 +250,24 @@ namespace etl
     size_t size() const
     {
       return current_size;
+    }
+
+    //*************************************************************************
+    /// Detects existence of specified node in list.
+    ///\param search_link The node to find in list
+    //*************************************************************************
+    bool contains_node(const link_type& search_link) const
+    {
+      return is_link_in_list(&search_link);
+    }
+
+    //*************************************************************************
+    /// Detects existence of specified node in list.
+    ///\param search_link The node to find in list
+    //*************************************************************************
+    bool contains_node(const link_type* search_link) const
+    {
+      return is_link_in_list(search_link);
     }
 
   protected:
@@ -304,7 +321,10 @@ namespace etl
       if (p_next != &this->terminator)
       {
         link_type* p_unlinked = etl::unlink_after<link_type>(link);
-        p_unlinked->clear();
+        if (p_unlinked != ETL_NULLPTR)
+        {
+          p_unlinked->clear();
+        }
         --current_size;
       }
     }
@@ -338,24 +358,20 @@ namespace etl
     /// Tests if the link is in this list.
     /// Returns the previous link to it, if found, otherwise ETL_NULLPTR.
     //*************************************************************************
-    link_type* is_link_in_list(link_type& search_link)
+    link_type* is_link_in_list(const link_type* search_link) const
     {
       link_type* p_link     = start.etl_next;
-      link_type* p_previous = &start;
+      link_type* p_previous = const_cast<link_type*>(&start);
 
       while (p_link != ETL_NULLPTR)
       {
-        if (&search_link == p_link)
+        if (search_link == p_link)
         {
           return p_previous;
         }
 
         p_previous = p_link;
-
-        if (p_link != ETL_NULLPTR)
-        {
-          p_link = p_link->link_type::etl_next;
-        }
+        p_link = p_link->link_type::etl_next;
       }
 
       return ETL_NULLPTR;
@@ -366,7 +382,7 @@ namespace etl
     /// Returns ETL_NULLPTR if the link was not in this list.
     /// Returns the next 
     //*************************************************************************
-    link_type* remove_link(link_type& link)
+    link_type* remove_link(link_type* link)
     {
       link_type* result = ETL_NULLPTR;
 
@@ -374,7 +390,7 @@ namespace etl
 
       if (p_previous != ETL_NULLPTR)
       {
-        link_type* p_next = link.etl_next;
+        link_type* p_next = link->etl_next;
 
         disconnect_link_after(*p_previous);
 
@@ -629,6 +645,22 @@ namespace etl
       this->assign(first, last);
     }
 
+#if ETL_USING_CPP11
+    //*************************************************************************
+    /// Constructor from variadic list of nodes.
+    //*************************************************************************
+    template <typename... TLinks>
+    intrusive_forward_list(link_type& first, TLinks&... links)
+    {
+      ETL_STATIC_ASSERT((etl::is_base_of_all<link_type, TLinks...>::value), "Mixed link types");
+
+      this->current_size   = 0;
+      this->start.etl_next = &first;
+      link_type* last      = make_linked_list(this->current_size, first, static_cast<link_type&>(links)...);
+      last->etl_next       = &this->terminator;
+    }
+#endif
+
     //*************************************************************************
     /// Gets the beginning of the intrusive_forward_list.
     //*************************************************************************
@@ -787,9 +819,17 @@ namespace etl
     //*************************************************************************
     /// Erases the specified node.
     //*************************************************************************
-    node_type* erase(node_type& node)
+    node_type* erase(const node_type& node)
     {
-      return static_cast<node_type*>(this->remove_link(node));
+      return static_cast<node_type*>(this->remove_link(const_cast<node_type*>(&node)));
+    }
+
+    //*************************************************************************
+    /// Erases the specified node.
+    //*************************************************************************
+    node_type* erase(const node_type* p_node)
+    {
+      return static_cast<node_type*>(this->remove_link(const_cast<node_type*>(p_node)));
     }
 
     //*************************************************************************
@@ -1167,7 +1207,63 @@ namespace etl
       }
     }
 
+    //*************************************************************************
+    /// Detects existence of specified value in list.
+    ///\param value The value to find in list
+    //*************************************************************************
+    bool contains(const_reference value) const
+    {
+      const_iterator i_item = begin();
+
+      while (i_item != end())
+      {
+        if (*i_item == value)
+        {
+          return true;
+        }
+
+        ++i_item;
+      }
+
+      return false;
+    }
+
   private:
+
+#if ETL_USING_CPP17
+    //***************************************************************************
+    /// Create a linked list from a number of forward_link nodes.
+    //***************************************************************************
+    template <typename... TLinks>
+    link_type* make_linked_list(size_t& count, link_type& first, TLinks&... links)
+    {
+      link_type* current = &first;
+      ++count;
+      ((current->etl_next = &links, current = &links, ++count), ...);
+      
+      return current;
+    }
+#elif ETL_USING_CPP11
+    //***************************************************************************
+    /// Create a counted linked list from a number of forward_link nodes.
+    //***************************************************************************
+    link_type* make_linked_list(size_t& count, link_type& first)
+    {
+      ++count;
+      return &first;
+    }
+
+    //***************************************************************************
+    /// Create a counted linked list from a number of forward_link nodes.
+    //***************************************************************************
+    template <typename... TLinks>
+    link_type* make_linked_list(size_t& count, link_type& first, link_type& next, TLinks&... links)
+    {
+      ++count;
+      first.etl_next = &next;
+      return make_linked_list(count, next, static_cast<link_type&>(links)...);
+    }
+#endif
 
     //*************************************************************************
     /// Get the next value.

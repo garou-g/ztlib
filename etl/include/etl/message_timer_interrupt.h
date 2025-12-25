@@ -54,6 +54,8 @@ namespace etl
 
     typedef etl::delegate<void(void)> callback_type;
 
+    typedef etl::delegate<void(etl::timer::id::type)> event_callback_type;
+
   public:
 
     //*******************************************
@@ -67,7 +69,7 @@ namespace etl
     {
       etl::timer::id::type id = etl::timer::id::NO_TIMER;
 
-      bool is_space = (number_of_registered_timers < MAX_TIMERS);
+      bool is_space = (number_of_registered_timers < Max_Timers);
 
       if (is_space)
       {
@@ -75,7 +77,7 @@ namespace etl
         if (!router_.is_null_router())
         {
           // Search for the free space.
-          for (uint_least8_t i = 0U; i < MAX_TIMERS; ++i)
+          for (uint_least8_t i = 0U; i < Max_Timers; ++i)
           {
             timer_data& timer = timer_array[i];
 
@@ -116,6 +118,7 @@ namespace etl
             (void)guard; // Silence 'unused variable warnings.
 
             active_list.remove(timer.id, true);
+            remove_callback.call_if(timer.id);
           }
 
           // Reset in-place.
@@ -157,7 +160,7 @@ namespace etl
         active_list.clear();
       }
 
-      for (int i = 0; i < MAX_TIMERS; ++i)
+      for (int i = 0; i < Max_Timers; ++i)
       {
         new (&timer_array[i]) timer_data();
       }
@@ -187,6 +190,7 @@ namespace etl
             count -= timer.delta;
 
             active_list.remove(timer.id, true);
+            remove_callback.call_if(timer.id);
 
             if (timer.p_router != ETL_NULLPTR)
             {
@@ -198,6 +202,7 @@ namespace etl
               // Reinsert the timer.
               timer.delta = timer.period;
               active_list.insert(timer.id);
+              insert_callback.call_if(timer.id);
             }
 
             has_active = !active_list.empty();
@@ -240,10 +245,12 @@ namespace etl
             if (timer.is_active())
             {
               active_list.remove(timer.id, false);
+              remove_callback.call_if(timer.id);
             }
 
             timer.delta = immediate_ ? 0 : timer.period;
             active_list.insert(timer.id);
+            insert_callback.call_if(timer.id);
 
             result = true;
           }
@@ -274,6 +281,7 @@ namespace etl
             (void)guard; // Silence 'unused variable warnings.
 
             active_list.remove(timer.id, false);
+            remove_callback.call_if(timer.id);
           }
 
           result = true;
@@ -338,6 +346,34 @@ namespace etl
       }
 
       return delta;
+    }
+
+    //*******************************************
+    /// Set a callback when a timer is inserted on list
+    //*******************************************
+    void set_insert_callback(event_callback_type insert_)
+    {
+      insert_callback = insert_;
+    }
+
+    //*******************************************
+    /// Set a callback when a timer is removed from list
+    //*******************************************
+    void set_remove_callback(event_callback_type remove_)
+    {
+      remove_callback = remove_;
+    }
+
+    //*******************************************
+    void clear_insert_callback()
+    {
+      insert_callback.clear();
+    }
+
+    //*******************************************
+    void clear_remove_callback()
+    {
+      remove_callback.clear();
     }
 
   protected:
@@ -415,12 +451,12 @@ namespace etl
     //*******************************************
     /// Constructor.
     //*******************************************
-    imessage_timer_interrupt(timer_data* const timer_array_, const uint_least8_t  MAX_TIMERS_)
+    imessage_timer_interrupt(timer_data* const timer_array_, const uint_least8_t  Max_Timers_)
       : timer_array(timer_array_)
       , active_list(timer_array_)
       , enabled(false)
       , number_of_registered_timers(0U)
-      , MAX_TIMERS(MAX_TIMERS_)
+      , Max_Timers(Max_Timers_)
     {
     }
 
@@ -626,20 +662,23 @@ namespace etl
     bool enabled;
     uint_least8_t number_of_registered_timers;
 
+    event_callback_type insert_callback;
+    event_callback_type remove_callback;
+
   public:
 
-    const uint_least8_t MAX_TIMERS;
+    const uint_least8_t Max_Timers;
   };
 
   //***************************************************************************
   /// The message timer
   //***************************************************************************
-  template <uint_least8_t MAX_TIMERS_, typename TInterruptGuard>
+  template <uint_least8_t Max_Timers_, typename TInterruptGuard>
   class message_timer_interrupt : public etl::imessage_timer_interrupt<TInterruptGuard>
   {
   public:
 
-    ETL_STATIC_ASSERT(MAX_TIMERS_ <= 254, "No more than 254 timers are allowed");
+    ETL_STATIC_ASSERT(Max_Timers_ <= 254, "No more than 254 timers are allowed");
 
     typedef typename imessage_timer_interrupt<TInterruptGuard>::callback_type callback_type;
 
@@ -647,13 +686,13 @@ namespace etl
     /// Constructor.
     //*******************************************
     message_timer_interrupt()
-      : imessage_timer_interrupt<TInterruptGuard>(timer_array, MAX_TIMERS_)
+      : imessage_timer_interrupt<TInterruptGuard>(timer_array, Max_Timers_)
     {
     }
 
   private:
 
-    typename etl::imessage_timer_interrupt<TInterruptGuard>::timer_data timer_array[MAX_TIMERS_];
+    typename etl::imessage_timer_interrupt<TInterruptGuard>::timer_data timer_array[Max_Timers_];
   };
 }
 

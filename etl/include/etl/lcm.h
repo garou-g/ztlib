@@ -31,6 +31,7 @@ SOFTWARE.
 #ifndef ETL_LCM_INCLUDED
 #define ETL_LCM_INCLUDED
 
+#include "platform.h"
 #include "type_traits.h"
 #include "absolute.h"
 #include "static_assert.h"
@@ -38,6 +39,16 @@ SOFTWARE.
 
 namespace etl
 {
+  //***************************************************************************
+  // Least Common Multiple.
+  // Compile time.
+  //***************************************************************************
+  template <intmax_t Value1, intmax_t Value2>
+  struct lcm_const
+  {
+    static ETL_CONSTANT intmax_t value = (Value1 / gcd_const<Value1, Value2>::value) * Value2;
+  };
+
   //***************************************************************************
   // Least Common Multiple.
   // For unsigned types.
