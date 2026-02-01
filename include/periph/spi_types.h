@@ -11,17 +11,17 @@ enum class SpiMode {
     Slave,
 };
 
-enum class SpiPolarity {
-    Low1Edge,
-    High1Edge,
-    Low2Edge,
-    High2Edge,
+enum class SpiPolarity : uint8_t {
+    Low1Edge = 0,
+    High1Edge = 1,
+    Low2Edge = 2,
+    High2Edge = 3,
 };
 
-enum class SpiFrame {
-    Frame8Bit,
-    Frame16Bit,
-    Frame32Bit,
+enum class SpiFrame : uint8_t {
+    Frame8Bit = 8,
+    Frame16Bit = 16,
+    Frame32Bit = 32,
 };
 
 /***************************** END OF FILE ************************************/

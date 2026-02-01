@@ -5,6 +5,7 @@
  ******************************************************************************/
 
 #include "esp32/spi.h"
+#include "driver/gpio.h"
 
 #include <cassert>
 
@@ -13,11 +14,15 @@ namespace esp32 {
 static bool checkConfig(const esp32::SpiConfig* config)
 {
     assert(config != nullptr);
-    return true;
-    // return config->spi == SPI0 || config->spi == SPI1 || config->spi == SPI2;
+    return config->spi == SPI1_HOST || config->spi == SPI2_HOST;
 }
 
-bool Spi::setConfig(const void* drvConfig)
+P_Spi::P_Spi(ISpiQueue& rx)
+    : rxQueue_(rx)
+{
+}
+
+bool P_Spi::setConfig(const void* drvConfig)
 {
     if (isOpen())
         return false;
@@ -30,7 +35,7 @@ bool Spi::setConfig(const void* drvConfig)
     return true;
 }
 
-bool Spi::open()
+bool P_Spi::open()
 {
     if (isOpen())
         return false;
@@ -39,75 +44,63 @@ bool Spi::open()
         return false;
     }
 
-    spi_bus_config_t buscfg = {
+    // Init SPI instance structures
+    const spi_bus_config_t buscfg = {
         .mosi_io_num = config_.mosi,
         .miso_io_num = config_.miso,
         .sclk_io_num = config_.clk,
-        .quadwp_io_num = -1,
-        .quadhd_io_num = -1,
-        .max_transfer_sz = 128,
+        .quadwp_io_num = GPIO_NUM_NC,
+        .quadhd_io_num = GPIO_NUM_NC,
+        .data4_io_num = GPIO_NUM_NC,
+        .data5_io_num = GPIO_NUM_NC,
+        .data6_io_num = GPIO_NUM_NC,
+        .data7_io_num = GPIO_NUM_NC,
+        .max_transfer_sz = 0,
+        .flags = 0,
+        .intr_flags = 0,
     };
-    spi_bus_initialize(config_.spi, &buscfg, SPI_DMA_CH_AUTO);
 
-    // spi_device_interface_config_t devcfg = {
-    //     .clock_speed_hz = 10 * 1000 * 1000, // Clock out at 10 MHz
-    //     .mode = 0, // SPI mode 0
-    //     .spics_io_num = PIN_NUM_CS, // CS pin
-    //     .queue_size = 7, // We want to be able to queue 7 transactions at a time
-    //     .pre_cb = lcd_spi_pre_transfer_callback, // Specify pre-transfer callback to handle D/C line
-    // };
-    // spi_bus_add_device(config_.spi, &devcfg, &spiHandle_);
+    spi_device_interface_config_t devcfg = {};
+    devcfg.mode = static_cast<uint8_t>(config_.polarity);
+    devcfg.clock_speed_hz = config_.speed;
+    devcfg.spics_io_num = GPIO_NUM_NC;
+    devcfg.queue_size = 1;
+
+    spi_bus_initialize(config_.spi, &buscfg, SPI_DMA_CH_AUTO);
+    spi_bus_add_device(config_.spi, &devcfg, &spi_);
 
     setOpened(true);
     return true;
 }
 
-void Spi::close()
+void P_Spi::close()
 {
     if (isOpen()) {
+        spi_bus_remove_device(spi_);
+        spi_bus_free(config_.spi);
+        spi_ = nullptr;
         setOpened(false);
     }
 }
 
-int32_t Spi::write_(const void* buf, uint32_t len)
+int32_t P_Spi::write_(const void* buf, uint32_t len)
 {
     assert(buf != nullptr);
 
     if (!isOpen())
         return -1;
 
-    // const uint8_t* bytes = static_cast<const uint8_t*>(buf);
-    // const uint16_t* halfwords = static_cast<const uint16_t*>(buf);
-    // const uint32_t* words = static_cast<const uint32_t*>(buf);
-    // const int32_t reg = getReg();
+    const int32_t reg = getReg();
 
     // Set chip select
     if (cs_)
         cs_->reset();
 
-    // // Send register or command if needed
-    // if (reg >= 0) {
-    //     if (config_.frame == SpiFrame::Frame32Bit) {
-    //         readWrite(reg >> 16, false);
-    //         readWrite(reg, false);
-    //     } else {
-    //         readWrite(reg, false);
-    //     }
-    //     while (SET == spi_i2s_flag_get(config_.spi, SPI_FLAG_TRANS));
-    // }
-
-    // // Send and receive data
-    // for (uint32_t i = 0; i < len; ++i) {
-    //     if (config_.frame == SpiFrame::Frame32Bit) {
-    //         readWrite(words[i] >> 16);
-    //         readWrite(words[i]);
-    //     } else if (config_.frame == SpiFrame::Frame16Bit) {
-    //         readWrite(halfwords[i]);
-    //     } else {
-    //         readWrite(bytes[i]);
-    //     }
-    //     while (SET == spi_i2s_flag_get(config_.spi, SPI_FLAG_TRANS));
-    // }
+    // Send register or command if needed
+    if (reg >= 0) {
+        readWrite(&reg, 1, false);
+    }
+    readWrite(buf, len);
 
     // Reset chip select
     if (cs_)
@@ -116,59 +109,94 @@ int32_t Spi::write_(const void* buf, uint32_t len)
     return len;
 }
 
-int32_t Spi::read_(void* buf, uint32_t len)
+int32_t P_Spi::read_(void* buf, uint32_t len)
 {
     assert(buf != nullptr);
 
     if (!isOpen() || len == 0)
         return -1;
 
-    // // Get pointers to data variants
-    // uint8_t* bytes = static_cast<uint8_t*>(buf);
-    // uint16_t* halfwords = static_cast<uint16_t*>(buf);
-    // uint32_t* words = static_cast<uint32_t*>(buf);
+    // Check sizes
+    const uint32_t currSize = rxQueue_.size();
+    const uint32_t size = currSize < len ? currSize : len;
 
-    // // Check sizes
-    // const uint32_t currSize = rxQueue_.size();
-    // const uint32_t size = currSize < len ? currSize : len;
+    // Fill data from queue buffer
+    for (uint32_t i = 0; i < size; ++i) {
+        const auto data = rxQueue_.front();
+        rxQueue_.pop();
 
-    // // Fill data from queue buffer
-    // for (uint32_t i = 0; i < size; ++i) {
-    //     if (config_.frame == SpiFrame::Frame8Bit) {
-    //         bytes[i] = rxQueue_.front();
-    //     } else if (config_.frame == SpiFrame::Frame16Bit) {
-    //         halfwords[i] = rxQueue_.front();
-    //     } else {
-    //         const uint16_t high = rxQueue_.front();
-    //         rxQueue_.pop();
-    //         words[i] = (high << 16) | (rxQueue_.front() & 0xFFFF);
-    //     }
-    //     rxQueue_.pop();
-    // }
-    // return size;
-
-    return -1;
+        switch (config_.frame) {
+        default:
+        case SpiFrame::Frame8Bit:
+            static_cast<uint8_t*>(buf)[i] = data;
+            break;
+        case SpiFrame::Frame16Bit:
+            static_cast<uint16_t*>(buf)[i] = data;
+            break;
+        case SpiFrame::Frame32Bit:
+            static_cast<uint32_t*>(buf)[i] = data;
+            break;
+        }
+    }
+    return size;
 }
 
-bool Spi::ioctl(uint32_t cmd, void* pValue)
+bool P_Spi::ioctl(uint32_t cmd, void* pValue)
 {
     if (!isOpen())
         return false;
 
-    switch (static_cast<IoctlCmd>(cmd)) {
-    case kSetCs:
+    switch (cmd) {
+    case Spi::kSetCs:
         if (pValue != nullptr) {
             cs_ = static_cast<Gpio*>(pValue);
             return true;
         }
         break;
-    case kFlushInput:
+    case SerialDrv::kFlushInput:
+        rxQueue_.clear();
         return true;
     default:
         break;
     }
 
     return false;
+}
+
+void P_Spi::readWrite(const void* txBuf, uint32_t len, bool save)
+{
+    const size_t frameLen = static_cast<size_t>(config_.frame);
+    const size_t transLen = frameLen * len;
+    const bool misoStageNeeded = save && config_.miso != GPIO_NUM_NC;
+    uint8_t rxBuf[transLen >> 3];
+
+    spi_transaction_t t = {};
+    t.length = transLen;
+    t.tx_buffer = txBuf;
+    t.rx_buffer = misoStageNeeded ? rxBuf : NULL;
+    esp_err_t ret = spi_device_transmit(spi_, &t);
+
+    if (ret == ESP_OK && misoStageNeeded) {
+        for (uint32_t i = 0; i < len; ++i) {
+            if (rxQueue_.full())
+                break;
+
+            switch (config_.frame) {
+            default:
+            case SpiFrame::Frame8Bit:
+                rxQueue_.push(static_cast<const uint8_t*>(t.rx_buffer)[i]);
+                break;
+
+            case SpiFrame::Frame16Bit:
+                rxQueue_.push(static_cast<const uint16_t*>(t.rx_buffer)[i]);
+                break;
+
+            case SpiFrame::Frame32Bit:
+                rxQueue_.push(static_cast<const uint32_t*>(t.rx_buffer)[i]);
+                break;
+            }
+        }
+    }
 }
 
 }; // namespace esp32
