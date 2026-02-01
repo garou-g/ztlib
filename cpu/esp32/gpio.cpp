@@ -16,7 +16,7 @@ static bool checkConfig(const GpioConfig* config)
 {
     assert(config != nullptr);
 
-    return GPIO_IS_VALID_OUTPUT_GPIO(config->pin);
+    return GPIO_IS_VALID_GPIO(config->pin);
 }
 
 bool Gpio::setConfig(const void* drvConfig)

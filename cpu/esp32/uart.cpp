@@ -99,8 +99,8 @@ bool Uart::ioctl(uint32_t cmd, void* pValue)
     if (!isOpen())
         return false;
 
-    switch (static_cast<IoctlCmd>(cmd)) {
-    case kSetBaudrate:
+    switch (cmd) {
+    case kSetSpeed:
         if (pValue != nullptr) {
             int32_t newBaud = *static_cast<int32_t*>(pValue);
             if (newBaud > 0) {

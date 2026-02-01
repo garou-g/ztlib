@@ -138,7 +138,7 @@ bool I2c::ioctl(uint32_t cmd, void* pValue)
     if (!isOpen())
         return false;
 
-    switch (static_cast<IoctlCmd>(cmd)) {
+    switch (cmd) {
     case kSetAddress:
         if (pValue != nullptr) {
             setAddr(*static_cast<int32_t*>(pValue));
