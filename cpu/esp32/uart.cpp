@@ -53,7 +53,7 @@ bool Uart::open()
     };
     uart_param_config(config_.uart, &uartConfig);
     uart_set_pin(config_.uart, config_.tx, config_.rx, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
-    uart_driver_install(config_.uart, 256, 256, 0, NULL, 0);
+    uart_driver_install(config_.uart, config_.rxBufferSize, config_.txBufferSize, 0, NULL, 0);
     setOpened(true);
 
     return true;

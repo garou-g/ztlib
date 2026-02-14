@@ -16,6 +16,8 @@ struct UartConfig {
     int32_t baudrate;
     int32_t tx;
     int32_t rx;
+    int32_t txBufferSize;
+    int32_t rxBufferSize;
 };
 
 /// @brief ESP32 UART peripheral driver
