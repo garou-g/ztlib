@@ -99,6 +99,16 @@ Time::Time()
 }
 
 /**
+ * @brief Construct a new Time object from other
+ *
+ * @param other Time object
+ */
+Time::Time(const Time& other)
+{
+    *this = other;
+}
+
+/**
  * @brief Construct a new Time object with milliseconds value
  *
  * @param ms milliseconds

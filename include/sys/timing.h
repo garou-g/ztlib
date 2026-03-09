@@ -24,6 +24,7 @@ public:
     static constexpr int32_t kMilisecondsInHour = kSecondsInHour * kMilisecondsInSecond;
 
     Time();
+    Time(const Time& other);
     Time(int32_t ms);
     Time(int32_t h, int32_t s, int32_t ms);
 
