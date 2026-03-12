@@ -4,7 +4,9 @@
  * @brief   ESP32 I2C bus driver.
  ******************************************************************************/
 
+#if defined(__clang__)
 #pragma clang diagnostic ignored "-Wvla-cxx-extension"
+#endif
 
 #include "esp32/i2c.h"
 #include "esp_err.h"
