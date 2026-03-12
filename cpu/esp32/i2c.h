@@ -7,6 +7,9 @@
 #pragma once
 
 #include "periph/i2c.h"
+#if (ESP_IDF_VERSION_MAJOR == 5)
+#include "driver/i2c_types.h"
+#endif
 
 namespace esp32 {
 
@@ -36,6 +39,10 @@ private:
     int32_t read_(void* buf, uint32_t len) override;
 
     I2cConfig config_;
+#if (ESP_IDF_VERSION_MAJOR == 5)
+    i2c_master_bus_handle_t bus_;
+    i2c_master_dev_handle_t dev_;
+#endif
 };
 
 }; // namespace esp32
