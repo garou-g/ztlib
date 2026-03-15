@@ -7,6 +7,7 @@
 #include "gpio.h"
 
 #include "driver/gpio.h"
+#include "esp_idf_version.h"
 
 #include <cassert>
 
@@ -41,6 +42,21 @@ bool Gpio::open()
         return false;
     }
 
+#if (ESP_IDF_VERSION_MAJOR == 5)
+    gpio_config_t ioConf = {};
+    ioConf.pin_bit_mask =  1 << config_.pin;
+    switch (config_.dir) {
+    default:
+    case GpioDir::Disabled: ioConf.mode = GPIO_MODE_DISABLE; break;
+    case GpioDir::Input: ioConf.mode = GPIO_MODE_INPUT; break;
+    case GpioDir::Output: ioConf.mode = GPIO_MODE_OUTPUT; break;
+    case GpioDir::InputOutput: ioConf.mode = GPIO_MODE_INPUT_OUTPUT; break;
+    }
+    ioConf.pull_up_en = GPIO_PULLUP_DISABLE;
+    ioConf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    ioConf.intr_type = GPIO_INTR_DISABLE;
+    gpio_config(&ioConf);
+#else
     const gpio_num_t pin = static_cast<gpio_num_t>(config_.pin);
     gpio_pad_select_gpio(config_.pin);
     gpio_mode_t mode;
@@ -57,6 +73,7 @@ bool Gpio::open()
         gpio_set_level(pin, 0);
         gpio_hold_en(pin);
     }
+#endif
     setOpened(true);
     return true;
 }
@@ -67,7 +84,9 @@ void Gpio::close()
         const gpio_num_t pin = static_cast<gpio_num_t>(config_.pin);
         if (config_.dir == GpioDir::Output
             || config_.dir == GpioDir::InputOutput) {
+#if (ESP_IDF_VERSION_MAJOR != 5)
             gpio_hold_dis(pin);
+#endif
             gpio_reset_pin(pin);
         }
         setOpened(false);
@@ -82,9 +101,13 @@ void Gpio::set()
     if (config_.dir == GpioDir::Output
         || config_.dir == GpioDir::InputOutput) {
         const gpio_num_t pin = static_cast<gpio_num_t>(config_.pin);
+#if (ESP_IDF_VERSION_MAJOR == 5)
+        gpio_set_level(pin, 1);
+#else
         gpio_hold_dis(pin);
         gpio_set_level(pin, 1);
         gpio_hold_en(pin);
+#endif
     }
 }
 
@@ -96,9 +119,13 @@ void Gpio::reset()
     if (config_.dir == GpioDir::Output
         || config_.dir == GpioDir::InputOutput) {
         const gpio_num_t pin = static_cast<gpio_num_t>(config_.pin);
+#if (ESP_IDF_VERSION_MAJOR == 5)
+        gpio_set_level(pin, 0);
+#else
         gpio_hold_dis(pin);
         gpio_set_level(pin, 0);
         gpio_hold_en(pin);
+#endif
     }
 }
 

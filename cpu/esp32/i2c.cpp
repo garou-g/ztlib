@@ -24,7 +24,7 @@
 namespace esp32 {
 
 /// I2C driver operation timeout in milliseconds
-static constexpr uint32_t timeoutMs = pdMS_TO_TICKS(100);
+static constexpr uint32_t timeoutMs = pdMS_TO_TICKS(500);
 
 static bool checkConfig(const esp32::I2cConfig* config)
 {
